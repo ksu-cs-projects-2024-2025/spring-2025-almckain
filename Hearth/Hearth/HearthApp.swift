@@ -28,6 +28,5 @@ struct HearthApp: App {
             }
             
         }
-        .modelContainer(for: Item.self)
     }
 }
