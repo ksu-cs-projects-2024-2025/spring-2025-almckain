@@ -9,7 +9,25 @@ import SwiftUI
 
 struct FeedView: View {
     var body: some View {
-        Text("Hello, Feed!")
+        NavigationStack {
+            ZStack {
+                Color.green
+                    .opacity(0.9)
+                    .ignoresSafeArea()
+               
+                VStack {
+                    Divider()
+                        .background(Color.red)
+                    ScrollView {
+                        Text("Have the style touching the safe area edge.")
+                            .padding()
+                        Text("Big balls")
+                    }
+                }
+                .navigationTitle("Nav Bar Background")
+                .font(.title2)
+            }
+        }
     }
 }
 
