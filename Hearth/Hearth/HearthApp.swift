@@ -11,22 +11,22 @@ import Firebase
 
 @main
 struct HearthApp: App {
-    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding: Bool = false
-    
-    // Testing purposes to control which screen is being presented
+    @AppStorage("isOnboardingComplete") private var isOnboardingComplete: Bool = false
+
     init() {
         FirebaseApp.configure()
-        self.hasCompletedOnboarding = false
+        // Testing purposes to control which screen is being presented
+        //self.isOnboardingComplete = false
     }
     
     var body: some Scene {
         WindowGroup {
-            if hasCompletedOnboarding {
+            if isOnboardingComplete {
                 // Parent container for the tab bar and all children views
                 MainView()
             } else {
                 // Parent container for the onboarding sequence
-                OnboardingView(hasCompletedOnboarding: $hasCompletedOnboarding)
+                OnboardingView()
             }
             
         }
