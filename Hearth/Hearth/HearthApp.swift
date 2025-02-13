@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import Firebase
 
 @main
 struct HearthApp: App {
@@ -14,6 +15,7 @@ struct HearthApp: App {
     
     // Testing purposes to control which screen is being presented
     init() {
+        FirebaseApp.configure()
         self.hasCompletedOnboarding = false
     }
     
