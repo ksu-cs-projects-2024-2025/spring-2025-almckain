@@ -9,6 +9,7 @@ import SwiftUI
 
 struct JournalView: View {
     @State private var isPresented: Bool = false
+    @StateObject private var viewModel = JournalEntryViewModel()
     
     init() {
         let appearance = navBarAppearance()
@@ -22,11 +23,13 @@ struct JournalView: View {
                 Color.parchmentLight
                     .ignoresSafeArea()
                 ScrollView {
-                    BibleVerseCardView()
-                    BibleVerseCardView()
-                    BibleVerseCardView()
-                    BibleVerseCardView()
-                    BibleVerseCardView()
+                    if viewModel.isLoading {
+                        ProgressView()
+                    } else {
+                        ForEach(viewModel.journalEntries, id: \.id) { entry in
+                            JournalEntryCardView(journalEntry: entry)
+                        }
+                    }
                 }
                 .navigationTitle("Journal")
                 .navigationBarTitleDisplayMode(.inline)
@@ -57,12 +60,15 @@ struct JournalView: View {
                                     }
                             }
                             
-                            CreateNewJournalView(isPresenting: $isPresented)
+                            CreateNewJournalView(isPresenting: $isPresented, viewModel: viewModel)
                         }
                     }
                     .presentationDetents([.fraction(0.90)])
                 }
             }
+        }
+        .onAppear {
+            viewModel.fetchJournalEntries()
         }
     }
     

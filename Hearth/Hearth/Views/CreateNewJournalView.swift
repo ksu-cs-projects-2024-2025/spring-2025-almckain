@@ -12,6 +12,8 @@ struct CreateNewJournalView: View {
     @State private var content: String = ""
     @Binding var isPresenting: Bool
     
+    var viewModel: JournalEntryViewModel
+    
     var body: some View {
         NavigationStack {
             ZStack{
@@ -51,7 +53,8 @@ struct CreateNewJournalView: View {
 
 
                         Button("Add to Journal") {
-                            
+                            viewModel.addJournalEntry(title: title, content: content)
+                            isPresenting = false
                         }
                         .padding()
                         .frame(width: 200)
@@ -72,6 +75,6 @@ struct CreateNewJournalView: View {
 
 #Preview {
     @Previewable @State var isPresented = true
-    CreateNewJournalView(isPresenting: $isPresented)
+    CreateNewJournalView(isPresenting: $isPresented, viewModel: JournalEntryViewModel())
 }
 
