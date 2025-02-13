@@ -26,7 +26,7 @@ struct MainView: View {
             Tab("Calendar", systemImage: "calendar", value: 1) {
                 CalendarView()
             }
-            Tab("Feed", systemImage: "newspaper.fill", value: 2) {
+            Tab("Journal", systemImage: "newspaper.fill", value: 2) {
                 FeedView()
             }
             Tab("Profile", systemImage: "person.fill", value: 3) {
