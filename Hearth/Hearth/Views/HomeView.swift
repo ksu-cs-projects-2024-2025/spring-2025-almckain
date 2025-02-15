@@ -18,10 +18,7 @@ struct HomeView: View {
                     .ignoresSafeArea()
                 ScrollView {
                     BibleVerseCardView()
-                    BibleVerseCardView()
-                    BibleVerseCardView()
-                    BibleVerseCardView()
-                    BibleVerseCardView()
+                        .padding(.top, 10)
                 }
                 .navigationTitle("\(homeViewModel.fetchGreeting()), \(profileViewModel.userName ?? "Guest")")
                 .navigationBarTitleDisplayMode(.large)

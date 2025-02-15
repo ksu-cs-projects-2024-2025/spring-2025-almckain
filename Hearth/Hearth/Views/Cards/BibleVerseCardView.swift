@@ -8,11 +8,12 @@
 import SwiftUI
 
 struct BibleVerseCardView: View {
+    @StateObject private var viewModel = BibleVerseViewModel()
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 15)
                 .foregroundStyle(.warmSandLight)
-                .shadow(radius: 5, x: 0, y: 2)
+                .shadow(color: Color.parchmentDark.opacity(0.05), radius: 5, x: 0, y: 2)
                 .padding(.horizontal, 10)
             
             VStack(alignment: .leading) {
@@ -21,14 +22,31 @@ struct BibleVerseCardView: View {
                     .foregroundStyle(.hearthEmberDark)
                 Divider()
                     .foregroundStyle(.hearthEmberDark)
-                Text("Here is a bible verse. It has meaning. The meaning is good and the user might feel like reflecting on it.")
-                    .font(.customBody1)
-                    .foregroundStyle(.hearthEmberDark)
-                HStack {
-                    Spacer()
-                    Text("Aaron 4:16")
-                        .padding()
+                
+                if let verse = viewModel.bibleVerse {
+                    Text(verse.text)
+                        .font(.customBody1)
+                        .foregroundStyle(.hearthEmberDark)
+                    
+                    HStack {
+                        Spacer()
+                        Text(verse.reference)
+                            .padding()
+                    }
+                } else if let errorMessage = viewModel.errorMessage {
+                    Text("Error: \(errorMessage)")
+                        .foregroundStyle(.hearthError)
+                        .font(.customCaption1)
+                } else {
+                    Text("Loading verse...")
+                        .font(.customBody1)
+                        .foregroundStyle(.hearthEmberDark)
+                        .onAppear {
+                            viewModel.fetchLocalDailyVerse()
+                        }
                 }
+                
+                
                 
                 HStack {
                     Spacer()

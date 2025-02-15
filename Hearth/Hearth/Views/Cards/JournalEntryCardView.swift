@@ -14,7 +14,7 @@ struct JournalEntryCardView: View {
         ZStack {
             RoundedRectangle(cornerRadius: 15)
                 .foregroundStyle(.warmSandLight)
-                .shadow(radius: 5, x: 0, y: 2)
+                .shadow(color: Color.parchmentDark.opacity(0.05), radius: 5, x: 0, y: 2)
                 .padding(.horizontal, 10)
             
             HStack {
