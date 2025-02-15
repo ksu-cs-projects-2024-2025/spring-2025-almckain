@@ -13,15 +13,20 @@ struct HomeView: View {
     
     var body: some View {
         NavigationStack {
-            ZStack {
-                Color.parchmentLight
-                    .ignoresSafeArea()
-                ScrollView {
-                    BibleVerseCardView()
-                        .padding(.top, 10)
+            if profileViewModel.isLoading || homeViewModel.isLoading {
+                LoadingScreenView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                ZStack {
+                    Color.parchmentLight
+                        .ignoresSafeArea()
+                    ScrollView {
+                        BibleVerseCardView(viewModel: homeViewModel.bibleVerseViewModel)
+                            .padding(.top, 10)
+                    }
+                    .navigationTitle("\(homeViewModel.fetchGreeting()), \(profileViewModel.userName ?? "Guest")")
+                    .navigationBarTitleDisplayMode(.large)
                 }
-                .navigationTitle("\(homeViewModel.fetchGreeting()), \(profileViewModel.userName ?? "Guest")")
-                .navigationBarTitleDisplayMode(.large)
             }
         }
         .onAppear {

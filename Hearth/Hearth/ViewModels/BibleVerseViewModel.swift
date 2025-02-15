@@ -14,6 +14,7 @@ class BibleVerseViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var reflectionText: String = ""
     @Published var dailyVerseReference: String = ""
+    @Published var isLoading: Bool = false
     
     private var cancellables = Set<AnyCancellable>()
     private let bibleService: BibleVerseServiceProtocol
@@ -29,7 +30,7 @@ class BibleVerseViewModel: ObservableObject {
         self.reflectionService = reflectionService
         
         loadBibleVerses()
-        fetchLocalDailyVerse()
+        //fetchLocalDailyVerse()
     }
     
     private func loadBibleVerses() {
@@ -42,44 +43,55 @@ class BibleVerseViewModel: ObservableObject {
         }
     }
     
-    func fetchLocalDailyVerse() {
+    func fetchLocalDailyVerse(completion: @escaping () -> Void) {
         guard !dailyBibleVerses.isEmpty else {
             errorMessage = "No Bible verses available."
+            completion()
             return
         }
-        
+
+        isLoading = true
+
         if hasNewDayStarted() {
             let currentIndex = getCurrentIndex()
             let verseReference = dailyBibleVerses[currentIndex]
             dailyVerseReference = verseReference
             
-            fetchDailyVerse(reference: verseReference)
-            
+            fetchDailyVerse(reference: verseReference) {
+                completion()
+            }
+
             saveCurrentIndex((currentIndex + 1) % dailyBibleVerses.count)
             saveLastUpdateDate()
         } else {
             let currentIndex = getCurrentIndex()
             dailyVerseReference = dailyBibleVerses[currentIndex]
-            fetchDailyVerse(reference: dailyVerseReference)
+            fetchDailyVerse(reference: dailyVerseReference) {
+                completion()
+            }
         }
-        
     }
-    
-    func fetchDailyVerse(reference: String) {
+    func fetchDailyVerse(reference: String, completion: @escaping () -> Void) {
         let formattedReference = reference.replacingOccurrences(of: " ", with: "%20")
         guard let url = URL(string: "https://bible-api.com/\(formattedReference)") else {
             self.errorMessage = "Invalid API URL"
+            self.isLoading = false
+            completion()
             return
         }
-        
+
         bibleService.fetchVerse(from: url)
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] completion in
-                if case let .failure(error) = completion {
+            .sink { [weak self] completionResult in
+                self?.isLoading = false
+                completion()
+                if case let .failure(error) = completionResult {
                     self?.errorMessage = error.localizedDescription
                 }
             } receiveValue: { [weak self] verse in
                 self?.bibleVerse = verse
+                self?.isLoading = false
+                completion()
             }
             .store(in: &cancellables)
     }

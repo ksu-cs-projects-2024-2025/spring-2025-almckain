@@ -9,6 +9,26 @@ import Foundation
 import SwiftUI
 
 class HomeViewModel: ObservableObject {
+    @Published var isLoading: Bool = true
+    @Published var bibleVerseViewModel = BibleVerseViewModel()
+    
+    init() {
+        fetchData()
+    }
+    
+    func fetchData() {
+        isLoading = true  // Start loading
+
+        bibleVerseViewModel.fetchLocalDailyVerse { [weak self] in
+            DispatchQueue.main.async {
+                self?.isLoading = false
+            }
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            self.isLoading = false
+        }
+    }
     
     func navBarAppearance() -> UINavigationBarAppearance {
         let appearance = UINavigationBarAppearance()

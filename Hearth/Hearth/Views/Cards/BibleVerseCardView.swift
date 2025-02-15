@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct BibleVerseCardView: View {
-    @StateObject private var viewModel = BibleVerseViewModel()
+    @ObservedObject var viewModel: BibleVerseViewModel
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 15)
@@ -37,13 +37,6 @@ struct BibleVerseCardView: View {
                     Text("Error: \(errorMessage)")
                         .foregroundStyle(.hearthError)
                         .font(.customCaption1)
-                } else {
-                    Text("Loading verse...")
-                        .font(.customBody1)
-                        .foregroundStyle(.hearthEmberDark)
-                        .onAppear {
-                            viewModel.fetchLocalDailyVerse()
-                        }
                 }
                 
                 
@@ -68,5 +61,5 @@ struct BibleVerseCardView: View {
 }
 
 #Preview {
-    BibleVerseCardView()
+    BibleVerseCardView(viewModel: BibleVerseViewModel())
 }

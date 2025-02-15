@@ -11,7 +11,15 @@ import FirebaseFirestore
 
 class ProfileViewModel: ObservableObject {
     @Published var userName: String?
+    @Published var isLoading: Bool = true
     private let profileService = ProfileService()
+    
+    init() {
+        fetchUserData()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            self.isLoading = false
+        }
+    }
 
     func fetchUserData() {
         profileService.getUserData { [weak self] result in
