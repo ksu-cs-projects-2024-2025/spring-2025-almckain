@@ -84,7 +84,7 @@ struct JournalEntryCardView: View {
                         .padding()
                 }
             }
-            .presentationDetents([.fraction(0.90)])
+            .presentationDetents([.fraction(1)])
         }
     }
 }
