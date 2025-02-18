@@ -41,5 +41,24 @@ class OnboardingViewModel: ObservableObject {
         }
     }
     
-    // Eventually one for logout and login
+    func loginUser() {
+        guard !email.isEmpty, !password.isEmpty else {
+            errorMessage = "Please enter your email and password"
+            return
+        }
+        
+        isLoading = true
+
+        userService.loginUser(email: email, password: password) { result in
+            DispatchQueue.main.async {
+                self.isLoading = false
+                switch result {
+                case .success:
+                    self.isOnboardingComplete = true
+                case .failure(let error):
+                    self.errorMessage = error.localizedDescription
+                }
+            }
+        }
+    }
 }

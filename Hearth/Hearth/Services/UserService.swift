@@ -29,6 +29,16 @@ class UserService {
         }
     }
     
+    func loginUser(email: String, password: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        Auth.auth().signIn(withEmail: email, password: password) { result, error in
+            if let error = error {
+                completion(.failure(error))
+            } else {
+                completion(.success(()))
+            }
+        }
+    }
+    
     private func createUserDocument(_ user: UserModel, completion: @escaping (Result<Void, Error>) -> Void) {
         let userData: [String: Any] = [
             "id": user.id,
