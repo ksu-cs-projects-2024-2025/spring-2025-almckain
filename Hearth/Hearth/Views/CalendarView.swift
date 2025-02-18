@@ -29,6 +29,7 @@ struct CalendarView: View {
                 }
                 .navigationTitle("Calendar")
                 .navigationBarTitleDisplayMode(.large)
+                .buttonStyle(.plain)
             }
         }
     }

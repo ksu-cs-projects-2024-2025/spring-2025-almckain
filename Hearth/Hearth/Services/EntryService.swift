@@ -12,6 +12,33 @@ import Foundation
 class EntryService {
     private let db = Firestore.firestore()
     
+    func fetchEntriesInRange(start: Date, end: Date, completion: @escaping (Result<[JournalEntryModel], Error>) -> Void) {
+        guard let userID = Auth.auth().currentUser?.uid else {
+            completion(.failure(NSError(domain: "AuthError", code: 401,
+               userInfo: [NSLocalizedDescriptionKey: "User not logged in."])))
+            return
+        }
+        
+        db.collection("entries")
+            .whereField("userID", isEqualTo: userID)
+            .whereField("entryType", isEqualTo: EntryType.journal.rawValue)
+            .whereField("timeStamp", isGreaterThanOrEqualTo: start)
+            .whereField("timeStamp", isLessThan: end)
+            .getDocuments { snapshot, error in
+                if let error = error {
+                    completion(.failure(error))
+                    return
+                }
+                
+                let entries: [JournalEntryModel] = snapshot?.documents.compactMap {
+                    try? $0.data(as: JournalEntryModel.self)
+                } ?? []
+                
+                completion(.success(entries))
+            }
+    }
+    
+    
     func saveEntry<T: EntryProtocol>(_ entry: T, completion: @escaping (Result<Void, Error>) -> Void) {
         guard let user = Auth.auth().currentUser else {
             completion(.failure(NSError(domain: "AuthError", code: 401, userInfo: [NSLocalizedDescriptionKey: "User not logged in."])))

@@ -35,6 +35,11 @@ struct EntryDayListView: View {
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             calendarViewModel.fetchEntries(for: selectedDate)
+            let appearance = calendarViewModel.navBarAppearance()
+            UINavigationBar.appearance().standardAppearance = appearance
+            UINavigationBar.appearance().scrollEdgeAppearance = appearance
+            UINavigationBar.appearance().compactAppearance = appearance
+            UINavigationBar.appearance().tintColor = UIColor(named: "HearthEmberMain")
         }
     }
 }

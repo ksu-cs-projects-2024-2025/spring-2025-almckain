@@ -10,10 +10,41 @@ import SwiftUI
 
 class CalendarViewModel: ObservableObject {
     private let entryService = EntryService()
+    private let calendar = Calendar.current
+    
+    @Published var monthEntries: [Date: [JournalEntryModel]] = [:]
         
     @Published var entries: [JournalEntryModel] = []
     @Published var isLoading: Bool = false
     
+    
+    func fetchEntriesInMonth(_ monthDate: Date) {
+        isLoading = true
+        
+        let startOfMonth = calendar.startOfDay(for: monthDate.startOfMonth)
+        // End of month is inclusive, so fetch up to the *start* of the next day
+        let endOfMonth = calendar.date(byAdding: .day, value: 1, to: monthDate.endOfMonth)!
+        
+        entryService.fetchEntriesInRange(start: startOfMonth, end: endOfMonth) { [weak self] result in
+            DispatchQueue.main.async {
+                self?.isLoading = false
+                switch result {
+                case .success(let fetchedEntries):
+                    // Group entries by their own startOfDay
+                    var grouped: [Date: [JournalEntryModel]] = [:]
+                    for entry in fetchedEntries {
+                        let dayStart = self?.calendar.startOfDay(for: entry.timeStamp) ?? Date()
+                        grouped[dayStart, default: []].append(entry)
+                    }
+                    self?.monthEntries = grouped
+                case .failure(let error):
+                    print("Error fetching month entries: \(error.localizedDescription)")
+                    self?.monthEntries = [:]
+                }
+            }
+        }
+    }
+           
     func fetchEntries(for date: Date) {
         isLoading = true
         entryService.fetchEntriesForDay(date: date) { [weak self] result in
