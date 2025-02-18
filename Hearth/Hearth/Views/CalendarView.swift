@@ -8,8 +8,29 @@
 import SwiftUI
 
 struct CalendarView: View {
+    
+    @StateObject var calendarViewModel = CalendarViewModel()
+    
     var body: some View {
-        Text("Hello, Calendar!")
+        ZStack {
+            Color.parchmentLight
+                .ignoresSafeArea()
+            NavigationStack {
+                ScrollView {
+                    CalendarCardView()
+                        .navigationDestination(for: Date.self) { date in
+                            EntryDayListView(selectedDate: date)
+                        }
+                }
+                .onAppear {
+                    let appearance = calendarViewModel.navBarAppearance()
+                    UINavigationBar.appearance().standardAppearance = appearance
+                    UINavigationBar.appearance().scrollEdgeAppearance = appearance
+                }
+                .navigationTitle("Calendar")
+                .navigationBarTitleDisplayMode(.large)
+            }
+        }
     }
 }
 

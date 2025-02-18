@@ -9,6 +9,7 @@ import SwiftUI
 
 struct JournalEntryCardView: View {
     let journalEntry: JournalEntryModel
+    @State private var isSheetPresented = false
     
     var body: some View {
         ZStack {
@@ -59,6 +60,32 @@ struct JournalEntryCardView: View {
             }
         }
         .padding(.vertical, 10)
+        .onTapGesture {
+            isSheetPresented = true
+        }
+        .sheet(isPresented: $isSheetPresented) {
+            ZStack {
+                Color.warmSandLight
+                    .ignoresSafeArea()
+                VStack {
+                    HStack {
+                        Spacer()
+                        Image(systemName: "x.circle.fill")
+                            .padding(.top)
+                            .padding(.trailing, 20)
+                            .foregroundStyle(.parchmentDark.opacity(0.6))
+                            .font(.customTitle2)
+                            .onTapGesture {
+                                isSheetPresented.toggle()
+                            }
+                    }
+                    
+                    DetailedJournalEntryView(entry: journalEntry, isPresenting: $isSheetPresented)
+                        .padding()
+                }
+            }
+            .presentationDetents([.fraction(0.90)])
+        }
     }
 }
 
