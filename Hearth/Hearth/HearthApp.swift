@@ -26,7 +26,8 @@ struct HearthApp: App {
                 MainView()
             } else {
                 // Parent container for the onboarding sequence
-                OnboardingView()
+                // OnboardingView()
+                SplashPageView()
             }
             
         }

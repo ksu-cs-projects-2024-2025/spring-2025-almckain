@@ -13,8 +13,8 @@ struct ProfileView: View {
     
     var body: some View {
         VStack(spacing: 20) {
-            if let username = viewModel.userName {
-                Text("Hello, \(username)!")
+            if let user = viewModel.user {
+                Text("Hello, \(user.firstName) \(user.lastName)!")
                     .font(.largeTitle)
                     .fontWeight(.bold)
             } else {

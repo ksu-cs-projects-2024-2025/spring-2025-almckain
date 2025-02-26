@@ -24,7 +24,7 @@ struct HomeView: View {
                         BibleVerseCardView(viewModel: homeViewModel.bibleVerseViewModel)
                             .padding(.top, 10)
                     }
-                    .navigationTitle("\(homeViewModel.fetchGreeting()), \(profileViewModel.userName ?? "Guest")")
+                    .navigationTitle("\(homeViewModel.fetchGreeting()), \(profileViewModel.user?.firstName ?? "Guest")")
                     .navigationBarTitleDisplayMode(.large)
                 }
             }

@@ -12,7 +12,7 @@ import Foundation
 class UserService {
     private let db = Firestore.firestore()
 
-    func registerUser(name: String, email: String, password: String, completion: @escaping (Result<Void, Error>) -> Void) {
+    func registerUser(firstName: String, lastName: String, email: String, password: String, completion: @escaping (Result<Void, Error>) -> Void) {
         Auth.auth().createUser(withEmail: email, password: password) { authResult, error in
             if let error = error {
                 completion(.failure(error))
@@ -24,7 +24,7 @@ class UserService {
                 return
             }
             
-            let newUser = UserModel(id: user.uid, name: name, email: email)
+            let newUser = UserModel(id: user.uid, firstName: firstName, lastName: lastName, email: email)
             self.createUserDocument(newUser, completion: completion)
         }
     }
@@ -42,7 +42,8 @@ class UserService {
     private func createUserDocument(_ user: UserModel, completion: @escaping (Result<Void, Error>) -> Void) {
         let userData: [String: Any] = [
             "id": user.id,
-            "name": user.name,
+            "firstName": user.firstName,
+            "lastName": user.lastName,
             "email": user.email
         ]
         

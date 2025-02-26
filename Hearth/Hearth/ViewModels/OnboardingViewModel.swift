@@ -11,9 +11,12 @@ import Foundation
 import SwiftUI
 
 class OnboardingViewModel: ObservableObject {
-    @Published var name: String = ""
+    @Published var firstName: String = ""
+    @Published var lastName: String = ""
     @Published var email: String = ""
     @Published var password: String = ""
+    @Published var confirmPassword: String = ""
+    @Published var hasAgreedToPrivacyPolicy: Bool = false
     @Published var errorMessage: String?
     @Published var isLoading: Bool = false
     @AppStorage("isOnboardingComplete") private var isOnboardingComplete: Bool = false
@@ -21,14 +24,24 @@ class OnboardingViewModel: ObservableObject {
     private let userService = UserService()
     
     func registerUser() {
-        guard !name.isEmpty, !email.isEmpty, !password.isEmpty else {
+        guard !firstName.isEmpty, !lastName.isEmpty, !email.isEmpty, !password.isEmpty, !confirmPassword.isEmpty else {
             errorMessage = "Please fill in all fields"
+            return
+        }
+        
+        guard password == confirmPassword else {
+            errorMessage = "Passwords do not match"
+            return
+        }
+        
+        guard hasAgreedToPrivacyPolicy else {
+            errorMessage = "You must agree to the privacy policy"
             return
         }
         
         isLoading = true
 
-        userService.registerUser(name: name, email: email, password: password) { result in
+        userService.registerUser(firstName: firstName, lastName: lastName, email: email, password: password) { result in
             DispatchQueue.main.async {
                 self.isLoading = false
                 switch result {
