@@ -36,7 +36,7 @@ struct SignupView: View {
                     VStack {
                         TextField("First name", text: $viewModel.firstName)
                             .padding()
-                            .background(Color.white)
+                            .background(Color.parchmentLight)
                             .clipShape(RoundedRectangle(cornerRadius: 15))
                             .focused($focusedField, equals: .firstName)
                             .submitLabel(.done)
@@ -44,14 +44,14 @@ struct SignupView: View {
                         
                         TextField("Last name", text: $viewModel.lastName)
                             .padding()
-                            .background(Color.white)
+                            .background(Color.parchmentLight)
                             .clipShape(RoundedRectangle(cornerRadius: 15))
                             .focused($focusedField, equals: .lastName)
                             .submitLabel(.done)
                         
                         TextField("Email", text: $viewModel.email)
                             .padding()
-                            .background(Color.white)
+                            .background(Color.parchmentLight)
                             .clipShape(RoundedRectangle(cornerRadius: 15))
                             .focused($focusedField, equals: .email)
                             .submitLabel(.done)
@@ -60,7 +60,7 @@ struct SignupView: View {
                         
                         SecureField("Password", text: $viewModel.password)
                             .padding()
-                            .background(Color.white)
+                            .background(Color.parchmentLight)
                             .clipShape(RoundedRectangle(cornerRadius: 15))
                             .focused($focusedField, equals: .password)
                             .submitLabel(.done)
@@ -68,7 +68,7 @@ struct SignupView: View {
                         
                         SecureField("Confirm", text: $viewModel.confirmPassword)
                             .padding()
-                            .background(Color.white)
+                            .background(Color.parchmentLight)
                             .clipShape(RoundedRectangle(cornerRadius: 15))
                             .focused($focusedField, equals: .confirmPassword)
                             .submitLabel(.done)
