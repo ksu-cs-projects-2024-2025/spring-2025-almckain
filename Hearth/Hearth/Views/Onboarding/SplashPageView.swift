@@ -45,7 +45,7 @@ struct SplashPageView: View {
                                 )
                         }
                         
-                        NavigationLink(destination: SignupView()) {
+                        NavigationLink(destination: OnboardingView()) {
                             Text("Sign Up")
                                 .frame(maxWidth: .infinity)
                                 .padding()

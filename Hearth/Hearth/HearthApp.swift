@@ -16,7 +16,7 @@ struct HearthApp: App {
     init() {
         FirebaseApp.configure()
         // Testing purposes to control which screen is being presented
-        //self.isOnboardingComplete = false
+        self.isOnboardingComplete = false
     }
     
     var body: some Scene {

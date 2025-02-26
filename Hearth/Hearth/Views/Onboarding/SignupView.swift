@@ -11,6 +11,7 @@ struct SignupView: View {
     @StateObject private var viewModel = OnboardingViewModel()
     @State private var showPrivacyPolicy = false
     @FocusState private var focusedField: Field?
+    @Binding var currentStep: Int
     
     enum Field {
         case firstName, lastName, email, password, confirmPassword
@@ -109,7 +110,9 @@ struct SignupView: View {
                     }
                     
                     Button("Create Account") {
+                        // coordinator.goToNextStep()
                         viewModel.registerUser()
+                        currentStep = 1;
                     }
                     .frame(maxWidth: .infinity)
                     .padding()
@@ -126,7 +129,8 @@ struct SignupView: View {
     }
 }
 
+/*
 #Preview {
     SignupView()
 }
-
+*/

@@ -46,7 +46,8 @@ class OnboardingViewModel: ObservableObject {
                 self.isLoading = false
                 switch result {
                 case .success:
-                    self.isOnboardingComplete = true
+                    //self.isOnboardingComplete = true
+                    print("Successfully registered new user")
                 case .failure(let error):
                     self.errorMessage = error.localizedDescription
                 }
