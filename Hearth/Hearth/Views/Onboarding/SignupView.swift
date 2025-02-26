@@ -55,6 +55,7 @@ struct SignupView: View {
                             .clipShape(RoundedRectangle(cornerRadius: 15))
                             .focused($focusedField, equals: .email)
                             .submitLabel(.done)
+                            .keyboardType(.emailAddress)
                         
                         
                         SecureField("Password", text: $viewModel.password)
@@ -110,7 +111,6 @@ struct SignupView: View {
                     }
                     
                     Button("Create Account") {
-                        // coordinator.goToNextStep()
                         viewModel.registerUser()
                         currentStep = 1;
                     }

@@ -63,7 +63,29 @@ struct SplashPageView: View {
                 }
             }
         }
+        .onAppear {
+            let appearance = navBarAppearance()
+            UINavigationBar.appearance().standardAppearance = appearance
+            UINavigationBar.appearance().scrollEdgeAppearance = appearance
+            
+            let tabAppearance = UITabBarAppearance()
+            UITabBar.appearance().standardAppearance = tabAppearance
+            UITabBar.appearance().scrollEdgeAppearance = tabAppearance
+            UITabBar.appearance().isHidden = true
+        }
     }
+    
+    func navBarAppearance() -> UINavigationBarAppearance {
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithOpaqueBackground() // Ensures non-translucency
+        appearance.backgroundColor = nil // No specific background color
+        appearance.titleTextAttributes = [:] // No specific title styling
+        appearance.largeTitleTextAttributes = [:] // No specific large title styling
+        appearance.shadowColor = .clear // Removes the thin line
+        appearance.shadowImage = UIImage() // Ensures no shadow is applied
+        return appearance
+    }
+
 }
 
 #Preview {

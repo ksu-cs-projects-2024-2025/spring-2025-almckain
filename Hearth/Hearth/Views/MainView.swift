@@ -16,6 +16,7 @@ struct MainView: View {
         let appearance = tabBarAppearance()
         UITabBar.appearance().standardAppearance = appearance
         UITabBar.appearance().scrollEdgeAppearance = appearance
+        UITabBar.appearance().isHidden = false
     }
     
     var body: some View {
