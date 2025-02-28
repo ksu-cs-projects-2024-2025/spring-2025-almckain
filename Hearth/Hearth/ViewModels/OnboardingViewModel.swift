@@ -23,19 +23,22 @@ class OnboardingViewModel: ObservableObject {
 
     private let userService = UserService()
     
-    func registerUser() {
+    func registerUser(completion: @escaping (Bool) -> Void) {
         guard !firstName.isEmpty, !lastName.isEmpty, !email.isEmpty, !password.isEmpty, !confirmPassword.isEmpty else {
             errorMessage = "Please fill in all fields"
+            completion(false)
             return
         }
         
         guard password == confirmPassword else {
             errorMessage = "Passwords do not match"
+            completion(false)
             return
         }
         
         guard hasAgreedToPrivacyPolicy else {
             errorMessage = "You must agree to the privacy policy"
+            completion(false)
             return
         }
         
@@ -47,9 +50,10 @@ class OnboardingViewModel: ObservableObject {
                 switch result {
                 case .success:
                     //self.isOnboardingComplete = true
-                    print("Successfully registered new user")
+                    completion(true)
                 case .failure(let error):
                     self.errorMessage = error.localizedDescription
+                    completion(false)
                 }
             }
         }
@@ -75,4 +79,14 @@ class OnboardingViewModel: ObservableObject {
             }
         }
     }
+    
+    var isFormValid: Bool {
+        return !firstName.isEmpty &&
+               !lastName.isEmpty &&
+               !email.isEmpty &&
+               !password.isEmpty &&
+               !confirmPassword.isEmpty &&
+               hasAgreedToPrivacyPolicy
+    }
+
 }

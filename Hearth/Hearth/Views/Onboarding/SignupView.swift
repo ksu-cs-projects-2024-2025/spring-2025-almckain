@@ -9,7 +9,6 @@ import SwiftUI
 
 struct SignupView: View {
     @StateObject private var viewModel = OnboardingViewModel()
-    @State private var showPrivacyPolicy = false
     @FocusState private var focusedField: Field?
     @Binding var currentStep: Int
     
@@ -110,17 +109,23 @@ struct SignupView: View {
                             .font(.caption)
                     }
                     
-                    Button("Create Account") {
-                        viewModel.registerUser()
-                        currentStep = 1;
+                    Button(action: {
+                        viewModel.registerUser { success in
+                            if success {
+                                currentStep = 1
+                            }
+                        }
+                    }) {
+                        Text("Create Account")
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .font(.customButton)
+                            .foregroundColor(.white)
+                            .background(RoundedRectangle(cornerRadius: 20).fill(viewModel.isFormValid ? Color.hearthEmberMain : Color.gray))
+                            .contentShape(Rectangle())
                     }
-                    .frame(maxWidth: .infinity)
                     .padding()
-                    .font(.customButton)
-                    .foregroundColor(.white)
-                    .background(RoundedRectangle(cornerRadius: 20).fill(viewModel.hasAgreedToPrivacyPolicy ? Color.hearthEmberMain : Color.gray))
-                    .padding()
-                    .disabled(!viewModel.hasAgreedToPrivacyPolicy)
+                    .disabled(!viewModel.isFormValid)
                     
                     Spacer()
                 }

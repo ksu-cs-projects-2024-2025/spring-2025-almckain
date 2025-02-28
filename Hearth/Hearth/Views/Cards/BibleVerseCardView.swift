@@ -9,6 +9,7 @@ import SwiftUI
 
 struct BibleVerseCardView: View {
     @ObservedObject var viewModel: BibleVerseViewModel
+    @State private var isSheetPresented = false
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 15)
@@ -24,12 +25,14 @@ struct BibleVerseCardView: View {
                     .foregroundStyle(.hearthEmberDark)
                 
                 if let verse = viewModel.bibleVerse {
+                    
                     Text(verse.text)
                         .font(.customBody1)
                         .foregroundStyle(.hearthEmberDark)
                     
                     HStack {
                         Spacer()
+                        
                         Text(verse.reference)
                             .padding()
                     }
@@ -53,9 +56,35 @@ struct BibleVerseCardView: View {
                         .foregroundStyle(.hearthEmberDark)
                     Spacer()
                 }
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    isSheetPresented = true
+                }
                 
             }
             .padding(30)
+        }
+        .sheet(isPresented: $isSheetPresented) {
+            ZStack {
+                Color.warmSandLight
+                    .ignoresSafeArea()
+                VStack {
+                    HStack {
+                        Spacer()
+                        Image(systemName: "x.circle.fill")
+                            .padding(.top)
+                            .padding(.trailing, 20)
+                            .foregroundStyle(.parchmentDark.opacity(0.6))
+                            .font(.customTitle2)
+                            .onTapGesture {
+                                isSheetPresented.toggle()
+                            }
+                    }
+                    EditAddBibleReflectionView(isPresented: $isSheetPresented)
+                        .padding()
+                }
+            }
+            .presentationDetents([.fraction(1)])
         }
     }
 }
