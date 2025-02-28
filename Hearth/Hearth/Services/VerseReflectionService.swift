@@ -13,14 +13,17 @@ class VerseReflectionService {
     
     func saveReflection(_ reflection: VerseReflectionModel, completion: @escaping (Result<Void, Error>) -> Void) {
         do {
-            _ = try db.collection("verseReflections").addDocument(from: reflection) { error in
+            let _ = try db.collection("reflections").addDocument(from: reflection) { error in
                 if let error = error {
+                    print("Firestore Error: \(error.localizedDescription)")
                     completion(.failure(error))
                 } else {
+                    print("Reflection saved successfully")
                     completion(.success(()))
                 }
             }
-        } catch {
+        } catch let error {
+            print("Encoding Error: \(error.localizedDescription)")
             completion(.failure(error))
         }
     }

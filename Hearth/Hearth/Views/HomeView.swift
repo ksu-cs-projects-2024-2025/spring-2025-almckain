@@ -10,6 +10,7 @@ import SwiftUI
 struct HomeView: View {
     @StateObject var profileViewModel = ProfileViewModel()
     @StateObject var homeViewModel = HomeViewModel()
+    @StateObject var reflectionViewModel = VerseReflectionViewModel()
     
     var body: some View {
         NavigationStack {
@@ -21,7 +22,7 @@ struct HomeView: View {
                     Color.parchmentLight
                         .ignoresSafeArea()
                     ScrollView {
-                        BibleVerseCardView(viewModel: homeViewModel.bibleVerseViewModel)
+                        BibleVerseCardView(viewModel: homeViewModel.bibleVerseViewModel, reflectionViewModel: reflectionViewModel)
                             .padding(.top, 10)
                     }
                     .navigationTitle("\(homeViewModel.fetchGreeting()), \(profileViewModel.user?.firstName ?? "Guest")")

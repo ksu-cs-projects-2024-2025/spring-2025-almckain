@@ -17,7 +17,7 @@ class HomeViewModel: ObservableObject {
     }
     
     func fetchData() {
-        isLoading = true  // Start loading
+        isLoading = true
 
         bibleVerseViewModel.fetchLocalDailyVerse { [weak self] in
             DispatchQueue.main.async {

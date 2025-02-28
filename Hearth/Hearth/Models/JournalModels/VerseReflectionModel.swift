@@ -12,9 +12,9 @@ struct VerseReflectionModel: EntryProtocol {
     @DocumentID var id: String?
     var userID: String
     var title: String
-    var bibleVerseID: String
-    var bibleVerseReference: String
+    var bibleVerseText: String
     var reflection: String
     var timeStamp: Date
     var entryType: EntryType = .bibleVerseReflection
 }
+

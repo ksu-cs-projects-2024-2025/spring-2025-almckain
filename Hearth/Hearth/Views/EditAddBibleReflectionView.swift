@@ -8,6 +8,11 @@
 import SwiftUI
 
 struct EditAddBibleReflectionView: View {
+    @ObservedObject var reflectionViewModel: VerseReflectionViewModel
+    let verseText: String
+    let verseReference: String
+    
+    @State private var showingErrorAlert = false
     @State private var content: String = ""
     @Binding var isPresented: Bool
     @FocusState private var textBoxIsFocused: Bool
@@ -50,13 +55,13 @@ struct EditAddBibleReflectionView: View {
                         .padding(.trailing, 20)
 
                     VStack {
-                        Text("Do not be anxious about anything, but in every situation, by prayer and petition, with thanksgiving, present your requests to God. And the peace of God, which transcends all understanding, will guard your hearts and your minds in Christ Jesus.")
+                        Text(verseText)
                             .font(.customBody1)
                             .foregroundStyle(.hearthEmberDark)
                         
                         HStack {
                             Spacer()
-                            Text("Philippians 4:6-7")
+                            Text(verseReference)
                                 .padding(.top)
                         }
                     }
@@ -74,8 +79,20 @@ struct EditAddBibleReflectionView: View {
                         .focused($textBoxIsFocused)
                     
                     Button("Save Reflection") {
-                        //viewModel.addJournalEntry(title: title, content: content)
-                        isPresented = false
+                        guard !reflectionViewModel.isSaving, !content.isEmpty else { return }
+                        
+                        reflectionViewModel.saveReflection(
+                            reference: verseReference,
+                            verseText: verseText,
+                            reflectionText: content
+                        ) { result in
+                            switch result {
+                            case .success:
+                                isPresented = false
+                            case .failure:
+                                showingErrorAlert = true
+                            }
+                        }
                     }
                     .padding()
                     .frame(width: 200)
@@ -83,6 +100,8 @@ struct EditAddBibleReflectionView: View {
                     .foregroundColor(.parchmentLight)
                     .font(.headline)
                     .cornerRadius(15)
+                    .disabled(reflectionViewModel.isSaving)
+
                     
                     Spacer()
                 }
@@ -92,10 +111,15 @@ struct EditAddBibleReflectionView: View {
         .onTapGesture {
             textBoxIsFocused = false
         }
+        .alert("Error", isPresented: $showingErrorAlert, presenting: reflectionViewModel.error) { error in
+            Button("OK", role: .cancel) { }
+        } message: { error in
+            Text(error.localizedDescription)
+        }
     }
 }
 
 #Preview {
     @Previewable @State var isPresented = true
-    EditAddBibleReflectionView(isPresented: $isPresented)
+    EditAddBibleReflectionView(reflectionViewModel: VerseReflectionViewModel(), verseText: "This is a bible verse. There should be a decent ammount of text here.", verseReference: "Aaron 4:16",isPresented: $isPresented)
 }

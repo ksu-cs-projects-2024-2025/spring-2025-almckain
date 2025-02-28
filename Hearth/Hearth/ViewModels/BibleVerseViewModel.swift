@@ -116,33 +116,5 @@ class BibleVerseViewModel: ObservableObject {
     
     private func saveLastUpdateDate() {
             UserDefaults.standard.set(Date(), forKey: lastUpdateDateKey)
-        }
-    
-    func saveReflection(for userID: String) {
-        guard let verse = bibleVerse else { return }
-        
-        let reflection = VerseReflectionModel(
-            userID: userID,
-            title: "Reflection on \(verse.reference)",
-            bibleVerseID: verse.verses.first?.id ?? "",
-            bibleVerseReference: verse.reference,
-            reflection: reflectionText,
-            timeStamp: Date(),
-            entryType: .bibleVerseReflection
-        )
-
-
-        
-        reflectionService.saveReflection(reflection) { result in
-            DispatchQueue.main.async {
-                switch result {
-                case .success():
-                    print("Reflection saved successfully!")
-                    self.reflectionText = ""
-                case .failure(let error):
-                    self.errorMessage = error.localizedDescription
-                }
-            }
-        }
     }
 }

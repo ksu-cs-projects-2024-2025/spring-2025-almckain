@@ -9,6 +9,8 @@ import SwiftUI
 
 struct BibleVerseCardView: View {
     @ObservedObject var viewModel: BibleVerseViewModel
+    @ObservedObject var reflectionViewModel: VerseReflectionViewModel
+    
     @State private var isSheetPresented = false
     var body: some View {
         ZStack {
@@ -80,8 +82,14 @@ struct BibleVerseCardView: View {
                                 isSheetPresented.toggle()
                             }
                     }
-                    EditAddBibleReflectionView(isPresented: $isSheetPresented)
-                        .padding()
+                    // In BibleVerseCardView's sheet
+                    EditAddBibleReflectionView(
+                                    reflectionViewModel: reflectionViewModel,
+                                    verseText: viewModel.bibleVerse?.text ?? "",
+                                    verseReference: viewModel.bibleVerse?.reference ?? "",
+                                    isPresented: $isSheetPresented
+                                )
+                    .padding()
                 }
             }
             .presentationDetents([.fraction(1)])
@@ -89,6 +97,7 @@ struct BibleVerseCardView: View {
     }
 }
 
+
 #Preview {
-    BibleVerseCardView(viewModel: BibleVerseViewModel())
+    BibleVerseCardView(viewModel: BibleVerseViewModel(), reflectionViewModel: VerseReflectionViewModel())
 }

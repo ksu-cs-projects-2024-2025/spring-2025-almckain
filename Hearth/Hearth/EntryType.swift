@@ -12,4 +12,5 @@ enum EntryType: String, Codable, CaseIterable {
     case bibleVerseReflection
     case gratitude
     case prayerReminder
+    case selfReflection
 }
