@@ -9,7 +9,9 @@ import SwiftUI
 
 struct EntryDayListView: View {
     let selectedDate: Date
-    @StateObject private var calendarViewModel = CalendarViewModel()
+    @ObservedObject var calendarViewModel: CalendarViewModel
+    @State private var isPresented: Bool = false
+    @StateObject var journalEntryViewModel = JournalEntryViewModel()
     
     var body: some View {
         ZStack {
@@ -25,14 +27,53 @@ struct EntryDayListView: View {
                 } else {
                     ScrollView {
                         ForEach(calendarViewModel.entries, id: \.id) { entry in
-                            JournalEntryCardView(journalEntry: entry)
+                            JournalEntryCardView(
+                                journalEntry: entry,
+                                calendarViewModel: calendarViewModel,
+                                journalEntryViewModel: journalEntryViewModel,
+                                selectedDate: selectedDate
+                            )
                         }
                     }
                 }
             }
+            .sheet(isPresented: $isPresented) {
+                ZStack {
+                    Color.warmSandLight
+                    VStack {
+                        HStack {
+                            Spacer()
+                            Image(systemName: "x.circle.fill")
+                                .padding(.top)
+                                .padding(.trailing, 20)
+                                .foregroundStyle(.parchmentDark.opacity(0.6))
+                                .font(.customTitle2)
+                                .onTapGesture {
+                                    isPresented.toggle()
+                                }
+                        }
+                        
+                        CreateNewJournalView(isPresenting: $isPresented, viewModel: JournalEntryViewModel(), calendarViewModel: calendarViewModel, selectedDate: selectedDate)
+                    }
+                }
+                .presentationDetents([.fraction(0.90)])
+            }
         }
         .navigationTitle(selectedDate.formatted(.dateTime.month(.abbreviated).day().year()))
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            if calendarViewModel.isToday(selectedDate: selectedDate) {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button(action: {
+                        isPresented.toggle()
+                    }) {
+                        Image(systemName: "plus.square")
+                            .font(.customTitle3)
+                            .foregroundStyle(.hearthEmberMain)
+                    }
+                }
+            }
+        }
         .onAppear {
             calendarViewModel.fetchEntries(for: selectedDate)
             let appearance = calendarViewModel.navBarAppearance()
@@ -45,5 +86,5 @@ struct EntryDayListView: View {
 }
 
 #Preview {
-    EntryDayListView(selectedDate: Date())
+    EntryDayListView(selectedDate: Date(), calendarViewModel: CalendarViewModel())
 }

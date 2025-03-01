@@ -9,6 +9,9 @@ import SwiftUI
 
 struct JournalEntryCardView: View {
     let journalEntry: JournalEntryModel
+    @ObservedObject var calendarViewModel: CalendarViewModel
+    @ObservedObject var journalEntryViewModel: JournalEntryViewModel
+    var selectedDate: Date
     @State private var isSheetPresented = false
     
     var body: some View {
@@ -80,8 +83,7 @@ struct JournalEntryCardView: View {
                             }
                     }
                     
-                    DetailedJournalEntryView(entry: journalEntry, isPresenting: $isSheetPresented)
-                        .padding()
+                    DetailedJournalEntryView(entry: journalEntry, isPresenting: $isSheetPresented, viewModel: journalEntryViewModel, calendarViewModel: calendarViewModel, selectedDate: selectedDate)                       .padding()
                 }
             }
             .presentationDetents([.fraction(1)])
@@ -89,7 +91,9 @@ struct JournalEntryCardView: View {
     }
 }
 
+/*
 #Preview {
     let sample = JournalEntryModel(id: nil, userID: "1234", title: "The end of my college career bannana bannana", content: "So I never got more pumpkin bread. I then proceeded to trip in front of the chickfila girl so im pretty much forced to transfer schools now. This is shaping up to be a low light for this semester.", timeStamp: Date.now, entryType: .journal)
     JournalEntryCardView(journalEntry: sample)
 }
+*/

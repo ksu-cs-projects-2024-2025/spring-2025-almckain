@@ -9,7 +9,8 @@ import SwiftUI
 
 struct CalendarCardView: View {
     
-    @StateObject var calendarViewModel = CalendarViewModel()
+    @ObservedObject var calendarViewModel: CalendarViewModel
+    
     
     @State private var date = Date.now
     let daysOfWeek = Date.capitalizedFirstLettersOfWeekdays
@@ -109,5 +110,5 @@ struct CalendarCardView: View {
 
 
 #Preview {
-    CalendarCardView()
+    CalendarCardView(calendarViewModel: CalendarViewModel())
 }

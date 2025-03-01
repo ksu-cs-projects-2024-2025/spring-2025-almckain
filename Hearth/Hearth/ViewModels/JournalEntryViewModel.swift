@@ -29,19 +29,35 @@ class JournalEntryViewModel: ObservableObject {
         }
     }
     
-    func addJournalEntry(title: String, content: String) {
+    func addJournalEntry(title: String, content: String, date: Date = Date()) {
         let newEntry = JournalEntryModel(
             id: UUID().uuidString,
             userID: Auth.auth().currentUser?.uid ?? "",
             title: title,
             content: content,
-            timeStamp: Date()
+            timeStamp: date
         )
         
         entryService.saveEntry(newEntry) { result in
             DispatchQueue.main.async {
                 if case .success = result {
                     self.journalEntries.append(newEntry)
+                }
+            }
+        }
+    }
+    
+    func deleteEntry(withId id: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        entryService.deleteEntry(entryId: id) { result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success:
+                    if let index = self.journalEntries.firstIndex(where: { $0.id == id }) {
+                        self.journalEntries.remove(at: index)
+                    }
+                    completion(.success(()))
+                case .failure(let error):
+                    completion(.failure(error))
                 }
             }
         }

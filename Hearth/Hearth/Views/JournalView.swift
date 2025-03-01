@@ -5,9 +5,11 @@
 //  Created by Aaron McKain on 2/6/25.
 //
 
+
 import SwiftUI
 
 struct JournalView: View {
+    /*
     @State private var isPresented: Bool = false
     @StateObject private var viewModel = JournalEntryViewModel()
     
@@ -16,8 +18,10 @@ struct JournalView: View {
         UINavigationBar.appearance().standardAppearance = appearance
         UINavigationBar.appearance().scrollEdgeAppearance = appearance
     }
-    
+    */
     var body: some View {
+        Text("")
+        /*
         NavigationStack {
             ZStack {
                 Color.parchmentLight
@@ -60,7 +64,7 @@ struct JournalView: View {
                                     }
                             }
                             
-                            CreateNewJournalView(isPresenting: $isPresented, viewModel: viewModel)
+                            //CreateNewJournalView(isPresenting: $isPresented, viewModel: viewModel)
                         }
                     }
                     .presentationDetents([.fraction(0.90)])
@@ -70,8 +74,9 @@ struct JournalView: View {
         .onAppear {
             viewModel.fetchJournalEntries()
         }
+         */
     }
-    
+    /*
     func navBarAppearance() -> UINavigationBarAppearance {
         let appearance = UINavigationBarAppearance()
         appearance.configureWithOpaqueBackground()
@@ -82,8 +87,10 @@ struct JournalView: View {
         appearance.largeTitleTextAttributes = [.foregroundColor: UIColor(named: "HearthEmberMain") ?? UIColor.red]
         return appearance
     }
+    */
 }
 
 #Preview {
     JournalView()
 }
+

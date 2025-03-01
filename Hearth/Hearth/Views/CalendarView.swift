@@ -10,6 +10,9 @@ import SwiftUI
 struct CalendarView: View {
     
     @StateObject var calendarViewModel = CalendarViewModel()
+    @State private var isPresented: Bool = false
+    @StateObject private var viewModel = JournalEntryViewModel()
+
     
     var body: some View {
         ZStack {
@@ -17,10 +20,21 @@ struct CalendarView: View {
                 .ignoresSafeArea()
             NavigationStack {
                 ScrollView {
-                    CalendarCardView()
+                    CalendarCardView(calendarViewModel: calendarViewModel)
                         .navigationDestination(for: Date.self) { date in
-                            EntryDayListView(selectedDate: date)
+                            EntryDayListView(selectedDate: date, calendarViewModel: calendarViewModel)
                         }
+                    Button(action: {
+                        isPresented.toggle()
+                    }) {
+                        Text("Add to Journal")
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .font(.customButton)
+                            .foregroundColor(.parchmentLight)
+                            .background(RoundedRectangle(cornerRadius: 20).foregroundStyle(.hearthEmberMain))
+                            .contentShape(Rectangle())
+                    }
                 }
                 .onAppear {
                     let appearance = calendarViewModel.navBarAppearance()
@@ -30,7 +44,29 @@ struct CalendarView: View {
                 .navigationTitle("Calendar")
                 .navigationBarTitleDisplayMode(.large)
                 .buttonStyle(.plain)
+                .padding(.horizontal)
             }
+        }
+        .sheet(isPresented: $isPresented) {
+            ZStack {
+                Color.warmSandLight
+                VStack {
+                    HStack {
+                        Spacer()
+                        Image(systemName: "x.circle.fill")
+                            .padding(.top)
+                            .padding(.trailing, 20)
+                            .foregroundStyle(.parchmentDark.opacity(0.6))
+                            .font(.customTitle2)
+                            .onTapGesture {
+                                isPresented.toggle()
+                            }
+                    }
+                    
+                    CreateNewJournalView(isPresenting: $isPresented, viewModel: viewModel, calendarViewModel: calendarViewModel, selectedDate: Date())
+                }
+            }
+            .presentationDetents([.fraction(0.90)])
         }
     }
 }

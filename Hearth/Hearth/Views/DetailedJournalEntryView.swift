@@ -9,8 +9,10 @@ import SwiftUI
 
 struct DetailedJournalEntryView: View {
     let entry: JournalEntryModel
-    
     @Binding var isPresenting: Bool
+    @ObservedObject var viewModel: JournalEntryViewModel
+    @ObservedObject var calendarViewModel: CalendarViewModel
+    var selectedDate: Date
     
     var body: some View {
         ZStack{
@@ -63,8 +65,16 @@ struct DetailedJournalEntryView: View {
                         )
 
                         
-                        Button("Close") {
-                            isPresenting = false
+                        Button("Delete") {
+                            viewModel.deleteEntry(withId: entry.id ?? "") { result in
+                                switch result {
+                                case .success:
+                                    calendarViewModel.fetchEntries(for: selectedDate)
+                                    isPresenting = false
+                                case .failure(let error):
+                                    print("Error deleting entry: \(error.localizedDescription)")
+                                }
+                            }
                         }
                         .padding()
                         .frame(width: 100)
@@ -78,8 +88,9 @@ struct DetailedJournalEntryView: View {
         }
     }
 }
-
+/*
 #Preview {
     @Previewable @State var isPresented = true
     DetailedJournalEntryView(entry: JournalEntryModel(userID: "123", title: "Today I got a cool taco", content: "It wasnt like a crazy taco. But it was fs a totally different taco. Like idk who made it but give them a raise because they are putting in the work. \n\n Sometimes, I think tacos look like trash. Not this one. This is my taco, with my taco I am useless. With me, my taco is useless.", timeStamp: Date()), isPresenting: $isPresented )
 }
+*/

@@ -13,6 +13,8 @@ struct CreateNewJournalView: View {
     @Binding var isPresenting: Bool
     
     var viewModel: JournalEntryViewModel
+    var calendarViewModel: CalendarViewModel
+    var selectedDate: Date
     
     var body: some View {
         NavigationStack {
@@ -54,6 +56,8 @@ struct CreateNewJournalView: View {
 
                         Button("Add to Journal") {
                             viewModel.addJournalEntry(title: title, content: content)
+                            calendarViewModel.fetchEntriesInMonth(Date())
+                            calendarViewModel.fetchEntries(for: selectedDate)
                             isPresenting = false
                         }
                         .padding()
@@ -75,6 +79,6 @@ struct CreateNewJournalView: View {
 
 #Preview {
     @Previewable @State var isPresented = true
-    CreateNewJournalView(isPresenting: $isPresented, viewModel: JournalEntryViewModel())
+    CreateNewJournalView(isPresenting: $isPresented, viewModel: JournalEntryViewModel(), calendarViewModel: CalendarViewModel(), selectedDate: Date())
 }
 

@@ -17,6 +17,9 @@ class CalendarViewModel: ObservableObject {
     @Published var entries: [JournalEntryModel] = []
     @Published var isLoading: Bool = false
     
+    func isToday(selectedDate: Date) ->  Bool {
+        return Calendar.current.isDateInToday(selectedDate)
+    }
     
     func fetchEntriesInMonth(_ monthDate: Date) {
         isLoading = true

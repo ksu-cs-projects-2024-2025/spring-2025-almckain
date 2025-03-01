@@ -102,7 +102,7 @@ class EntryService {
             return
         }
 
-        print("🔥 Fetching entries from \(localStartOfDay) to \(localEndOfDay) (Local TZ: \(TimeZone.current.identifier))")
+        print("Fetching entries from \(localStartOfDay) to \(localEndOfDay) (Local TZ: \(TimeZone.current.identifier))")
 
         db.collection("entries")
             .whereField("userID", isEqualTo: userID)
@@ -119,9 +119,25 @@ class EntryService {
                     try? $0.data(as: JournalEntryModel.self)
                 } ?? []
                 
-                print("✅ Fetched \(entries.count) entries for \(date) (local time)")
+                print("Fetched \(entries.count) entries for \(date) (local time)")
                 completion(.success(entries))
             }
+    }
+    
+    func deleteEntry(entryId: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        guard Auth.auth().currentUser != nil else {
+            completion(.failure(NSError(domain: "AuthError", code: 401,
+                                       userInfo: [NSLocalizedDescriptionKey: "User not logged in"])))
+            return
+        }
+        
+        db.collection("entries").document(entryId).delete { error in
+            if let error = error {
+                completion(.failure(error))
+            } else {
+                completion(.success(()))
+            }
+        }
     }
 
 }
