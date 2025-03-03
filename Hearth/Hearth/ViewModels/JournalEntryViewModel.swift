@@ -14,6 +14,8 @@ class JournalEntryViewModel: ObservableObject {
     @Published var isLoading = false
     private let entryService = EntryService()
     
+    var onEntryUpdate: (() -> Void)?
+    
     func fetchJournalEntries() {
         isLoading = true
         entryService.fetchEntries(entryType: .journal) { (result: Result<[JournalEntryModel], Error>) in
@@ -58,6 +60,26 @@ class JournalEntryViewModel: ObservableObject {
                     completion(.success(()))
                 case .failure(let error):
                     completion(.failure(error))
+                }
+            }
+        }
+    }
+    
+    func updateJournalEntry(entry: JournalEntryModel, newTitle: String, newContent: String) {
+        var updatedEntry = entry
+        updatedEntry.title = newTitle
+        updatedEntry.content = newContent
+        
+        entryService.updateEntry(updatedEntry) { [weak self] result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success:
+                    if let index = self?.journalEntries.firstIndex(where: { $0.id == updatedEntry.id }) {
+                        self?.journalEntries[index] = updatedEntry
+                    }
+                    self?.onEntryUpdate?()
+                case .failure(let error):
+                    print("Error updating entry: \(error.localizedDescription)")
                 }
             }
         }

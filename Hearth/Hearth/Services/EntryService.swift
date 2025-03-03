@@ -139,5 +139,26 @@ class EntryService {
             }
         }
     }
+    
+    func updateEntry(_ entry: JournalEntryModel, completion: @escaping (Result<Void, Error>) -> Void) {
+        guard let entryID = entry.id else {
+            completion(.failure(NSError(domain: "MissingEntryID", code: -1)))
+            return
+        }
+        
+        let data: [String: Any] = [
+            "title": entry.title,
+            "content": entry.content,
+            "timestamp": Timestamp(date: entry.timeStamp)
+        ]
+        
+        Firestore.firestore().collection("entries").document(entryID).updateData(data) { error in
+            if let error = error {
+                completion(.failure(error))
+            } else {
+                completion(.success(()))
+            }
+        }
+    }
 
 }

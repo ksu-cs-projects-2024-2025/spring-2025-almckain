@@ -8,13 +8,28 @@
 import SwiftUI
 
 struct CreateNewJournalView: View {
-    @State private var title: String = ""
-    @State private var content: String = ""
+    @State private var title: String
+    @State private var content: String
     @Binding var isPresenting: Bool
     
     var viewModel: JournalEntryViewModel
     var calendarViewModel: CalendarViewModel
     var selectedDate: Date
+    var entry: JournalEntryModel?
+    
+    init(isPresenting: Binding<Bool>, viewModel: JournalEntryViewModel, calendarViewModel: CalendarViewModel, selectedDate: Date, entry: JournalEntryModel? = nil) {
+        self._isPresenting = isPresenting
+        self.viewModel = viewModel
+        self.calendarViewModel = calendarViewModel
+        self.selectedDate = selectedDate
+        self.entry = entry
+        self._title = State(initialValue: entry?.title ?? "")
+        self._content = State(initialValue: entry?.content ?? "")
+    }
+    
+    private var entryDate: Date {
+        entry?.timeStamp ?? selectedDate
+    }
     
     var body: some View {
         NavigationStack {
@@ -54,8 +69,12 @@ struct CreateNewJournalView: View {
                             .padding(.vertical)
 
 
-                        Button("Add to Journal") {
-                            viewModel.addJournalEntry(title: title, content: content)
+                        Button(entry != nil ? "Update Entry" : "Add to Journal") {
+                            if let entry = entry {
+                                viewModel.updateJournalEntry(entry: entry, newTitle: title, newContent: content)
+                            } else {
+                                viewModel.addJournalEntry(title: title, content: content)
+                            }
                             calendarViewModel.fetchEntriesInMonth(Date())
                             calendarViewModel.fetchEntries(for: selectedDate)
                             isPresenting = false
@@ -79,6 +98,19 @@ struct CreateNewJournalView: View {
 
 #Preview {
     @Previewable @State var isPresented = true
-    CreateNewJournalView(isPresenting: $isPresented, viewModel: JournalEntryViewModel(), calendarViewModel: CalendarViewModel(), selectedDate: Date())
+    // Sample entry for preview
+    let sampleEntry = JournalEntryModel(
+        id: "",
+        userID: "",
+        title: "Sample Title",
+        content: "Sample Content",
+        timeStamp: Date()
+    )
+    CreateNewJournalView(
+        isPresenting: $isPresented,
+        viewModel: JournalEntryViewModel(),
+        calendarViewModel: CalendarViewModel(),
+        selectedDate: Date(),
+        entry: sampleEntry // Remove this parameter to see create mode
+    )
 }
-

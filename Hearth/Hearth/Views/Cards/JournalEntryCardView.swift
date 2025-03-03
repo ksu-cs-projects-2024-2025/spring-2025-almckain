@@ -83,7 +83,7 @@ struct JournalEntryCardView: View {
                             }
                     }
                     
-                    DetailedJournalEntryView(entry: journalEntry, isPresenting: $isSheetPresented, viewModel: journalEntryViewModel, calendarViewModel: calendarViewModel, selectedDate: selectedDate)                       .padding()
+                    DetailedJournalEntryView(entry: journalEntry, selectedDate: selectedDate, isPresenting: $isSheetPresented, viewModel: journalEntryViewModel, calendarViewModel: calendarViewModel)                       .padding()
                 }
             }
             .presentationDetents([.fraction(1)])

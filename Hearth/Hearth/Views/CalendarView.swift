@@ -9,10 +9,11 @@ import SwiftUI
 
 struct CalendarView: View {
     
+    @StateObject private var journalEntryViewModel = JournalEntryViewModel()
     @StateObject var calendarViewModel = CalendarViewModel()
+    
     @State private var isPresented: Bool = false
-    @StateObject private var viewModel = JournalEntryViewModel()
-
+    
     
     var body: some View {
         ZStack {
@@ -20,9 +21,9 @@ struct CalendarView: View {
                 .ignoresSafeArea()
             NavigationStack {
                 ScrollView {
-                    CalendarCardView(calendarViewModel: calendarViewModel)
+                    CalendarCardView(calendarViewModel: calendarViewModel, journalEntryViewModel: journalEntryViewModel)
                         .navigationDestination(for: Date.self) { date in
-                            EntryDayListView(selectedDate: date, calendarViewModel: calendarViewModel)
+                            EntryDayListView(selectedDate: date, calendarViewModel: calendarViewModel, journalEntryViewModel: journalEntryViewModel)
                         }
                     Button(action: {
                         isPresented.toggle()
@@ -47,6 +48,12 @@ struct CalendarView: View {
                 .padding(.horizontal)
             }
         }
+        .onAppear {
+            journalEntryViewModel.onEntryUpdate = { [weak calendarViewModel] in
+                calendarViewModel?.fetchEntriesInMonth(Date())
+                calendarViewModel?.fetchEntries(for: Date())
+            }
+        }
         .sheet(isPresented: $isPresented) {
             ZStack {
                 Color.warmSandLight
@@ -63,7 +70,7 @@ struct CalendarView: View {
                             }
                     }
                     
-                    CreateNewJournalView(isPresenting: $isPresented, viewModel: viewModel, calendarViewModel: calendarViewModel, selectedDate: Date())
+                    CreateNewJournalView(isPresenting: $isPresented, viewModel: journalEntryViewModel, calendarViewModel: calendarViewModel, selectedDate: Date())
                 }
             }
             .presentationDetents([.fraction(0.90)])

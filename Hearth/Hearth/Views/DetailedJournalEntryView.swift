@@ -9,10 +9,13 @@ import SwiftUI
 
 struct DetailedJournalEntryView: View {
     let entry: JournalEntryModel
+    var selectedDate: Date
+    
     @Binding var isPresenting: Bool
     @ObservedObject var viewModel: JournalEntryViewModel
     @ObservedObject var calendarViewModel: CalendarViewModel
-    var selectedDate: Date
+    @State private var isEditing = false
+
     
     var body: some View {
         ZStack{
@@ -53,7 +56,7 @@ struct DetailedJournalEntryView: View {
 
                     HStack {
                         Button("Edit") {
-                            isPresenting = false
+                            isEditing = true
                         }
                         .padding()
                         .frame(width: 100)
@@ -85,6 +88,27 @@ struct DetailedJournalEntryView: View {
                     }
                 }
             }
+        }
+        .sheet(isPresented: $isEditing) {
+            ZStack {
+                Color.warmSandLight
+                VStack {
+                    HStack {
+                        Spacer()
+                        Image(systemName: "x.circle.fill")
+                            .padding(.top)
+                            .padding(.trailing, 20)
+                            .foregroundStyle(.parchmentDark.opacity(0.6))
+                            .font(.customTitle2)
+                            .onTapGesture {
+                                isEditing.toggle()
+                            }
+                    }
+                    
+                    CreateNewJournalView(isPresenting: $isEditing, viewModel: viewModel, calendarViewModel: calendarViewModel, selectedDate: selectedDate, entry: entry)
+                }
+            }
+            .presentationDetents([.fraction(0.90)])
         }
     }
 }

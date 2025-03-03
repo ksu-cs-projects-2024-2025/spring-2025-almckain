@@ -10,8 +10,9 @@ import SwiftUI
 struct EntryDayListView: View {
     let selectedDate: Date
     @ObservedObject var calendarViewModel: CalendarViewModel
+    @StateObject var journalEntryViewModel: JournalEntryViewModel
+
     @State private var isPresented: Bool = false
-    @StateObject var journalEntryViewModel = JournalEntryViewModel()
     
     var body: some View {
         ZStack {
@@ -53,7 +54,7 @@ struct EntryDayListView: View {
                                 }
                         }
                         
-                        CreateNewJournalView(isPresenting: $isPresented, viewModel: JournalEntryViewModel(), calendarViewModel: calendarViewModel, selectedDate: selectedDate)
+                        CreateNewJournalView(isPresenting: $isPresented, viewModel: journalEntryViewModel, calendarViewModel: calendarViewModel, selectedDate: selectedDate)
                     }
                 }
                 .presentationDetents([.fraction(0.90)])
@@ -86,5 +87,5 @@ struct EntryDayListView: View {
 }
 
 #Preview {
-    EntryDayListView(selectedDate: Date(), calendarViewModel: CalendarViewModel())
+    EntryDayListView(selectedDate: Date(), calendarViewModel: CalendarViewModel(), journalEntryViewModel: JournalEntryViewModel())
 }

@@ -10,6 +10,7 @@ import SwiftUI
 struct CalendarCardView: View {
     
     @ObservedObject var calendarViewModel: CalendarViewModel
+    @ObservedObject var journalEntryViewModel: JournalEntryViewModel
     
     
     @State private var date = Date.now
@@ -110,5 +111,5 @@ struct CalendarCardView: View {
 
 
 #Preview {
-    CalendarCardView(calendarViewModel: CalendarViewModel())
+    CalendarCardView(calendarViewModel: CalendarViewModel(), journalEntryViewModel: JournalEntryViewModel())
 }
