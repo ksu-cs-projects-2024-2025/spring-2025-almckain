@@ -23,6 +23,8 @@ class BibleVerseViewModel: ObservableObject {
     
     private let lastVerseIndexKey = "LastUsedBibleVerseIndex"
     private let lastUpdateDateKey = "LastBibleVerseUpdateDate"
+    private let savedBibleVerseKey = "SavedBibleVerse"
+    private let savedBibleReferenceKey = "SavedBibleReference"
     
     init(bibleService: BibleVerseServiceProtocol = BibleVerseService(),
          reflectionService: VerseReflectionService = VerseReflectionService()) {
@@ -30,7 +32,6 @@ class BibleVerseViewModel: ObservableObject {
         self.reflectionService = reflectionService
         
         loadBibleVerses()
-        //fetchLocalDailyVerse()
     }
     
     private func loadBibleVerses() {
@@ -49,28 +50,37 @@ class BibleVerseViewModel: ObservableObject {
             completion()
             return
         }
-
+        
         isLoading = true
-
-        if hasNewDayStarted() {
-            let currentIndex = getCurrentIndex()
-            let verseReference = dailyBibleVerses[currentIndex]
-            dailyVerseReference = verseReference
-            
-            fetchDailyVerse(reference: verseReference) {
+        
+        // If it's not a new day, try to load the cached verse data.
+        if !hasNewDayStarted() {
+            if let savedData = UserDefaults.standard.data(forKey: savedBibleVerseKey),
+               let savedVerse = try? JSONDecoder().decode(BibleVerseModel.self, from: savedData),
+               let savedReference = UserDefaults.standard.string(forKey: savedBibleReferenceKey) {
+                bibleVerse = savedVerse
+                dailyVerseReference = savedReference
+                isLoading = false
                 completion()
-            }
-
-            saveCurrentIndex((currentIndex + 1) % dailyBibleVerses.count)
-            saveLastUpdateDate()
-        } else {
-            let currentIndex = getCurrentIndex()
-            dailyVerseReference = dailyBibleVerses[currentIndex]
-            fetchDailyVerse(reference: dailyVerseReference) {
-                completion()
+                return
             }
         }
+        
+        // Either it's a new day or no cache exists – fetch a new verse.
+        let currentIndex = getCurrentIndex()
+        let verseReference = dailyBibleVerses[currentIndex]
+        dailyVerseReference = verseReference
+        
+        fetchDailyVerse(reference: verseReference) { [weak self] in
+            guard let self = self else { return }
+            if self.hasNewDayStarted() {
+                self.saveCurrentIndex((currentIndex + 1) % self.dailyBibleVerses.count)
+                self.saveLastUpdateDate()
+            }
+            completion()
+        }
     }
+    
     func fetchDailyVerse(reference: String, completion: @escaping () -> Void) {
         let formattedReference = reference.replacingOccurrences(of: " ", with: "%20")
         guard let url = URL(string: "https://bible-api.com/\(formattedReference)") else {
@@ -79,21 +89,27 @@ class BibleVerseViewModel: ObservableObject {
             completion()
             return
         }
-
+        
         bibleService.fetchVerse(from: url)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] completionResult in
                 self?.isLoading = false
-                completion()
                 if case let .failure(error) = completionResult {
                     self?.errorMessage = error.localizedDescription
                 }
+                completion()
             } receiveValue: { [weak self] verse in
                 self?.bibleVerse = verse
-                self?.isLoading = false
-                completion()
+                self?.saveFetchedVerse(verse, reference: reference)
             }
             .store(in: &cancellables)
+    }
+    
+    private func saveFetchedVerse(_ verse: BibleVerseModel, reference: String) {
+        if let encodedVerse = try? JSONEncoder().encode(verse) {
+            UserDefaults.standard.set(encodedVerse, forKey: savedBibleVerseKey)
+            UserDefaults.standard.set(reference, forKey: savedBibleReferenceKey)
+        }
     }
     
     private func getCurrentIndex() -> Int {
@@ -115,6 +131,6 @@ class BibleVerseViewModel: ObservableObject {
     }
     
     private func saveLastUpdateDate() {
-            UserDefaults.standard.set(Date(), forKey: lastUpdateDateKey)
+        UserDefaults.standard.set(Date(), forKey: lastUpdateDateKey)
     }
 }

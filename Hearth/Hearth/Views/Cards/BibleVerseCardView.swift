@@ -48,12 +48,13 @@ struct BibleVerseCardView: View {
                 
                 HStack {
                     Spacer()
-                    Image(systemName: "square.and.arrow.up")
-                        .frame(width: 24, height: 24)
-                        .foregroundStyle(.hearthEmberDark)
+                    if reflectionViewModel.reflectionText.isEmpty {
+                        Image(systemName: "square.and.arrow.up")
+                            .frame(width: 24, height: 24)
+                            .foregroundStyle(.hearthEmberDark)
+                    }
                     
-                    /// TODO: If the user has entered a reflection for the bible verse change text to "View Reflection"
-                    Text("Add Reflection")
+                    Text(reflectionViewModel.reflectionText.isEmpty ? "Add Reflection" : "View Reflection")
                         .font(.customButton)
                         .foregroundStyle(.hearthEmberDark)
                     Spacer()
@@ -92,7 +93,7 @@ struct BibleVerseCardView: View {
                     .padding()
                 }
             }
-            .presentationDetents([.fraction(1)])
+            .presentationDetents([.fraction(0.95)])
         }
     }
 }

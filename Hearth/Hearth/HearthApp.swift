@@ -17,6 +17,8 @@ struct HearthApp: App {
         FirebaseApp.configure()
         // Testing purposes to control which screen is being presented
         //self.isOnboardingComplete = false
+        // UserDefaults.standard.removeObject(forKey: "LastUsedBibleVerseIndex")
+        // UserDefaults.standard.removeObject(forKey: "LastBibleVerseUpdateDate")
     }
     
     var body: some Scene {

@@ -9,13 +9,28 @@ import Foundation
 import FirebaseAuth
 
 class VerseReflectionViewModel: ObservableObject {
+    @Published var reflectionText: String = ""
     @Published var isSaving = false
     @Published var error: Error?
+    
     private let reflectionService: VerseReflectionService
     private let auth = Auth.auth()
+    private let reflectionDateKey = "LastReflectionDate"
+    private let reflectionTextKey = "SavedReflectionTest"
     
     init(reflectionService: VerseReflectionService = VerseReflectionService()) {
         self.reflectionService = reflectionService
+        loadReflectionIfExists()
+    }
+    
+    private func loadReflectionIfExists() {
+        if let savedDate = UserDefaults.standard.object(forKey: reflectionDateKey) as? Date,
+           Calendar.current.isDate(savedDate, inSameDayAs: Date()),
+           let savedText = UserDefaults.standard.string(forKey: reflectionTextKey) {
+            reflectionText = savedText
+        } else {
+            reflectionText = ""
+        }
     }
     
     func saveReflection(reference: String, verseText: String, reflectionText: String, completion: @escaping (Result<Void, Error>) -> Void) {
@@ -47,6 +62,9 @@ class VerseReflectionViewModel: ObservableObject {
                 switch result {
                 case .success:
                     self?.error = nil
+                    self?.reflectionText = reflectionText
+                    UserDefaults.standard.set(reflectionText, forKey: self?.reflectionTextKey ?? "SavedReflectionText")
+                    UserDefaults.standard.set(Date(), forKey: self?.reflectionDateKey ?? "LastReflectionDate")
                     completion(.success(()))
                 case .failure(let error):
                     self?.error = error
