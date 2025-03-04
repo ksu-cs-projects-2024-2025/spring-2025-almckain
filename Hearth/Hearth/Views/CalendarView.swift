@@ -25,6 +25,7 @@ struct CalendarView: View {
                         .navigationDestination(for: Date.self) { date in
                             EntryDayListView(selectedDate: date, calendarViewModel: calendarViewModel, journalEntryViewModel: journalEntryViewModel)
                         }
+                    
                     Button(action: {
                         isPresented.toggle()
                     }) {
@@ -73,7 +74,8 @@ struct CalendarView: View {
                     CreateNewJournalView(isPresenting: $isPresented, viewModel: journalEntryViewModel, calendarViewModel: calendarViewModel, selectedDate: Date())
                 }
             }
-            .presentationDetents([.fraction(0.90)])
+            .presentationDetents([.fraction(0.95)])
+            
         }
     }
 }

@@ -67,17 +67,42 @@ struct CreateNewJournalView: View {
                             .frame(minHeight: 300)
                             .clipShape(RoundedRectangle(cornerRadius: 15))
                             .padding(.vertical)
+                        
+                        if let errorMessage = viewModel.errorMessage {
+                            Text(errorMessage)
+                                .font(.customCaption1)
+                                .foregroundStyle(.hearthError)
+                        }
 
 
                         Button(entry != nil ? "Update Entry" : "Add to Journal") {
                             if let entry = entry {
-                                viewModel.updateJournalEntry(entry: entry, newTitle: title, newContent: content)
+                                viewModel.updateJournalEntry(entry: entry, newTitle: title, newContent: content) { result in
+                                    DispatchQueue.main.async {
+                                        switch result {
+                                        case .success:
+                                            calendarViewModel.fetchEntriesInMonth(Date())
+                                            calendarViewModel.fetchEntries(for: selectedDate)
+                                            isPresenting = false
+                                        case .failure(let error):
+                                            print("Failed to update entry: \(error.localizedDescription)")
+                                        }
+                                    }
+                                }
                             } else {
-                                viewModel.addJournalEntry(title: title, content: content)
+                                viewModel.addJournalEntry(title: title, content: content) { result in
+                                    DispatchQueue.main.async {
+                                        switch result {
+                                        case .success:
+                                            calendarViewModel.fetchEntriesInMonth(Date())
+                                            calendarViewModel.fetchEntries(for: selectedDate)
+                                            isPresenting = false
+                                        case .failure(let error):
+                                            print("Failed to add entry: \(error.localizedDescription)")
+                                        }
+                                    }
+                                }
                             }
-                            calendarViewModel.fetchEntriesInMonth(Date())
-                            calendarViewModel.fetchEntries(for: selectedDate)
-                            isPresenting = false
                         }
                         .padding()
                         .frame(width: 200)
@@ -90,6 +115,14 @@ struct CreateNewJournalView: View {
                     }
                 }
                 .padding()
+                
+                if viewModel.isLoading {
+                    ProgressView("Loading...")
+                        .padding()
+                        .background(.warmSandLight)
+                        .foregroundStyle(.hearthEmberMain)
+                        .cornerRadius(10)
+                }
             }
         }
     }

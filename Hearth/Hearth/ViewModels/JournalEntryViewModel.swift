@@ -12,6 +12,8 @@ import Foundation
 class JournalEntryViewModel: ObservableObject {
     @Published var journalEntries: [JournalEntryModel] = []
     @Published var isLoading = false
+    @Published var errorMessage: String?
+    
     private let entryService = EntryService()
     
     var onEntryUpdate: (() -> Void)?
@@ -31,7 +33,14 @@ class JournalEntryViewModel: ObservableObject {
         }
     }
     
-    func addJournalEntry(title: String, content: String, date: Date = Date()) {
+    func addJournalEntry(title: String, content: String, date: Date = Date(), completion: @escaping (Result<Void, Error>) -> Void) {
+        guard !title.isEmpty else {
+            self.errorMessage = "Title cannot be empty"
+            let error = NSError(domain: "JournalEntryError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Title cannot be empty"])
+            completion(.failure(error))
+            return
+        }
+        
         let newEntry = JournalEntryModel(
             id: UUID().uuidString,
             userID: Auth.auth().currentUser?.uid ?? "",
@@ -40,46 +49,77 @@ class JournalEntryViewModel: ObservableObject {
             timeStamp: date
         )
         
+        self.isLoading = true
         entryService.saveEntry(newEntry) { result in
             DispatchQueue.main.async {
-                if case .success = result {
-                    self.journalEntries.append(newEntry)
-                }
-            }
-        }
-    }
-    
-    func deleteEntry(withId id: String, completion: @escaping (Result<Void, Error>) -> Void) {
-        entryService.deleteEntry(entryId: id) { result in
-            DispatchQueue.main.async {
+                self.isLoading = false
                 switch result {
                 case .success:
-                    if let index = self.journalEntries.firstIndex(where: { $0.id == id }) {
-                        self.journalEntries.remove(at: index)
-                    }
+                    self.errorMessage = nil
+                    self.journalEntries.append(newEntry)
                     completion(.success(()))
                 case .failure(let error):
+                    self.errorMessage = "Could not add to journal. Please try again later."
                     completion(.failure(error))
                 }
             }
         }
     }
     
-    func updateJournalEntry(entry: JournalEntryModel, newTitle: String, newContent: String) {
+    func deleteEntry(withId id: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        guard !id.isEmpty else {
+            self.errorMessage = "Invalid entry ID."
+            let error = NSError(domain: "JournalEntryError", code: 5, userInfo: [NSLocalizedDescriptionKey: "Invalid entry ID."])
+            completion(.failure(error))
+            return
+        }
+        self.isLoading = true
+        entryService.deleteEntry(entryId: id) { result in
+            DispatchQueue.main.async {
+                self.isLoading = false
+                switch result {
+                case .success:
+                    if let index = self.journalEntries.firstIndex(where: { $0.id == id }) {
+                        self.journalEntries.remove(at: index)
+                    }
+                    self.errorMessage = nil
+                    completion(.success(()))
+                case .failure(let error):
+                    self.errorMessage = "Failed to delete entry"
+                    completion(.failure(error))
+                }
+            }
+        }
+    }
+    
+    func updateJournalEntry(entry: JournalEntryModel, newTitle: String, newContent: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        guard !newTitle.isEmpty else {
+            self.errorMessage = "Title cannot be empty"
+            let error = NSError(domain: "JournalEntryError", code: 3, userInfo: [NSLocalizedDescriptionKey: "Title cannot be empty"])
+            completion(.failure(error))
+            return
+        }
+        
         var updatedEntry = entry
         updatedEntry.title = newTitle
         updatedEntry.content = newContent
         
+        self.isLoading = true
         entryService.updateEntry(updatedEntry) { [weak self] result in
             DispatchQueue.main.async {
+                self?.isLoading = false
                 switch result {
                 case .success:
                     if let index = self?.journalEntries.firstIndex(where: { $0.id == updatedEntry.id }) {
                         self?.journalEntries[index] = updatedEntry
                     }
+                    self?.errorMessage = nil
                     self?.onEntryUpdate?()
+                    completion(.success(()))
                 case .failure(let error):
+                    self?.errorMessage = "Failed to update entry. Please try again later."
                     print("Error updating entry: \(error.localizedDescription)")
+                    completion(.failure(error))
                 }
             }
         }

@@ -72,7 +72,6 @@ struct CalendarCardView: View {
                                 Text(day.formatted(.dateTime.day()))
                                     .fontWeight(.bold)
                                     .foregroundColor(
-                                        // For filled circles, use white text
                                         (isToday && hasEntries) || (!isToday && hasEntries)
                                         ? Color.parchmentLight : Color.parchmentDark
                                     )
@@ -80,12 +79,13 @@ struct CalendarCardView: View {
                             }
                             .frame(maxWidth: .infinity, minHeight: 40)
                         }
-                        .disabled(isFutureDay) // or keep it enabled if you want
+                        .disabled(isFutureDay)
                     }
                 }
                 .padding(.top, 8)
             }
             .padding(.top, 8)
+
         }
         .padding()
         .onAppear {

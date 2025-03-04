@@ -51,6 +51,12 @@ struct DetailedJournalEntryView: View {
 
                     Text(entry.content)
                         .padding(.vertical)
+                    
+                    if let errorMessage = viewModel.errorMessage {
+                        Text(errorMessage)
+                            .font(.customCaption1)
+                            .foregroundStyle(.hearthError)
+                    }
 
                     Spacer()
 
@@ -66,16 +72,17 @@ struct DetailedJournalEntryView: View {
                             RoundedRectangle(cornerRadius: 15)
                                 .stroke(Color.hearthEmberLight, lineWidth: 4)
                         )
-
                         
                         Button("Delete") {
                             viewModel.deleteEntry(withId: entry.id ?? "") { result in
-                                switch result {
-                                case .success:
-                                    calendarViewModel.fetchEntries(for: selectedDate)
-                                    isPresenting = false
-                                case .failure(let error):
-                                    print("Error deleting entry: \(error.localizedDescription)")
+                                DispatchQueue.main.async {
+                                    switch result {
+                                    case .success:
+                                        calendarViewModel.fetchEntries(for: selectedDate)
+                                        isPresenting = false
+                                    case .failure(let error):
+                                        print("Error deleting entry: \(error.localizedDescription)")
+                                    }
                                 }
                             }
                         }
@@ -87,6 +94,13 @@ struct DetailedJournalEntryView: View {
                         .cornerRadius(15)
                     }
                 }
+            }
+            if viewModel.isLoading {
+                ProgressView("Loading...")
+                    .padding()
+                    .background(.parchmentLight)
+                    .foregroundStyle(.hearthEmberMain)
+                    .cornerRadius(10)
             }
         }
         .sheet(isPresented: $isEditing) {
@@ -108,7 +122,7 @@ struct DetailedJournalEntryView: View {
                     CreateNewJournalView(isPresenting: $isEditing, viewModel: viewModel, calendarViewModel: calendarViewModel, selectedDate: selectedDate, entry: entry)
                 }
             }
-            .presentationDetents([.fraction(0.90)])
+            .presentationDetents([.fraction(0.95)])
         }
     }
 }

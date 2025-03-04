@@ -57,7 +57,7 @@ struct EntryDayListView: View {
                         CreateNewJournalView(isPresenting: $isPresented, viewModel: journalEntryViewModel, calendarViewModel: calendarViewModel, selectedDate: selectedDate)
                     }
                 }
-                .presentationDetents([.fraction(0.90)])
+                .presentationDetents([.fraction(0.95)])
             }
         }
         .navigationTitle(selectedDate.formatted(.dateTime.month(.abbreviated).day().year()))

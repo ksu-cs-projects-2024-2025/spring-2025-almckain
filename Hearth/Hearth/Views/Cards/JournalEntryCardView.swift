@@ -52,11 +52,13 @@ struct JournalEntryCardView: View {
                         .lineLimit(1)
                         .truncationMode(.tail)
                     
-                    Text(journalEntry.content)
-                        .font(.customBody2)
-                        .padding(.trailing, 20)
-                        .lineLimit(2)
-                        .truncationMode(.tail)
+                    if !journalEntry.content.isEmpty {
+                        Text(journalEntry.content)
+                            .font(.customBody2)
+                            .padding(.trailing, 20)
+                            .lineLimit(2)
+                            .truncationMode(.tail)
+                    }
                 }
                 .padding(.vertical, 20)
                 Spacer()
@@ -86,7 +88,7 @@ struct JournalEntryCardView: View {
                     DetailedJournalEntryView(entry: journalEntry, selectedDate: selectedDate, isPresenting: $isSheetPresented, viewModel: journalEntryViewModel, calendarViewModel: calendarViewModel)                       .padding()
                 }
             }
-            .presentationDetents([.fraction(1)])
+            .presentationDetents([.fraction(0.95)])
         }
     }
 }
