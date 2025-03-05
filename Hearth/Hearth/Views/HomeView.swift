@@ -11,6 +11,7 @@ struct HomeView: View {
     @StateObject var profileViewModel = ProfileViewModel()
     @StateObject var homeViewModel = HomeViewModel()
     @StateObject var reflectionViewModel = VerseReflectionViewModel()
+    @Environment(\.scenePhase) var scenePhase
     
     var body: some View {
         NavigationStack {
@@ -24,6 +25,13 @@ struct HomeView: View {
                     ScrollView {
                         BibleVerseCardView(viewModel: homeViewModel.bibleVerseViewModel, reflectionViewModel: reflectionViewModel)
                             .padding(.top, 10)
+                        
+                        /*
+                        Button("Clear cache") {
+                            reflectionViewModel.manuallyClearReflectionCache()
+                        }
+                         */
+                        
                     }
                     .navigationTitle("\(homeViewModel.fetchGreeting()), \(profileViewModel.user?.firstName ?? "Guest")")
                     .navigationBarTitleDisplayMode(.large)
@@ -31,6 +39,7 @@ struct HomeView: View {
             }
         }
         .onAppear {
+            //reflectionViewModel.debugPrintPersistentReflection()
             profileViewModel.fetchUserData()
             let appearance = homeViewModel.navBarAppearance()
             UINavigationBar.appearance().standardAppearance = appearance

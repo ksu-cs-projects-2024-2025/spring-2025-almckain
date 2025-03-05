@@ -12,6 +12,7 @@ struct BibleVerseCardView: View {
     @ObservedObject var reflectionViewModel: VerseReflectionViewModel
     
     @State private var isSheetPresented = false
+    
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 15)
@@ -83,14 +84,19 @@ struct BibleVerseCardView: View {
                                 isSheetPresented.toggle()
                             }
                     }
-                    // In BibleVerseCardView's sheet
-                    EditAddBibleReflectionView(
-                                    reflectionViewModel: reflectionViewModel,
-                                    verseText: viewModel.bibleVerse?.text ?? "",
-                                    verseReference: viewModel.bibleVerse?.reference ?? "",
-                                    isPresented: $isSheetPresented
-                                )
-                    .padding()
+                    
+                    if reflectionViewModel.reflectionText.isEmpty {
+                        EditAddBibleReflectionView(
+                                        reflectionViewModel: reflectionViewModel,
+                                        verseText: viewModel.bibleVerse?.text ?? "",
+                                        verseReference: viewModel.bibleVerse?.reference ?? "",
+                                        isPresented: $isSheetPresented
+                                    )
+                            .padding()
+                    } else {
+                        DetailedBVReflectionView(reflectionViewModel: reflectionViewModel, isPresented: $isSheetPresented)
+                            .padding()
+                    }
                 }
             }
             .presentationDetents([.fraction(0.95)])
@@ -98,7 +104,8 @@ struct BibleVerseCardView: View {
     }
 }
 
-
-#Preview {
-    BibleVerseCardView(viewModel: BibleVerseViewModel(), reflectionViewModel: VerseReflectionViewModel())
-}
+/*
+ #Preview {
+ BibleVerseCardView(viewModel: BibleVerseViewModel(), reflectionViewModel: VerseReflectionViewModel())
+ }
+ */
