@@ -113,9 +113,14 @@ class VerseReflectionService {
                 if let error = error {
                     completion(.failure(error))
                 } else {
-                    let reflections: [VerseReflectionModel] = snapshot?.documents.compactMap {
-                        try? $0.data(as: VerseReflectionModel.self)
+                    let reflections: [VerseReflectionModel] = snapshot?.documents.compactMap { doc in
+                        guard var reflection = try? doc.data(as: VerseReflectionModel.self) else {
+                            return nil
+                        }
+                        reflection.id = doc.documentID
+                        return reflection
                     } ?? []
+
                     completion(.success(reflections))
                 }
             }

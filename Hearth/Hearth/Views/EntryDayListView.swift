@@ -38,7 +38,10 @@ struct EntryDayListView: View {
                         }
                         
                         ForEach(reflectionViewModel.fetchedReflections, id: \.id) { reflection in
-                            ReflectionEntryCardView(reflectionEntry: reflection, reflectionViewModel: reflectionViewModel, selectedDate: selectedDate)
+                            ReflectionEntryCardView(
+                                reflectionEntry: reflection,
+                                reflectionViewModel: reflectionViewModel,
+                                selectedDate: selectedDate)
                         }
                     }
                 }

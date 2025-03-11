@@ -10,26 +10,25 @@ import SwiftUI
 struct EditAddBibleReflectionView: View {
     @ObservedObject var reflectionViewModel: VerseReflectionViewModel
     
-    var existingReflection: VerseReflectionModel?
-    
     let verseText: String
     let verseReference: String
     
     @State private var showingErrorAlert = false
     @State private var content: String = ""
-    @Binding var isPresented: Bool
+    @Binding var isEditingPresented: Bool
     @FocusState private var textBoxIsFocused: Bool
     
+    var existingReflection: VerseReflectionModel?
     private var isEditingExistingReflection: Bool {
         existingReflection?.id != nil
     }
     
-    init(reflectionViewModel: VerseReflectionViewModel, existingReflection: VerseReflectionModel? = nil, verseText: String, verseReference: String, isPresented: Binding<Bool>) {
+    init(reflectionViewModel: VerseReflectionViewModel, existingReflection: VerseReflectionModel? = nil, verseText: String, verseReference: String, isEditingPresented: Binding<Bool>) {
         self.reflectionViewModel = reflectionViewModel
         self.existingReflection = existingReflection
         self.verseText = verseText
         self.verseReference = verseReference
-        self._isPresented = isPresented
+        self._isEditingPresented = isEditingPresented
         
         _content = State(initialValue: existingReflection?.reflection ?? "")
     }
@@ -115,7 +114,10 @@ struct EditAddBibleReflectionView: View {
                             reflectionViewModel.updateReflection(updatedReflection) { result in
                                 switch result {
                                 case .success:
-                                    isPresented = false
+                                    DispatchQueue.main.async {
+                                        isEditingPresented = false
+                                        reflectionViewModel.fetchReflections(for: updatedReflection.timeStamp)
+                                    }
                                 case .failure:
                                     showingErrorAlert = true
                                 }
@@ -128,7 +130,7 @@ struct EditAddBibleReflectionView: View {
                             ) { result in
                                 switch result {
                                 case .success:
-                                    isPresented = false
+                                    isEditingPresented = false
                                 case .failure:
                                     showingErrorAlert = true
                                 }
@@ -160,7 +162,9 @@ struct EditAddBibleReflectionView: View {
     }
 }
 
+/*
 #Preview {
     @Previewable @State var isPresented = true
     EditAddBibleReflectionView(reflectionViewModel: VerseReflectionViewModel(), verseText: "This is a bible verse. There should be a decent ammount of text here.", verseReference: "Aaron 4:16",isPresented: $isPresented)
 }
+*/

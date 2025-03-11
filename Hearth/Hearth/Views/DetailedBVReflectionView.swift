@@ -112,6 +112,9 @@ struct DetailedBVReflectionView: View {
                         switch result {
                         case .success:
                             isPresented = false
+                            
+                            reflectionViewModel.fetchReflections(for: selectedDate ?? Date())
+                            
                         case .failure(let error):
                             print("Error deleting reflection: \(error.localizedDescription)")
                         }
@@ -139,10 +142,10 @@ struct DetailedBVReflectionView: View {
                     }
                     EditAddBibleReflectionView(
                                     reflectionViewModel: reflectionViewModel,
-                                    existingReflection: reflectionEntry, // <-- Use passed entry
+                                    existingReflection: reflectionEntry,
                                     verseText: reflectionEntry.bibleVerseText,
                                     verseReference: reflectionEntry.title,
-                                    isPresented: $isEditing
+                                    isEditingPresented: $isEditing
                                 )
                 }
             }

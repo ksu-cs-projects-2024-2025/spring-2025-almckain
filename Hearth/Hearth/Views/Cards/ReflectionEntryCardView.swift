@@ -32,8 +32,7 @@ struct ReflectionEntryCardView: View {
                             .font(.customHeadline2)
                             .foregroundStyle(.hearthEmberMain)
                         Text("•")
-                            .padding(.leading, 10)
-                        Text(reflectionEntry.timeStamp.formatted(.dateTime.month(.abbreviated).day().year()))
+                        Text(reflectionEntry.timeStamp.formatted(.dateTime.hour(.defaultDigits(amPM: .abbreviated)).minute()))
                             .font(.customCaption1)
                             .foregroundStyle(.parchmentDark.opacity(0.6))
                     }
@@ -84,7 +83,12 @@ struct ReflectionEntryCardView: View {
                             }
                     }
                     
-                    DetailedBVReflectionView(reflectionEntry: reflectionEntry,selectedDate: selectedDate, reflectionViewModel: reflectionViewModel, isPresented: $isSheetPresented)
+                    DetailedBVReflectionView(
+                        reflectionEntry: reflectionEntry,
+                        selectedDate: selectedDate,
+                        reflectionViewModel: reflectionViewModel,
+                        isPresented: $isSheetPresented
+                    )
                         .padding()
                 }
             }

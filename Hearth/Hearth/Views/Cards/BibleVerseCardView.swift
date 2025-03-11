@@ -90,13 +90,13 @@ struct BibleVerseCardView: View {
                                         reflectionViewModel: reflectionViewModel,
                                         verseText: viewModel.bibleVerse?.text ?? "",
                                         verseReference: viewModel.bibleVerse?.reference ?? "",
-                                        isPresented: $isSheetPresented
+                                        isEditingPresented: $isSheetPresented
                                     )
                             .padding()
                     } else {
-                        if let reflection = reflectionViewModel.reflection {  // ✅ Ensure reflection exists
+                        if let reflection = reflectionViewModel.reflection {
                             DetailedBVReflectionView(
-                                reflectionEntry: reflection,  // ✅ Use reflectionViewModel.reflection
+                                reflectionEntry: reflection,
                                 reflectionViewModel: reflectionViewModel,
                                 isPresented: $isSheetPresented
                             )

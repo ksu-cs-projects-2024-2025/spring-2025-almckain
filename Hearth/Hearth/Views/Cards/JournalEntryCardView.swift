@@ -34,8 +34,7 @@ struct JournalEntryCardView: View {
                             .font(.customHeadline2)
                             .foregroundStyle(.hearthEmberMain)
                         Text("•")
-                            .padding(.leading, 10)
-                        Text(journalEntry.timeStamp.formatted(.dateTime.month(.abbreviated).day().year()))
+                        Text(journalEntry.timeStamp.formatted(.dateTime.hour(.defaultDigits(amPM: .abbreviated)).minute()))
                             .font(.customCaption1)
                             .foregroundStyle(.parchmentDark.opacity(0.6))
                     }

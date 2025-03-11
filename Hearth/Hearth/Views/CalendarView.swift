@@ -22,7 +22,7 @@ struct CalendarView: View {
                 .ignoresSafeArea()
             NavigationStack {
                 ScrollView {
-                    CalendarCardView(calendarViewModel: calendarViewModel, journalEntryViewModel: journalEntryViewModel, reflectionViewModel: reflectionViewModel)
+                    CalendarCardView(calendarViewModel: calendarViewModel)
                         .navigationDestination(for: Date.self) { date in
                             EntryDayListView(selectedDate: date, calendarViewModel: calendarViewModel, journalEntryViewModel: journalEntryViewModel, reflectionViewModel: reflectionViewModel)
                         }
@@ -54,6 +54,9 @@ struct CalendarView: View {
             journalEntryViewModel.onEntryUpdate = { [weak calendarViewModel] in
                 calendarViewModel?.fetchEntriesInMonth(Date())
                 calendarViewModel?.fetchEntries(for: Date())
+            }
+            reflectionViewModel.onReflectionUpdate = { [weak calendarViewModel] in
+                calendarViewModel?.fetchReflectionsInMonth(Date())
             }
         }
         .sheet(isPresented: $isPresented) {

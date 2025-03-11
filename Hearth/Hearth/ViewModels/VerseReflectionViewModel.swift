@@ -21,6 +21,8 @@ class VerseReflectionViewModel: ObservableObject {
     private let reflectionTextKey = "SavedReflectionText"
     private let reflectionCacheKey = "CachedVerseReflection"
     
+    var onReflectionUpdate: (() -> Void)?
+    
     init(reflectionService: VerseReflectionService = VerseReflectionService()) {
         self.reflectionService = reflectionService
         loadReflectionIfExists()
@@ -120,6 +122,8 @@ class VerseReflectionViewModel: ObservableObject {
                     if let data = try? JSONEncoder().encode(updatedReflection) {
                         UserDefaults.standard.set(data, forKey: self?.reflectionCacheKey ?? "CachedVerseReflection")
                     }
+                    self?.onReflectionUpdate?()
+                    self?.fetchReflections(for: updatedReflection.timeStamp)
                     completion(.success(()))
                 case .failure(let error):
                     self?.errorMessage = "Could not save reflection"
@@ -141,13 +145,23 @@ class VerseReflectionViewModel: ObservableObject {
             DispatchQueue.main.async {
                 switch result {
                 case .success:
-                    self?.reflection = nil
-                    self?.reflectionText = ""
-                    UserDefaults.standard.removeObject(forKey: self?.reflectionCacheKey ?? "CachedVerseReflection")
+                    self?.fetchedReflections.removeAll { $0.id == id }
+                    
+                    if let cachedData = UserDefaults.standard.data(forKey: self?.reflectionCacheKey ?? ""),
+                       let cachedReflection = try? JSONDecoder().decode(VerseReflectionModel.self, from: cachedData),
+                       cachedReflection.id == id {
+                        self?.manuallyClearReflectionCache()
+                    }
+                    
+                    if let firstReflection = self?.fetchedReflections.first {
+                        self?.fetchReflections(for: firstReflection.timeStamp)
+                    }
+                    
+                    self?.onReflectionUpdate?()
+                    
                     completion(.success(()))
                     
                 case .failure(let error):
-                    // 4) Set an error message for UI feedback
                     print("Error deleting reflection: \(error.localizedDescription)")
                     self?.errorMessage = "Failed to delete reflection"
                     completion(.failure(error))
@@ -157,7 +171,7 @@ class VerseReflectionViewModel: ObservableObject {
     }
     
     func manuallyClearReflectionCache() {
-        // Clear in-memory state
+        // Clear memory state
         self.reflection = nil
         self.reflectionText = ""
         
