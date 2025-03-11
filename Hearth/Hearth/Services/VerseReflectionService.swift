@@ -7,6 +7,7 @@
 
 import Foundation
 import FirebaseFirestore
+import FirebaseAuth
 
 class VerseReflectionService {
     private let db = Firestore.firestore()
@@ -32,14 +33,26 @@ class VerseReflectionService {
 
     
     func updateReflection(_ reflection: VerseReflectionModel, completion: @escaping (Result<Void, Error>) -> Void) {
+        guard Auth.auth().currentUser != nil else {
+            completion(.failure(NSError(
+                domain: "AuthError",
+                code: 401,
+                userInfo: [NSLocalizedDescriptionKey: "User not logged in"]
+            )))
+            return
+        }
+        
         guard let id = reflection.id else {
             let idError = NSError(domain: "Firestore", code: 0, userInfo: [NSLocalizedDescriptionKey: "Reflection ID is nil"])
             completion(.failure(idError))
             return
         }
+        
         do {
+            // Use setData(from:merge:) with a completion closure
             try db.collection("reflections").document(id).setData(from: reflection, merge: true) { error in
                 if let error = error {
+                    // Asynchronous Firestore error
                     print("Firestore Update Error: \(error.localizedDescription)")
                     completion(.failure(error))
                 } else {
@@ -48,18 +61,23 @@ class VerseReflectionService {
                 }
             }
         } catch let error {
+            // Immediate encoding error
             print("Encoding Error: \(error.localizedDescription)")
             completion(.failure(error))
         }
     }
     
-    func deleteReflection(_ reflection: VerseReflectionModel, completion: @escaping (Result<Void, Error>) -> Void) {
-        guard let id = reflection.id else {
-            let idError = NSError(domain: "Firestore", code: 0, userInfo: [NSLocalizedDescriptionKey: "Reflection ID is nil"])
-            completion(.failure(idError))
+    func deleteReflection(entryId: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        guard Auth.auth().currentUser != nil else {
+            completion(.failure(NSError(
+                domain: "AuthError",
+                code: 401,
+                userInfo: [NSLocalizedDescriptionKey: "User not logged in"]
+            )))
             return
         }
-        db.collection("reflections").document(id).delete { error in
+        
+        db.collection("reflections").document(entryId).delete { error in
             if let error = error {
                 print("Firestore Delete Error: \(error.localizedDescription)")
                 completion(.failure(error))

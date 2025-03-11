@@ -15,6 +15,7 @@ struct DetailedJournalEntryView: View {
     @ObservedObject var viewModel: JournalEntryViewModel
     @ObservedObject var calendarViewModel: CalendarViewModel
     @State private var isEditing = false
+    @State private var showingDeleteConfirmation = false
 
     
     var body: some View {
@@ -74,17 +75,7 @@ struct DetailedJournalEntryView: View {
                         )
                         
                         Button("Delete") {
-                            viewModel.deleteEntry(withId: entry.id ?? "") { result in
-                                DispatchQueue.main.async {
-                                    switch result {
-                                    case .success:
-                                        calendarViewModel.fetchEntries(for: selectedDate)
-                                        isPresenting = false
-                                    case .failure(let error):
-                                        print("Error deleting entry: \(error.localizedDescription)")
-                                    }
-                                }
-                            }
+                            showingDeleteConfirmation = true
                         }
                         .padding()
                         .frame(width: 100)
@@ -102,6 +93,28 @@ struct DetailedJournalEntryView: View {
                     .foregroundStyle(.hearthEmberMain)
                     .cornerRadius(10)
             }
+        }
+        .alert("Confirm Delete", isPresented: $showingDeleteConfirmation){
+            Button("Delete", role: .destructive) {
+                if let id = entry.id, !id.isEmpty {
+                    viewModel.deleteEntry(withId: id) { result in
+                        DispatchQueue.main.async {
+                            switch result {
+                            case .success:
+                                calendarViewModel.fetchEntries(for: selectedDate)
+                                isPresenting = false
+                            case .failure(let error):
+                                print("Error deleting entry: \(error.localizedDescription)")
+                            }
+                        }
+                    }
+                } else {
+                    print("Invalid entry id")
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Are you sure you want to delete this entry? This action cannot be undone.")
         }
         .sheet(isPresented: $isEditing) {
             ZStack {

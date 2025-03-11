@@ -9,6 +9,9 @@ import SwiftUI
 
 struct EditAddBibleReflectionView: View {
     @ObservedObject var reflectionViewModel: VerseReflectionViewModel
+    
+    var existingReflection: VerseReflectionModel?
+    
     let verseText: String
     let verseReference: String
     
@@ -16,6 +19,20 @@ struct EditAddBibleReflectionView: View {
     @State private var content: String = ""
     @Binding var isPresented: Bool
     @FocusState private var textBoxIsFocused: Bool
+    
+    private var isEditingExistingReflection: Bool {
+        existingReflection?.id != nil
+    }
+    
+    init(reflectionViewModel: VerseReflectionViewModel, existingReflection: VerseReflectionModel? = nil, verseText: String, verseReference: String, isPresented: Binding<Bool>) {
+        self.reflectionViewModel = reflectionViewModel
+        self.existingReflection = existingReflection
+        self.verseText = verseText
+        self.verseReference = verseReference
+        self._isPresented = isPresented
+        
+        _content = State(initialValue: existingReflection?.reflection ?? "")
+    }
     
     var body: some View {
         ZStack {
@@ -25,16 +42,19 @@ struct EditAddBibleReflectionView: View {
                 VStack {
                     VStack {
                         HStack {
-                            Text("New Verse Refelction")
-                                .font(.largeTitle.bold())
-                                .foregroundStyle(.parchmentDark)
+                            VStack {
+                                Text(isEditingExistingReflection ? "Edit Verse Reflection" : "New Verse Refelction")
+                                    .font(.largeTitle.bold())
+                                    .foregroundStyle(.parchmentDark)
+                            }
                             
                             Spacer()
                         }
                         .padding(.bottom, 5)
                         
                         HStack {
-                            Text(Date.now.formatted(.dateTime
+                            let displayTimestamp = existingReflection?.timeStamp ?? Date.now
+                            Text(displayTimestamp.formatted(.dateTime
                                 .month(.abbreviated)
                                 .day(.defaultDigits)
                                 .year()
@@ -55,13 +75,13 @@ struct EditAddBibleReflectionView: View {
                         .padding(.trailing, 20)
 
                     VStack {
-                        Text(verseText)
+                        Text((isEditingExistingReflection ? existingReflection?.bibleVerseText : verseText) ?? "")
                             .font(.customBody1)
                             .foregroundStyle(.hearthEmberDark)
                         
                         HStack {
                             Spacer()
-                            Text(verseReference)
+                            Text((isEditingExistingReflection ? existingReflection?.title : verseReference) ?? "")
                                 .padding(.top)
                         }
                     }
@@ -78,19 +98,40 @@ struct EditAddBibleReflectionView: View {
                         .padding()
                         .focused($textBoxIsFocused)
                     
-                    Button("Save Reflection") {
+                    Button(isEditingExistingReflection ? "Update Reflection" : "Save Reflection") {
                         guard !reflectionViewModel.isSaving, !content.isEmpty else { return }
                         
-                        reflectionViewModel.saveReflection(
-                            reference: verseReference,
-                            verseText: verseText,
-                            reflectionText: content
-                        ) { result in
-                            switch result {
-                            case .success:
-                                isPresented = false
-                            case .failure:
-                                showingErrorAlert = true
+                        if isEditingExistingReflection, let existingReflection = existingReflection {
+                            let updatedReflection = VerseReflectionModel(
+                                id: existingReflection.id,
+                                userID: existingReflection.userID,
+                                title: existingReflection.title,
+                                bibleVerseText: existingReflection.bibleVerseText,
+                                reflection: content,
+                                timeStamp: existingReflection.timeStamp,
+                                entryType: .bibleVerseReflection
+                            )
+
+                            reflectionViewModel.updateReflection(updatedReflection) { result in
+                                switch result {
+                                case .success:
+                                    isPresented = false
+                                case .failure:
+                                    showingErrorAlert = true
+                                }
+                            }
+                        } else {
+                            reflectionViewModel.saveReflection(
+                                reference: verseReference,
+                                verseText: verseText,
+                                reflectionText: content
+                            ) { result in
+                                switch result {
+                                case .success:
+                                    isPresented = false
+                                case .failure:
+                                    showingErrorAlert = true
+                                }
                             }
                         }
                     }
@@ -111,10 +152,10 @@ struct EditAddBibleReflectionView: View {
         .onTapGesture {
             textBoxIsFocused = false
         }
-        .alert("Error", isPresented: $showingErrorAlert, presenting: reflectionViewModel.error) { error in
+        .alert("Error", isPresented: $showingErrorAlert, presenting: reflectionViewModel.errorMessage) { error in
             Button("OK", role: .cancel) { }
         } message: { error in
-            Text(error.localizedDescription)
+            Text(error)
         }
     }
 }

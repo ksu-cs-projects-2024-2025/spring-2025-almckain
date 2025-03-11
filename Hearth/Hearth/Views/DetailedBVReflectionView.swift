@@ -11,6 +11,8 @@ struct DetailedBVReflectionView: View {
     @ObservedObject var reflectionViewModel: VerseReflectionViewModel
     @Binding var isPresented: Bool
     @State private var isEditing = false
+    @State private var showingDeleteConfirmation = false
+    
     var formattedTimeStamp: String {
         if let timeStamp = reflectionViewModel.reflection?.timeStamp {
             let formatter = DateFormatter()
@@ -20,7 +22,7 @@ struct DetailedBVReflectionView: View {
             return "No date available"
         }
     }
-
+    
     
     var body: some View {
         ZStack {
@@ -29,12 +31,22 @@ struct DetailedBVReflectionView: View {
             VStack {
                 ScrollView {
                     VStack {
-                        HStack {
-                            Text("Verse Reflection")
-                                .font(.customTitle1)
-                                .foregroundStyle(.parchmentDark)
+                        VStack {
+                            HStack {
+                                Text("Verse Reflection")
+                                    .font(.customTitle1)
+                                    .foregroundStyle(.parchmentDark)
+                                
+                                Spacer()
+                            }
+                            .padding(.bottom, 5)
                             
-                            Spacer()
+                            HStack {
+                                Text(formattedTimeStamp)
+                                    .font(.customHeadline1)
+                                    .foregroundStyle(.hearthEmberDark)
+                                Spacer()
+                            }
                         }
                         
                         Rectangle()
@@ -57,13 +69,6 @@ struct DetailedBVReflectionView: View {
                             .fill(Color.parchmentDark)
                             .frame(height: 2)
                         
-                        HStack {
-                            Text(formattedTimeStamp)
-                                .font(.customHeadline1)
-                                .foregroundStyle(.hearthEmberDark)
-                            Spacer()
-                        }
-                        
                         Text(reflectionViewModel.reflection?.reflection ?? "No reflection")
                             .font(.customBody1)
                             .foregroundStyle(.parchmentDark)
@@ -71,52 +76,81 @@ struct DetailedBVReflectionView: View {
                             .frame(maxWidth: .infinity)
                             .padding(.vertical)
                     }
+                }
+                
+                Spacer()
+                
+                HStack {
+                    Button("Edit") {
+                        isEditing = true
+                    }
+                    .padding()
+                    .frame(width: 100)
+                    .foregroundColor(.hearthEmberLight)
+                    .font(.headline)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 15)
+                            .stroke(Color.hearthEmberLight, lineWidth: 4)
+                    )
                     
-                    Spacer()
-                    
-                    HStack {
-                        Button("Edit") {
-                            isEditing = true
-                        }
-                        .padding()
-                        .frame(width: 100)
-                        .foregroundColor(.hearthEmberLight)
-                        .font(.headline)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 15)
-                                .stroke(Color.hearthEmberLight, lineWidth: 4)
-                        )
-                        
-                        Button("Delete") {
-                            /*
-                            viewModel.deleteEntry(withId: entry.id ?? "") { result in
-                                DispatchQueue.main.async {
-                                    switch result {
-                                    case .success:
-                                        calendarViewModel.fetchEntries(for: selectedDate)
-                                        isPresenting = false
-                                    case .failure(let error):
-                                        print("Error deleting entry: \(error.localizedDescription)")
-                                    }
-                                }
+                    Button("Delete") {
+                        showingDeleteConfirmation = true
+                    }
+                    .padding()
+                    .frame(width: 100)
+                    .background(Color.hearthEmberLight)
+                    .foregroundColor(.parchmentLight)
+                    .font(.headline)
+                    .cornerRadius(15)
+                }
+            }
+        }
+        .alert("Confirm Delete", isPresented: $showingDeleteConfirmation) {
+                Button("Delete", role: .destructive) {
+                    if let reflectionId = reflectionViewModel.reflection?.id {
+                        reflectionViewModel.deleteReflection(withId: reflectionId) { result in
+                            switch result {
+                            case .success:
+                                isPresented = false
+                            case .failure(let error):
+                                print("Error deleting reflection: \(error.localizedDescription)")
                             }
-                             */
                         }
-                        .padding()
-                        .frame(width: 100)
-                        .background(Color.hearthEmberLight)
-                        .foregroundColor(.parchmentLight)
-                        .font(.headline)
-                        .cornerRadius(15)
+                    } else {
+                        print("No reflection available to delete")
                     }
                 }
+                Button("Cancel", role: .cancel) { }
+            } message: {
+                Text("Are you sure you want to delete this reflection? This action cannot be undone.")
+            }
+        .sheet(isPresented: $isEditing) {
+            if let reflection = reflectionViewModel.reflection {
+                ZStack {
+                    Color.warmSandLight
+                    VStack {
+                        HStack {
+                            Spacer()
+                            Image(systemName: "x.circle.fill")
+                                .padding(.top)
+                                .padding(.trailing, 20)
+                                .foregroundStyle(.parchmentDark.opacity(0.6))
+                                .font(.customTitle2)
+                                .onTapGesture {
+                                    isEditing.toggle()
+                                }
+                        }
+                        EditAddBibleReflectionView(reflectionViewModel: reflectionViewModel, existingReflection: reflection, verseText: reflection.bibleVerseText, verseReference: reflection.title, isPresented: $isEditing)
+                    }
+                }
+                .presentationDetents([.fraction(0.95)])
             }
         }
     }
 }
 
 /*
-#Preview {
-    DetailedBVReflectionView()
-}
-*/
+ #Preview {
+ DetailedBVReflectionView()
+ }
+ */

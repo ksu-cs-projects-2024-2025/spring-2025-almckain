@@ -12,7 +12,7 @@ class VerseReflectionViewModel: ObservableObject {
     @Published var reflection: VerseReflectionModel?
     @Published var reflectionText: String = ""
     @Published var isSaving = false
-    @Published var error: Error?
+    @Published var errorMessage: String?
     
     private let reflectionService: VerseReflectionService
     private let auth = Auth.auth()
@@ -65,11 +65,11 @@ class VerseReflectionViewModel: ObservableObject {
         }
         
         isSaving = true
-        error = nil
+        errorMessage = nil
         
         guard let userID = auth.currentUser?.uid else {
             let authError = NSError(domain: "Auth", code: 401, userInfo: [NSLocalizedDescriptionKey: "User not authenticated"])
-            self.error = authError
+            self.errorMessage = "User not logged in"
             self.isSaving = false
             completion(.failure(authError))
             return
@@ -101,7 +101,7 @@ class VerseReflectionViewModel: ObservableObject {
                     }
                     completion(.success(()))
                 case .failure(let error):
-                    self?.error = error
+                    self?.errorMessage = "Could not save reflection"
                     completion(.failure(error))
                 }
             }
@@ -121,19 +121,22 @@ class VerseReflectionViewModel: ObservableObject {
                     }
                     completion(.success(()))
                 case .failure(let error):
-                    self?.error = error
+                    self?.errorMessage = "Could not save reflection"
                     completion(.failure(error))
                 }
             }
         }
     }
     
-    func deleteReflection(completion: @escaping (Result<Void, Error>) -> Void) {
-        guard let reflectionToDelete = reflection else {
-            completion(.failure(NSError(domain: "Reflection", code: 0, userInfo: [NSLocalizedDescriptionKey: "No reflection to delete"])))
+    func deleteReflection(withId id: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        guard !id.isEmpty else {
+            self.errorMessage = "Reflection does not exist"
+            let error = NSError(domain: "JournalEntryError", code: 5, userInfo: [NSLocalizedDescriptionKey: "Invalid entry ID."])
+            completion(.failure(error))
             return
         }
-        reflectionService.deleteReflection(reflectionToDelete) { [weak self] result in
+        
+        reflectionService.deleteReflection(entryId: id) { [weak self] result in
             DispatchQueue.main.async {
                 switch result {
                 case .success:
@@ -141,8 +144,11 @@ class VerseReflectionViewModel: ObservableObject {
                     self?.reflectionText = ""
                     UserDefaults.standard.removeObject(forKey: self?.reflectionCacheKey ?? "CachedVerseReflection")
                     completion(.success(()))
+                    
                 case .failure(let error):
-                    self?.error = error
+                    // 4) Set an error message for UI feedback
+                    print("Error deleting reflection: \(error.localizedDescription)")
+                    self?.errorMessage = "Failed to delete reflection"
                     completion(.failure(error))
                 }
             }
