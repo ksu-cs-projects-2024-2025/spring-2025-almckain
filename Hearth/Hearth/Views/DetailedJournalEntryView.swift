@@ -96,8 +96,8 @@ struct DetailedJournalEntryView: View {
         }
         .alert("Confirm Delete", isPresented: $showingDeleteConfirmation){
             Button("Delete", role: .destructive) {
-                if let id = entry.id, !id.isEmpty {
-                    viewModel.deleteEntry(withId: id) { result in
+                if !entry.id.isEmpty {
+                    viewModel.deleteEntry(withId: entry.id) { result in
                         DispatchQueue.main.async {
                             switch result {
                             case .success:

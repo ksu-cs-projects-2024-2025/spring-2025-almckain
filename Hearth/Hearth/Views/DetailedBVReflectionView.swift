@@ -107,8 +107,8 @@ struct DetailedBVReflectionView: View {
         }
         .alert("Confirm Delete", isPresented: $showingDeleteConfirmation) {
             Button("Delete", role: .destructive) {
-                if let id = reflectionEntry.id {
-                    reflectionViewModel.deleteReflection(withId: id) { result in
+                if !reflectionEntry.id.isEmpty {
+                    reflectionViewModel.deleteReflection(withId: reflectionEntry.id) { result in
                         switch result {
                         case .success:
                             isPresented = false

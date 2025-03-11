@@ -42,11 +42,7 @@ class VerseReflectionService {
             return
         }
         
-        guard let id = reflection.id else {
-            let idError = NSError(domain: "Firestore", code: 0, userInfo: [NSLocalizedDescriptionKey: "Reflection ID is nil"])
-            completion(.failure(idError))
-            return
-        }
+        let id = reflection.id
         
         do {
             // Use setData(from:merge:) with a completion closure

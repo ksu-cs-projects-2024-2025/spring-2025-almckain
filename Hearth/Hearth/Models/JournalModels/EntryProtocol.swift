@@ -9,7 +9,7 @@ import FirebaseFirestore
 import Foundation
 
 protocol EntryProtocol: Identifiable, Codable {
-    var id: String? { get set }
+    var id: String { get set }
     var userID: String { get set }
     var title: String { get set }
     var timeStamp: Date { get set }

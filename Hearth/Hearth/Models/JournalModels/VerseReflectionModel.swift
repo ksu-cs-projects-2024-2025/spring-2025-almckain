@@ -9,7 +9,7 @@ import Foundation
 import FirebaseFirestore
 
 struct VerseReflectionModel: EntryProtocol {
-    var id: String?
+    var id: String
     var userID: String
     var title: String
     var bibleVerseText: String

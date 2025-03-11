@@ -9,7 +9,7 @@ import FirebaseFirestore
 import Foundation
 
 struct JournalEntryModel: EntryProtocol {
-    @DocumentID var id: String?
+    var id: String
     var userID: String
     var title: String
     var content: String

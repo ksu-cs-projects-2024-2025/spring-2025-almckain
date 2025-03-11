@@ -77,7 +77,7 @@ class VerseReflectionViewModel: ObservableObject {
         }
 
         var newReflection = VerseReflectionModel(
-            id: nil,
+            id: UUID().uuidString,
             userID: userID,
             title: reference,
             bibleVerseText: verseText,

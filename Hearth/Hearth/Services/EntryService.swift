@@ -49,7 +49,7 @@ class EntryService {
         newEntry.userID = user.uid
         
         do {
-            let _ = try db.collection("entries").document(newEntry.id ?? UUID().uuidString).setData(from: newEntry, merge: true)
+            let _ = try db.collection("entries").document(newEntry.id).setData(from: newEntry, merge: true)
             completion(.success(()))
         } catch {
             completion(.failure(error))
@@ -141,10 +141,7 @@ class EntryService {
     }
     
     func updateEntry(_ entry: JournalEntryModel, completion: @escaping (Result<Void, Error>) -> Void) {
-        guard let entryID = entry.id else {
-            completion(.failure(NSError(domain: "MissingEntryID", code: -1)))
-            return
-        }
+        let entryID = entry.id
         
         let data: [String: Any] = [
             "title": entry.title,

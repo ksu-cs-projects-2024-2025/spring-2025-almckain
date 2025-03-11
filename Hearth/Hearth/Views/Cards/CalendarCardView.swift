@@ -10,8 +10,8 @@ import SwiftUI
 struct CalendarCardView: View {
     
     @ObservedObject var calendarViewModel: CalendarViewModel
-    @ObservedObject var journalEntryViewModel: JournalEntryViewModel
-    @ObservedObject var reflectionViewModel: VerseReflectionViewModel
+    //@ObservedObject var journalEntryViewModel: JournalEntryViewModel
+    //@ObservedObject var reflectionViewModel: VerseReflectionViewModel
     
     @State private var date = Date.now
     let daysOfWeek = Date.capitalizedFirstLettersOfWeekdays
@@ -100,6 +100,7 @@ struct CalendarCardView: View {
         .onChange(of: date) { oldValue, newValue in
             days = newValue.calendarDisplayDays
             calendarViewModel.fetchEntriesInMonth(newValue)
+            calendarViewModel.fetchReflectionsInMonth(newValue)
         }
         .background(
             RoundedRectangle(cornerRadius: 15)
