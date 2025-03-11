@@ -87,5 +87,67 @@ class VerseReflectionService {
             }
         }
     }
+    
+    func fetchReflectionsForDay(date: Date, completion: @escaping (Result<[VerseReflectionModel], Error>) -> Void) {
+        guard let userID = Auth.auth().currentUser?.uid else {
+            completion(.failure(NSError(domain: "AuthError", code: 401,
+               userInfo: [NSLocalizedDescriptionKey: "User not logged in."])))
+            return
+        }
+        
+        let calendar = Calendar.current
+        var components = calendar.dateComponents([.year, .month, .day], from: date)
+        components.hour = 0
+        components.minute = 0
+        components.second = 0
+        components.timeZone = TimeZone.current
+
+        guard let localStartOfDay = calendar.date(from: components),
+              let localEndOfDay = calendar.date(byAdding: .day, value: 1, to: localStartOfDay) else {
+            completion(.failure(NSError(domain: "DateError", code: 400,
+               userInfo: [NSLocalizedDescriptionKey: "Error calculating day range."])))
+            return
+        }
+        
+        db.collection("reflections")
+            .whereField("userID", isEqualTo: userID)
+            .whereField("timeStamp", isGreaterThanOrEqualTo: localStartOfDay)
+            .whereField("timeStamp", isLessThan: localEndOfDay)
+            .getDocuments { snapshot, error in
+                if let error = error {
+                    completion(.failure(error))
+                } else {
+                    let reflections: [VerseReflectionModel] = snapshot?.documents.compactMap {
+                        try? $0.data(as: VerseReflectionModel.self)
+                    } ?? []
+                    completion(.success(reflections))
+                }
+            }
+    }
+    
+    func fetchReflectionsInRange(start: Date, end: Date, completion: @escaping (Result<[VerseReflectionModel], Error>) -> Void) {
+        guard let userID = Auth.auth().currentUser?.uid else {
+            completion(.failure(NSError(domain: "AuthError", code: 401,
+                userInfo: [NSLocalizedDescriptionKey: "User not logged in."])))
+            return
+        }
+        
+        db.collection("reflections")
+            .whereField("userID", isEqualTo: userID)
+            .whereField("timeStamp", isGreaterThanOrEqualTo: start)
+            .whereField("timeStamp", isLessThan: end)
+            .getDocuments { snapshot, error in
+                if let error = error {
+                    completion(.failure(error))
+                } else {
+                    let reflections: [VerseReflectionModel] = snapshot?.documents.compactMap {
+                        try? $0.data(as: VerseReflectionModel.self)
+                    } ?? []
+                    completion(.success(reflections))
+                }
+            }
+    }
+
+
 }
 

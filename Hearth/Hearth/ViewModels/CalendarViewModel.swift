@@ -10,10 +10,11 @@ import SwiftUI
 
 class CalendarViewModel: ObservableObject {
     private let entryService = EntryService()
+    private let reflectionService = VerseReflectionService()
     private let calendar = Calendar.current
     
     @Published var monthEntries: [Date: [JournalEntryModel]] = [:]
-        
+    @Published var monthReflections: [Date: [VerseReflectionModel]] = [:]
     @Published var entries: [JournalEntryModel] = []
     @Published var isLoading: Bool = false
     
@@ -43,6 +44,30 @@ class CalendarViewModel: ObservableObject {
                 case .failure(let error):
                     print("Error fetching month entries: \(error.localizedDescription)")
                     self?.monthEntries = [:]
+                }
+            }
+        }
+    }
+    
+    func fetchReflectionsInMonth(_ monthDate: Date) {
+        isLoading = true
+        let startOfMonth = calendar.startOfDay(for: monthDate.startOfMonth)
+        let endOfMonth = calendar.date(byAdding: .day, value: 1, to: monthDate.endOfMonth)!
+        
+        reflectionService.fetchReflectionsInRange(start: startOfMonth, end: endOfMonth) { [weak self] result in
+            DispatchQueue.main.async {
+                self?.isLoading = false
+                switch result {
+                case .success(let fetchedReflections):
+                    var grouped: [Date: [VerseReflectionModel]] = [:]
+                    for reflection in fetchedReflections {
+                        let dayStart = self?.calendar.startOfDay(for: reflection.timeStamp) ?? Date()
+                        grouped[dayStart, default: []].append(reflection)
+                    }
+                    self?.monthReflections = grouped
+                case .failure(let error):
+                    print("Error fetching month reflections: \(error.localizedDescription)")
+                    self?.monthReflections = [:]
                 }
             }
         }

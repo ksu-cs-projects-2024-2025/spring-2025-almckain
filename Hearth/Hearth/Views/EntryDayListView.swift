@@ -11,6 +11,7 @@ struct EntryDayListView: View {
     let selectedDate: Date
     @ObservedObject var calendarViewModel: CalendarViewModel
     @StateObject var journalEntryViewModel: JournalEntryViewModel
+    @ObservedObject var reflectionViewModel: VerseReflectionViewModel
 
     @State private var isPresented: Bool = false
     
@@ -21,7 +22,7 @@ struct EntryDayListView: View {
             VStack {
                 if calendarViewModel.isLoading {
                     LoadingScreenView()
-                } else if calendarViewModel.entries.isEmpty {
+                } else if calendarViewModel.entries.isEmpty && reflectionViewModel.fetchedReflections.isEmpty {
                     Text("No entries for this day")
                         .foregroundStyle(.secondary)
                         .padding()
@@ -34,6 +35,10 @@ struct EntryDayListView: View {
                                 journalEntryViewModel: journalEntryViewModel,
                                 selectedDate: selectedDate
                             )
+                        }
+                        
+                        ForEach(reflectionViewModel.fetchedReflections, id: \.id) { reflection in
+                            ReflectionEntryCardView(reflectionEntry: reflection, reflectionViewModel: reflectionViewModel, selectedDate: selectedDate)
                         }
                     }
                 }
@@ -77,6 +82,7 @@ struct EntryDayListView: View {
         }
         .onAppear {
             calendarViewModel.fetchEntries(for: selectedDate)
+            reflectionViewModel.fetchReflections(for: selectedDate)
             let appearance = calendarViewModel.navBarAppearance()
             UINavigationBar.appearance().standardAppearance = appearance
             UINavigationBar.appearance().scrollEdgeAppearance = appearance
@@ -85,7 +91,8 @@ struct EntryDayListView: View {
         }
     }
 }
-
+/*
 #Preview {
     EntryDayListView(selectedDate: Date(), calendarViewModel: CalendarViewModel(), journalEntryViewModel: JournalEntryViewModel())
 }
+*/

@@ -11,6 +11,7 @@ import FirebaseAuth
 class VerseReflectionViewModel: ObservableObject {
     @Published var reflection: VerseReflectionModel?
     @Published var reflectionText: String = ""
+    @Published var fetchedReflections: [VerseReflectionModel] = []
     @Published var isSaving = false
     @Published var errorMessage: String?
     
@@ -163,5 +164,19 @@ class VerseReflectionViewModel: ObservableObject {
         // Remove cached data from UserDefaults
         UserDefaults.standard.removeObject(forKey: reflectionCacheKey)
         print("Cache cleared")
+    }
+    
+    func fetchReflections(for date: Date) {
+        reflectionService.fetchReflectionsForDay(date: date) { [weak self] result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let reflections):
+                    self?.fetchedReflections = reflections
+                case .failure(let error):
+                    print("Error fetching reflections: \(error.localizedDescription)")
+                    self?.fetchedReflections = []
+                }
+            }
+        }
     }
 }

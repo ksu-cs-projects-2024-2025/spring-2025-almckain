@@ -11,6 +11,7 @@ struct CalendarView: View {
     
     @StateObject private var journalEntryViewModel = JournalEntryViewModel()
     @StateObject var calendarViewModel = CalendarViewModel()
+    @StateObject var reflectionViewModel = VerseReflectionViewModel()
     
     @State private var isPresented: Bool = false
     
@@ -21,9 +22,9 @@ struct CalendarView: View {
                 .ignoresSafeArea()
             NavigationStack {
                 ScrollView {
-                    CalendarCardView(calendarViewModel: calendarViewModel, journalEntryViewModel: journalEntryViewModel)
+                    CalendarCardView(calendarViewModel: calendarViewModel, journalEntryViewModel: journalEntryViewModel, reflectionViewModel: reflectionViewModel)
                         .navigationDestination(for: Date.self) { date in
-                            EntryDayListView(selectedDate: date, calendarViewModel: calendarViewModel, journalEntryViewModel: journalEntryViewModel)
+                            EntryDayListView(selectedDate: date, calendarViewModel: calendarViewModel, journalEntryViewModel: journalEntryViewModel, reflectionViewModel: reflectionViewModel)
                         }
                     
                     Button(action: {

@@ -94,8 +94,14 @@ struct BibleVerseCardView: View {
                                     )
                             .padding()
                     } else {
-                        DetailedBVReflectionView(reflectionViewModel: reflectionViewModel, isPresented: $isSheetPresented)
+                        if let reflection = reflectionViewModel.reflection {  // ✅ Ensure reflection exists
+                            DetailedBVReflectionView(
+                                reflectionEntry: reflection,  // ✅ Use reflectionViewModel.reflection
+                                reflectionViewModel: reflectionViewModel,
+                                isPresented: $isSheetPresented
+                            )
                             .padding()
+                        }
                     }
                 }
             }

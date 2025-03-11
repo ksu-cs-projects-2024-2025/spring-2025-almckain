@@ -11,7 +11,7 @@ struct CalendarCardView: View {
     
     @ObservedObject var calendarViewModel: CalendarViewModel
     @ObservedObject var journalEntryViewModel: JournalEntryViewModel
-    
+    @ObservedObject var reflectionViewModel: VerseReflectionViewModel
     
     @State private var date = Date.now
     let daysOfWeek = Date.capitalizedFirstLettersOfWeekdays
@@ -50,19 +50,21 @@ struct CalendarCardView: View {
                     }else {
                         let dayStart = day.startOfDay
                         let hasEntries = !(calendarViewModel.monthEntries[dayStart, default: []].isEmpty)
+                        let hasReflection = !(calendarViewModel.monthReflections[dayStart, default: []].isEmpty)
                         let isFutureDay = dayStart > Date().startOfDay
                         let isToday = dayStart == Date().startOfDay
-                        
+                        let hasActivity = hasEntries || hasReflection
+
                         NavigationLink(value: day) {
                             ZStack {
                                 if isToday {
-                                    if hasEntries {
+                                    if hasActivity {
                                         Circle().foregroundStyle(Color.hearthEmberMain)
                                     } else {
                                         Circle().stroke(Color.hearthEmberDark, lineWidth: 3)
                                     }
                                 } else {
-                                    if hasEntries {
+                                    if hasActivity {
                                         Circle().foregroundStyle(Color.hearthEmberLight)
                                     } else {
                                         Circle().stroke(Color.hearthEmberLight, lineWidth: 3)
@@ -71,9 +73,7 @@ struct CalendarCardView: View {
                                 
                                 Text(day.formatted(.dateTime.day()))
                                     .fontWeight(.bold)
-                                    .foregroundColor(
-                                        (isToday && hasEntries) || (!isToday && hasEntries)
-                                        ? Color.parchmentLight : Color.parchmentDark
+                                    .foregroundColor(hasActivity ? Color.parchmentLight : Color.parchmentDark
                                     )
                                     .opacity(isFutureDay ? 0.4 : 1.0)
                             }
@@ -91,6 +91,7 @@ struct CalendarCardView: View {
         .onAppear {
             days = date.calendarDisplayDays
             calendarViewModel.fetchEntriesInMonth(date)
+            calendarViewModel.fetchReflectionsInMonth(date)
             
             let appearance = calendarViewModel.navBarAppearance()
             UINavigationBar.appearance().standardAppearance = appearance
@@ -109,7 +110,8 @@ struct CalendarCardView: View {
     }
 }
 
-
+/*
 #Preview {
     CalendarCardView(calendarViewModel: CalendarViewModel(), journalEntryViewModel: JournalEntryViewModel())
 }
+*/
