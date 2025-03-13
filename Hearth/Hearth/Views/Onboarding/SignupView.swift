@@ -39,7 +39,8 @@ struct SignupView: View {
                             .clipShape(RoundedRectangle(cornerRadius: 15))
                             .focused($focusedField, equals: .firstName)
                             .submitLabel(.done)
-                        
+                            .autocorrectionDisabled()
+
                         
                         TextField("Last name", text: $viewModel.lastName)
                             .padding()
@@ -47,6 +48,7 @@ struct SignupView: View {
                             .clipShape(RoundedRectangle(cornerRadius: 15))
                             .focused($focusedField, equals: .lastName)
                             .submitLabel(.done)
+                            .autocorrectionDisabled()
                         
                         TextField("Email", text: $viewModel.email)
                             .padding()
@@ -55,6 +57,8 @@ struct SignupView: View {
                             .focused($focusedField, equals: .email)
                             .submitLabel(.done)
                             .keyboardType(.emailAddress)
+                            .autocorrectionDisabled()
+                            .textInputAutocapitalization(.never)
                         
                         
                         SecureField("Password", text: $viewModel.password)
@@ -71,6 +75,7 @@ struct SignupView: View {
                             .clipShape(RoundedRectangle(cornerRadius: 15))
                             .focused($focusedField, equals: .confirmPassword)
                             .submitLabel(.done)
+
                     }
                     .padding(.horizontal)
                     

@@ -38,7 +38,7 @@ struct LoginView: View {
                         .focused($focusedField, equals: .email)
                         .submitLabel(.done)
                         .keyboardType(.emailAddress)
-                    
+                        .autocorrectionDisabled()
                     
                     SecureField("Password", text: $viewModel.password)
                         .padding()
@@ -46,6 +46,7 @@ struct LoginView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 15))
                         .focused($focusedField, equals: .password)
                         .submitLabel(.done)
+                        .autocorrectionDisabled()
                 }
                 .padding(.horizontal)
                 
