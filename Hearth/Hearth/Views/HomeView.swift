@@ -13,6 +13,8 @@ struct HomeView: View {
     @ObservedObject var reflectionViewModel: VerseReflectionViewModel
     @Environment(\.scenePhase) var scenePhase
     
+    @State private var showNotificationAlert = false
+    
     var body: some View {
         NavigationStack {
             if profileViewModel.isLoading || homeViewModel.isLoading {
@@ -44,6 +46,26 @@ struct HomeView: View {
             let appearance = homeViewModel.navBarAppearance()
             UINavigationBar.appearance().standardAppearance = appearance
             UINavigationBar.appearance().scrollEdgeAppearance = appearance
+            
+            UNUserNotificationCenter.current().getNotificationSettings { settings in
+                DispatchQueue.main.async {
+                    if settings.authorizationStatus == .denied {
+                        showNotificationAlert = true
+                    }
+                }
+            }
+        }
+        .alert(isPresented: $showNotificationAlert) {
+            Alert(
+                title: Text("Enable Notifications"),
+                message: Text("Hearth works best with notifications! Please enable notifications in Settings."),
+                primaryButton: .default(Text("Open Settings"), action: {
+                    if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
+                        UIApplication.shared.open(settingsURL)
+                    }
+                }),
+                secondaryButton: .cancel()
+            )
         }
     }
 }
