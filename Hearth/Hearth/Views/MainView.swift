@@ -11,6 +11,12 @@ import SwiftData
 struct MainView: View {
     @State private var selectedTab = 0
     
+    @StateObject var profileViewModel = ProfileViewModel()
+    @StateObject var homeViewModel = HomeViewModel()
+    @StateObject var reflectionViewModel = VerseReflectionViewModel()
+    @StateObject var calendarViewModel = CalendarViewModel()
+    @StateObject var journalEntryViewModel = JournalEntryViewModel()
+    
     // Stylizes tab bar
     init() {
         let appearance = tabBarAppearance()
@@ -22,10 +28,14 @@ struct MainView: View {
     var body: some View {
         TabView(selection: $selectedTab) {
             Tab("Home", systemImage: "house.fill", value: 0) {
-                HomeView()
+                HomeView(
+                    profileViewModel: profileViewModel, homeViewModel: homeViewModel, reflectionViewModel: reflectionViewModel
+                )
             }
             Tab("Calendar", systemImage: "calendar", value: 1) {
-                CalendarView()
+                CalendarView(
+                    journalEntryViewModel: journalEntryViewModel, calendarViewModel: calendarViewModel, reflectionViewModel: reflectionViewModel
+                )
             }
             Tab("Prayers", systemImage: "list.bullet.clipboard", value: 2) {
                 JournalView()
@@ -53,7 +63,8 @@ struct MainView: View {
         return appearance
     }
 }
-
+/*
 #Preview {
     MainView()
 }
+*/

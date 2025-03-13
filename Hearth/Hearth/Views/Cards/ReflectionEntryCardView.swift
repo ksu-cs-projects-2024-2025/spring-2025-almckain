@@ -62,7 +62,6 @@ struct ReflectionEntryCardView: View {
                 Spacer()
             }
         }
-        .padding(.vertical, 10)
         .onTapGesture {
             isSheetPresented = true
         }

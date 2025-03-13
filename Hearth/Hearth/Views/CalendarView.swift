@@ -9,9 +9,9 @@ import SwiftUI
 
 struct CalendarView: View {
     
-    @StateObject private var journalEntryViewModel = JournalEntryViewModel()
-    @StateObject var calendarViewModel = CalendarViewModel()
-    @StateObject var reflectionViewModel = VerseReflectionViewModel()
+    @ObservedObject var journalEntryViewModel: JournalEntryViewModel
+    @ObservedObject var calendarViewModel: CalendarViewModel
+    @ObservedObject var reflectionViewModel: VerseReflectionViewModel
     
     @State private var isPresented: Bool = false
     
@@ -84,6 +84,8 @@ struct CalendarView: View {
     }
 }
 
+/*
 #Preview {
     CalendarView()
 }
+*/

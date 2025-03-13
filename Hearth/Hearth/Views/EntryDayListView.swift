@@ -44,6 +44,7 @@ struct EntryDayListView: View {
                                 selectedDate: selectedDate)
                         }
                     }
+                    .padding(.top, 10)
                 }
             }
             .sheet(isPresented: $isPresented) {

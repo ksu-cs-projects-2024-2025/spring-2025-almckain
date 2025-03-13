@@ -8,9 +8,9 @@
 import SwiftUI
 
 struct HomeView: View {
-    @StateObject var profileViewModel = ProfileViewModel()
-    @StateObject var homeViewModel = HomeViewModel()
-    @StateObject var reflectionViewModel = VerseReflectionViewModel()
+    @ObservedObject var profileViewModel: ProfileViewModel
+    @ObservedObject var homeViewModel: HomeViewModel
+    @ObservedObject var reflectionViewModel: VerseReflectionViewModel
     @Environment(\.scenePhase) var scenePhase
     
     var body: some View {
@@ -48,6 +48,8 @@ struct HomeView: View {
     }
 }
 
+/*
 #Preview {
     HomeView()
 }
+*/
