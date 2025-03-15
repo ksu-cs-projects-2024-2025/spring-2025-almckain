@@ -15,6 +15,8 @@ struct HomeView: View {
     
     @State private var showNotificationAlert = false
     
+    @AppStorage("homeAppearCount") private var homeAppearCount = 0
+    
     var body: some View {
         NavigationStack {
             if profileViewModel.isLoading || homeViewModel.isLoading {
@@ -41,16 +43,18 @@ struct HomeView: View {
             }
         }
         .onAppear {
-            //reflectionViewModel.debugPrintPersistentReflection()
             profileViewModel.fetchUserData()
             let appearance = homeViewModel.navBarAppearance()
             UINavigationBar.appearance().standardAppearance = appearance
             UINavigationBar.appearance().scrollEdgeAppearance = appearance
             
+            homeAppearCount += 1
+            
             UNUserNotificationCenter.current().getNotificationSettings { settings in
                 DispatchQueue.main.async {
-                    if settings.authorizationStatus == .denied {
+                    if settings.authorizationStatus == .denied && (homeAppearCount % 20 == 0) {
                         showNotificationAlert = true
+                        homeAppearCount = 0
                     }
                 }
             }
