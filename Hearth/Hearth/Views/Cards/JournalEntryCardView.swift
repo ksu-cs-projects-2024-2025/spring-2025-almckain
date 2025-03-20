@@ -39,9 +39,7 @@ struct JournalEntryCardView: View {
                             .foregroundStyle(.parchmentDark.opacity(0.6))
                     }
                     
-                    Rectangle()
-                        .fill(Color.hearthEmberDark)
-                        .frame(height: 2)
+                    CustomDivider(height: 2, color: .hearthEmberDark)
                         .padding(.trailing, 20)
                     
                     Text(journalEntry.title)
@@ -65,29 +63,11 @@ struct JournalEntryCardView: View {
         }
         .onTapGesture {
             isSheetPresented = true
+        }        
+        .customSheet(isPresented: $isSheetPresented) {
+            DetailedJournalEntryView(entry: journalEntry, selectedDate: selectedDate, isPresenting: $isSheetPresented, viewModel: journalEntryViewModel, calendarViewModel: calendarViewModel)
         }
-        .sheet(isPresented: $isSheetPresented) {
-            ZStack {
-                Color.warmSandLight
-                    .ignoresSafeArea()
-                VStack {
-                    HStack {
-                        Spacer()
-                        Image(systemName: "x.circle.fill")
-                            .padding(.top)
-                            .padding(.trailing, 20)
-                            .foregroundStyle(.parchmentDark.opacity(0.6))
-                            .font(.customTitle2)
-                            .onTapGesture {
-                                isSheetPresented.toggle()
-                            }
-                    }
-                    
-                    DetailedJournalEntryView(entry: journalEntry, selectedDate: selectedDate, isPresenting: $isSheetPresented, viewModel: journalEntryViewModel, calendarViewModel: calendarViewModel)                       .padding()
-                }
-            }
-            .presentationDetents([.fraction(0.95)])
-        }
+        .presentationDetents([.fraction(0.95)])
     }
 }
 

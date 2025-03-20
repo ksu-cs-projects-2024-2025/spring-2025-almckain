@@ -47,27 +47,11 @@ struct EntryDayListView: View {
                     .padding(.top, 10)
                 }
             }
-            .sheet(isPresented: $isPresented) {
-                ZStack {
-                    Color.warmSandLight
-                    VStack {
-                        HStack {
-                            Spacer()
-                            Image(systemName: "x.circle.fill")
-                                .padding(.top)
-                                .padding(.trailing, 20)
-                                .foregroundStyle(.parchmentDark.opacity(0.6))
-                                .font(.customTitle2)
-                                .onTapGesture {
-                                    isPresented.toggle()
-                                }
-                        }
-                        
-                        CreateNewJournalView(isPresenting: $isPresented, viewModel: journalEntryViewModel, calendarViewModel: calendarViewModel, selectedDate: selectedDate)
-                    }
-                }
-                .presentationDetents([.fraction(0.95)])
+            .customSheet(isPresented: $isPresented) {
+                CreateNewJournalView(isPresenting: $isPresented, viewModel: journalEntryViewModel, calendarViewModel: calendarViewModel, selectedDate: selectedDate)
             }
+            .presentationDetents([.fraction(0.95)])
+
         }
         .navigationTitle(selectedDate.formatted(.dateTime.month(.abbreviated).day().year()))
         .navigationBarTitleDisplayMode(.inline)

@@ -47,7 +47,6 @@ struct CalendarView: View {
                 .navigationTitle("Calendar")
                 .navigationBarTitleDisplayMode(.large)
                 .buttonStyle(.plain)
-                .padding(.horizontal)
             }
         }
         .onAppear {
@@ -59,28 +58,11 @@ struct CalendarView: View {
                 calendarViewModel?.fetchReflectionsInMonth(Date())
             }
         }
-        .sheet(isPresented: $isPresented) {
-            ZStack {
-                Color.warmSandLight
-                VStack {
-                    HStack {
-                        Spacer()
-                        Image(systemName: "x.circle.fill")
-                            .padding(.top)
-                            .padding(.trailing, 20)
-                            .foregroundStyle(.parchmentDark.opacity(0.6))
-                            .font(.customTitle2)
-                            .onTapGesture {
-                                isPresented.toggle()
-                            }
-                    }
-                    
-                    CreateNewJournalView(isPresenting: $isPresented, viewModel: journalEntryViewModel, calendarViewModel: calendarViewModel, selectedDate: Date())
-                }
-            }
-            .presentationDetents([.fraction(0.95)])
-            
+        .customSheet(isPresented: $isPresented) {
+            CreateNewJournalView(isPresenting: $isPresented, viewModel: journalEntryViewModel, calendarViewModel: calendarViewModel, selectedDate: Date())
         }
+        .presentationDetents([.fraction(0.95)])
+
     }
 }
 

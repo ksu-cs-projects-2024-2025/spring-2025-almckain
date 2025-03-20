@@ -14,30 +14,29 @@ struct BibleVerseCardView: View {
     @State private var isSheetPresented = false
     
     var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 15)
-                .foregroundStyle(.warmSandLight)
-                .shadow(color: Color.parchmentDark.opacity(0.05), radius: 5, x: 0, y: 2)
-                .padding(.horizontal, 10)
-            
+        CardView{
             VStack(alignment: .leading) {
                 Text("Today's Bible Verse")
-                    .font(.title2)
-                    .foregroundStyle(.hearthEmberDark)
-                Divider()
-                    .foregroundStyle(.hearthEmberDark)
+                    .font(.customTitle3)
+                    .foregroundStyle(.hearthEmberMain)
+                
+                CustomDivider(height: 2, color: .hearthEmberMain)
                 
                 if let verse = viewModel.bibleVerse {
                     
                     Text(verse.text)
                         .font(.customBody1)
-                        .foregroundStyle(.hearthEmberDark)
+                        .foregroundStyle(.parchmentDark)
+                        .multilineTextAlignment(.center)
+                        .padding(.vertical, 5)
                     
                     HStack {
                         Spacer()
                         
                         Text(verse.reference)
-                            .padding()
+                            .font(.customBody1)
+                            .foregroundStyle(.parchmentDark)
+                            .padding(.bottom,5)
                     }
                 } else if let errorMessage = viewModel.errorMessage {
                     Text("Error: \(errorMessage)")
@@ -52,12 +51,12 @@ struct BibleVerseCardView: View {
                     if reflectionViewModel.reflectionText.isEmpty {
                         Image(systemName: "square.and.arrow.up")
                             .frame(width: 24, height: 24)
-                            .foregroundStyle(.hearthEmberDark)
+                            .foregroundStyle(.hearthEmberMain)
                     }
                     
                     Text(reflectionViewModel.reflectionText.isEmpty ? "Add Reflection" : "View Reflection")
                         .font(.customButton)
-                        .foregroundStyle(.hearthEmberDark)
+                        .foregroundStyle(.hearthEmberMain)
                     Spacer()
                 }
                 .contentShape(Rectangle())
@@ -66,47 +65,26 @@ struct BibleVerseCardView: View {
                 }
                 
             }
-            .padding(30)
         }
-        .sheet(isPresented: $isSheetPresented) {
-            ZStack {
-                Color.warmSandLight
-                    .ignoresSafeArea()
-                VStack {
-                    HStack {
-                        Spacer()
-                        Image(systemName: "x.circle.fill")
-                            .padding(.top)
-                            .padding(.trailing, 20)
-                            .foregroundStyle(.parchmentDark.opacity(0.6))
-                            .font(.customTitle2)
-                            .onTapGesture {
-                                isSheetPresented.toggle()
-                            }
-                    }
-                    
-                    if reflectionViewModel.reflectionText.isEmpty {
-                        EditAddBibleReflectionView(
-                                        reflectionViewModel: reflectionViewModel,
-                                        verseText: viewModel.bibleVerse?.text ?? "",
-                                        verseReference: viewModel.bibleVerse?.reference ?? "",
-                                        isEditingPresented: $isSheetPresented
-                                    )
-                            .padding()
-                    } else {
-                        if let reflection = reflectionViewModel.reflection {
-                            DetailedBVReflectionView(
-                                reflectionEntry: reflection,
-                                reflectionViewModel: reflectionViewModel,
-                                isPresented: $isSheetPresented
-                            )
-                            .padding()
-                        }
-                    }
+        .customSheet(isPresented: $isSheetPresented) {
+            if reflectionViewModel.reflectionText.isEmpty {
+                EditAddBibleReflectionView(
+                    reflectionViewModel: reflectionViewModel,
+                    verseText: viewModel.bibleVerse?.text ?? "",
+                    verseReference: viewModel.bibleVerse?.reference ?? "",
+                    isEditingPresented: $isSheetPresented
+                )
+            } else {
+                if let reflection = reflectionViewModel.reflection {
+                    DetailedBVReflectionView(
+                        reflectionEntry: reflection,
+                        reflectionViewModel: reflectionViewModel,
+                        isPresented: $isSheetPresented
+                    )
                 }
             }
-            .presentationDetents([.fraction(0.95)])
         }
+        .presentationDetents([.fraction(0.95)])
     }
 }
 

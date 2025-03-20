@@ -45,10 +45,7 @@ struct DetailedJournalEntryView: View {
                     }
                     .padding(.vertical)
                     
-                    Rectangle()
-                        .fill(Color.parchmentDark)
-                        .frame(height: 2)
-                        .padding(.trailing, 20)
+                    CustomDivider(height: 2, color: .parchmentDark)
 
                     Text(entry.content)
                         .padding(.vertical)
@@ -116,32 +113,30 @@ struct DetailedJournalEntryView: View {
         } message: {
             Text("Are you sure you want to delete this entry? This action cannot be undone.")
         }
-        .sheet(isPresented: $isEditing) {
-            ZStack {
-                Color.warmSandLight
-                VStack {
-                    HStack {
-                        Spacer()
-                        Image(systemName: "x.circle.fill")
-                            .padding(.top)
-                            .padding(.trailing, 20)
-                            .foregroundStyle(.parchmentDark.opacity(0.6))
-                            .font(.customTitle2)
-                            .onTapGesture {
-                                isEditing.toggle()
-                            }
-                    }
-                    
-                    CreateNewJournalView(isPresenting: $isEditing, viewModel: viewModel, calendarViewModel: calendarViewModel, selectedDate: selectedDate, entry: entry)
-                }
-            }
-            .presentationDetents([.fraction(0.95)])
+        .customSheet(isPresented: $isEditing) {
+            CreateNewJournalView(isPresenting: $isEditing, viewModel: viewModel, calendarViewModel: calendarViewModel, selectedDate: selectedDate, entry: entry)
         }
+        .presentationDetents([.fraction(0.95)])
+
     }
 }
-/*
+
 #Preview {
-    @Previewable @State var isPresented = true
-    DetailedJournalEntryView(entry: JournalEntryModel(userID: "123", title: "Today I got a cool taco", content: "It wasnt like a crazy taco. But it was fs a totally different taco. Like idk who made it but give them a raise because they are putting in the work. \n\n Sometimes, I think tacos look like trash. Not this one. This is my taco, with my taco I am useless. With me, my taco is useless.", timeStamp: Date()), isPresenting: $isPresented )
+    DetailedJournalEntryView(
+        entry: JournalEntryModel(
+            id: "", userID: "123",
+            title: "Today I got a cool taco",
+            content: """
+                It wasn't like a crazy taco. But it was a totally different taco. Like, I don't know who made it, but give them a raise because they are putting in the work.
+                
+                Sometimes, I think tacos look like trash. Not this one. This is my taco, with my taco I am useless. With me, my taco is useless.
+                """,
+            timeStamp: Date()
+        ),
+        selectedDate: Date(),
+        isPresenting: .constant(true),
+        viewModel: JournalEntryViewModel(),
+        calendarViewModel: CalendarViewModel()
+    )
 }
-*/
+

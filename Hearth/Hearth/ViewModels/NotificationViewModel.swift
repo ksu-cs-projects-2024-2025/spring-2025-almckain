@@ -36,11 +36,6 @@ class NotificationViewModel: ObservableObject {
                         self.requestNotificationPermission()
                     }
                 case .denied:
-                    /*
-                    if self.hasRequestedBefore {
-                        self.showNotificationAlert = true
-                    }
-                     */
                     self.notificationsEnabled = false
                     self.showNotificationAlert = true
                 case .authorized, .provisional, .ephemeral:

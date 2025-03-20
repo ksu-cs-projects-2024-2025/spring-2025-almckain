@@ -42,7 +42,7 @@ struct EditAddBibleReflectionView: View {
                     VStack {
                         HStack {
                             VStack {
-                                Text(isEditingExistingReflection ? "Edit Verse Reflection" : "New Verse Refelction")
+                                Text(isEditingExistingReflection ? "Edit Verse Reflection" : "New Verse Reflection")
                                     .font(.largeTitle.bold())
                                     .foregroundStyle(.parchmentDark)
                             }
@@ -66,35 +66,28 @@ struct EditAddBibleReflectionView: View {
                             Spacer()
                         }
                     }
-                    .padding(.horizontal)
                     
-                    Rectangle()
-                        .fill(Color.parchmentDark)
-                        .frame(height: 2)
-                        .padding(.trailing, 20)
+                    CustomDivider(height: 2, color: .hearthEmberDark)
 
                     VStack {
                         Text((isEditingExistingReflection ? existingReflection?.bibleVerseText : verseText) ?? "")
                             .font(.customBody1)
-                            .foregroundStyle(.hearthEmberDark)
+                            .foregroundStyle(.parchmentDark)
                         
                         HStack {
                             Spacer()
                             Text((isEditingExistingReflection ? existingReflection?.title : verseReference) ?? "")
-                                .padding(.top)
+                                .foregroundStyle(.parchmentDark)
                         }
                     }
-                    .padding()
+                    .padding(.vertical)
                     
-                    Rectangle()
-                        .fill(Color.parchmentDark)
-                        .frame(height: 2)
-                        .padding(.trailing, 20)
+                    CustomDivider(height: 2, color: .hearthEmberDark)
                     
                     TextEditor(text: $content)
                         .frame(minHeight: 100)
                         .clipShape(RoundedRectangle(cornerRadius: 15))
-                        .padding()
+                        .padding(.vertical)
                         .focused($textBoxIsFocused)
                     
                     Button(isEditingExistingReflection ? "Update Reflection" : "Save Reflection") {
@@ -162,9 +155,14 @@ struct EditAddBibleReflectionView: View {
     }
 }
 
-/*
+
 #Preview {
     @Previewable @State var isPresented = true
-    EditAddBibleReflectionView(reflectionViewModel: VerseReflectionViewModel(), verseText: "This is a bible verse. There should be a decent ammount of text here.", verseReference: "Aaron 4:16",isPresented: $isPresented)
+    EditAddBibleReflectionView(
+        reflectionViewModel: VerseReflectionViewModel(),
+        verseText: "This is a bible verse. There should be a decent amount of text here.",
+        verseReference: "Aaron 4:16",
+        isEditingPresented: .constant(true)
+    )
 }
-*/
+

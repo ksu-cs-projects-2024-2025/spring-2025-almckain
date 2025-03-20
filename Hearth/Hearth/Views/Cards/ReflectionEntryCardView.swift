@@ -37,9 +37,7 @@ struct ReflectionEntryCardView: View {
                             .foregroundStyle(.parchmentDark.opacity(0.6))
                     }
                     
-                    Rectangle()
-                        .fill(Color.hearthEmberDark)
-                        .frame(height: 2)
+                    CustomDivider(height: 2, color: .hearthEmberDark)
                         .padding(.trailing, 20)
                     
                     Text("\(reflectionEntry.bibleVerseText.replacingOccurrences(of: "\n", with: " "))")
@@ -65,34 +63,15 @@ struct ReflectionEntryCardView: View {
         .onTapGesture {
             isSheetPresented = true
         }
-        .sheet(isPresented: $isSheetPresented) {
-            ZStack {
-                Color.warmSandLight
-                    .ignoresSafeArea()
-                VStack {
-                    HStack {
-                        Spacer()
-                        Image(systemName: "x.circle.fill")
-                            .padding(.top)
-                            .padding(.trailing, 20)
-                            .foregroundStyle(.parchmentDark.opacity(0.6))
-                            .font(.customTitle2)
-                            .onTapGesture {
-                                isSheetPresented.toggle()
-                            }
-                    }
-                    
-                    DetailedBVReflectionView(
-                        reflectionEntry: reflectionEntry,
-                        selectedDate: selectedDate,
-                        reflectionViewModel: reflectionViewModel,
-                        isPresented: $isSheetPresented
-                    )
-                        .padding()
-                }
-            }
-            .presentationDetents([.fraction(0.95)])
+        .customSheet(isPresented: $isSheetPresented) {
+            DetailedBVReflectionView(
+                reflectionEntry: reflectionEntry,
+                selectedDate: selectedDate,
+                reflectionViewModel: reflectionViewModel,
+                isPresented: $isSheetPresented
+            )
         }
+        .presentationDetents([.fraction(0.95)])
     }
 }
 

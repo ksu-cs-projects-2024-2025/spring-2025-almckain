@@ -47,14 +47,12 @@ struct DetailedBVReflectionView: View {
                             }
                         }
                         
-                        Rectangle()
-                            .fill(Color.parchmentDark)
-                            .frame(height: 2)
+                        CustomDivider(height: 2, color: .hearthEmberDark)
                         
                         Text("\(reflectionEntry.bibleVerseText)")
                             .font(.customHeadline1)
                             .italic()
-                            .foregroundStyle(.hearthEmberDark)
+                            .foregroundStyle(.parchmentDark)
                             .multilineTextAlignment(.center)
                             .frame(maxWidth: .infinity)
                         
@@ -65,9 +63,7 @@ struct DetailedBVReflectionView: View {
                                 .font(.customBody1)
                         }
                         
-                        Rectangle()
-                            .fill(Color.parchmentDark)
-                            .frame(height: 2)
+                        CustomDivider(height: 2, color: .hearthEmberDark)
                         
                         Text(reflectionEntry.reflection)
                             .font(.customBody1)
@@ -125,37 +121,32 @@ struct DetailedBVReflectionView: View {
         } message: {
             Text("Are you sure you want to delete this reflection? This action cannot be undone.")
         }
-        .sheet(isPresented: $isEditing) {
-            ZStack {
-                Color.warmSandLight
-                VStack {
-                    HStack {
-                        Spacer()
-                        Image(systemName: "x.circle.fill")
-                            .padding(.top)
-                            .padding(.trailing, 20)
-                            .foregroundStyle(.parchmentDark.opacity(0.6))
-                            .font(.customTitle2)
-                            .onTapGesture {
-                                isEditing.toggle()
-                            }
-                    }
-                    EditAddBibleReflectionView(
-                                    reflectionViewModel: reflectionViewModel,
-                                    existingReflection: reflectionEntry,
-                                    verseText: reflectionEntry.bibleVerseText,
-                                    verseReference: reflectionEntry.title,
-                                    isEditingPresented: $isEditing
-                                )
-                }
-            }
-            .presentationDetents([.fraction(0.95)])
+        .customSheet(isPresented: $isEditing) {
+            EditAddBibleReflectionView(
+                            reflectionViewModel: reflectionViewModel,
+                            existingReflection: reflectionEntry,
+                            verseText: reflectionEntry.bibleVerseText,
+                            verseReference: reflectionEntry.title,
+                            isEditingPresented: $isEditing
+                        )
         }
+        .presentationDetents([.fraction(0.95)])
+
     }
 }
 
-/*
- #Preview {
- DetailedBVReflectionView()
+
+ #Preview {     
+     let sampleReflection = VerseReflectionModel(id: "1", userID: "1", title: "Title", bibleVerseText: "Verse Text", reflection: "My Reflection", timeStamp: Date())
+     
+     
+     let viewModel = VerseReflectionViewModel()
+     
+     DetailedBVReflectionView(
+         reflectionEntry: sampleReflection,
+         selectedDate: Date(),
+         reflectionViewModel: viewModel,
+         isPresented: .constant(false)
+     )
  }
- */
+ 

@@ -14,6 +14,7 @@ struct HomeView: View {
     @Environment(\.scenePhase) var scenePhase
     
     @State private var showNotificationAlert = false
+    @State private var showReflectionCard = false
     
     @AppStorage("homeAppearCount") private var homeAppearCount = 0
     
@@ -27,18 +28,26 @@ struct HomeView: View {
                     Color.parchmentLight
                         .ignoresSafeArea()
                     ScrollView {
-                        BibleVerseCardView(viewModel: homeViewModel.bibleVerseViewModel, reflectionViewModel: reflectionViewModel)
-                            .padding(.top, 10)
                         
-                        /*
-                        Button("Clear cache") {
-                            reflectionViewModel.manuallyClearReflectionCache()
+                        if showReflectionCard {
+                            NewReflectionCardView()
+                                .padding(.top, 10)
+                                .transition(.move(edge: .leading))
+                                .animation(.easeInOut(duration: 0.5), value: showReflectionCard)
                         }
-                         */
+                        
+                        BibleVerseCardView(viewModel: homeViewModel.bibleVerseViewModel, reflectionViewModel: reflectionViewModel)
                         
                     }
                     .navigationTitle("\(homeViewModel.fetchGreeting()), \(profileViewModel.user?.firstName ?? "Guest")")
                     .navigationBarTitleDisplayMode(.large)
+                    .onAppear {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                            withAnimation {
+                                showReflectionCard = true
+                            }
+                        }
+                    }
                 }
             }
         }
