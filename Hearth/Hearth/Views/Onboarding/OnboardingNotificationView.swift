@@ -9,7 +9,7 @@ import SwiftUI
 
 struct OnboardingNotificationView: View {
     @Binding var currentStep: Int
-    @StateObject private var viewModel = NotificationViewModel()
+    @EnvironmentObject var notificationViewModel: NotificationViewModel
     
     var body: some View {
         ZStack {
@@ -33,7 +33,7 @@ struct OnboardingNotificationView: View {
                     .padding(.top, 5)
                     .multilineTextAlignment(.center)
                 
-                if viewModel.notificationsEnabled {
+                if notificationViewModel.notificationsEnabled {
                     Rectangle()
                         .fill(Color.parchmentDark)
                         .frame(height: 1)
@@ -47,7 +47,7 @@ struct OnboardingNotificationView: View {
                             VStack(alignment: .leading) {
                                 Text("Daily Journal Reminder")
                                     .font(.subheadline)
-                                DatePicker("Select Time", selection: $viewModel.dailyJournalTime, displayedComponents: .hourAndMinute)
+                                DatePicker("Select Time", selection: $notificationViewModel.dailyJournalTime, displayedComponents: .hourAndMinute)
                                     .datePickerStyle(.compact)
                                     .labelsHidden()
                             }
@@ -56,7 +56,7 @@ struct OnboardingNotificationView: View {
                             VStack(alignment: .leading) {
                                 Text("New Bible Verse Reminder")
                                     .font(.subheadline)
-                                DatePicker("Select Time", selection: $viewModel.bibleVerseTime, displayedComponents: .hourAndMinute)
+                                DatePicker("Select Time", selection: $notificationViewModel.bibleVerseTime, displayedComponents: .hourAndMinute)
                                     .datePickerStyle(.compact)
                                     .labelsHidden()
                             }
@@ -68,7 +68,7 @@ struct OnboardingNotificationView: View {
                 }
                 
                 Spacer()
-                if viewModel.notificationsEnabled {
+                if notificationViewModel.notificationsEnabled {
                     Text("You can change the notification times now or in the app settings later.")
                         .foregroundStyle(.hearthEmberMain)
                         .font(.caption)
@@ -78,8 +78,8 @@ struct OnboardingNotificationView: View {
                 }
                 
                 Button(action: {
-                    viewModel.scheduleReminders()
-                    viewModel.syncUserActivity()
+                    notificationViewModel.scheduleReminders()
+                    notificationViewModel.syncUserActivity()
                     currentStep = 2
                 }) {
                     Text("Continue")
@@ -103,10 +103,10 @@ struct OnboardingNotificationView: View {
              */
             .onAppear {
                 if currentStep == 1 {
-                    viewModel.checkNotificationStatus()
+                    notificationViewModel.checkNotificationStatus()
                 }
             }
-            .alert(isPresented: $viewModel.showNotificationAlert) {
+            .alert(isPresented: $notificationViewModel.showNotificationAlert) {
                 Alert(
                     title: Text("Enable Notifications"),
                     message: Text("Hearth works best with notifications! Please enable notifications in Settings."),
@@ -126,5 +126,6 @@ struct OnboardingNotificationView: View {
 
 #Preview {
     OnboardingNotificationView(currentStep: .constant(1))
+        .environmentObject(NotificationViewModel())
 }
 

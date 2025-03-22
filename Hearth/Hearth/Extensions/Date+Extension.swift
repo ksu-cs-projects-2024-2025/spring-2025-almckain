@@ -74,4 +74,14 @@ extension Date {
     var startOfDay: Date {
         Calendar.current.startOfDay(for: self)
     }
+    
+    var isSunday: Bool {
+        let weekday = Calendar.current.component(.weekday, from: self)
+        return weekday == 1
+    }
+    
+    var isAfter9AM: Bool {
+        let hour = Calendar.current.component(.hour, from: self)
+        return hour >= 9
+    }
 }

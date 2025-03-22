@@ -12,6 +12,8 @@ struct NewReflectionCardView: View {
     @State private var showAlert = false
     @State private var showReflectionSheet = false
     
+    @EnvironmentObject var notificationViewModel: NotificationViewModel
+    
     var body: some View {
         CardView {
             VStack(spacing: 10) {
@@ -61,7 +63,7 @@ struct NewReflectionCardView: View {
         }
         .alert("Confirm Remove", isPresented: $showAlert) {
             Button("Remove", role: .destructive) {
-                print("Removed")
+                notificationViewModel.shouldShowReflectionCard = false
             }
             Button("Cancel", role: .cancel) { }
         } message: {
@@ -76,6 +78,8 @@ struct NewReflectionCardView: View {
     }
 }
 
+/*
 #Preview {
     NewReflectionCardView()
 }
+*/

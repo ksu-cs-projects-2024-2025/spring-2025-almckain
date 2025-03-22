@@ -11,7 +11,9 @@ struct HomeView: View {
     @ObservedObject var profileViewModel: ProfileViewModel
     @ObservedObject var homeViewModel: HomeViewModel
     @ObservedObject var reflectionViewModel: VerseReflectionViewModel
+    
     @Environment(\.scenePhase) var scenePhase
+    @EnvironmentObject var notificationViewModel: NotificationViewModel
     
     @State private var showNotificationAlert = false
     @State private var showReflectionCard = false
@@ -28,7 +30,6 @@ struct HomeView: View {
                     Color.parchmentLight
                         .ignoresSafeArea()
                     ScrollView {
-                        
                         if showReflectionCard {
                             NewReflectionCardView()
                                 .padding(.top, 10)
@@ -42,9 +43,11 @@ struct HomeView: View {
                     .navigationTitle("\(homeViewModel.fetchGreeting()), \(profileViewModel.user?.firstName ?? "Guest")")
                     .navigationBarTitleDisplayMode(.large)
                     .onAppear {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                            withAnimation {
-                                showReflectionCard = true
+                        if notificationViewModel.shouldShowReflectionCard {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                                withAnimation {
+                                    showReflectionCard = true
+                                }
                             }
                         }
                     }
@@ -52,6 +55,12 @@ struct HomeView: View {
             }
         }
         .onAppear {
+            if Date().isSunday && Date().isAfter9AM {
+                notificationViewModel.shouldShowReflectionCard = true
+            } else {
+                notificationViewModel.shouldShowReflectionCard = false
+            }
+            
             profileViewModel.fetchUserData()
             let appearance = homeViewModel.navBarAppearance()
             UINavigationBar.appearance().standardAppearance = appearance
@@ -67,6 +76,21 @@ struct HomeView: View {
                     }
                 }
             }
+        }
+        .onChange(of: notificationViewModel.shouldShowReflectionCard) { _, newVal in
+            if newVal {
+                withAnimation {
+                    showReflectionCard = true
+                }
+            } else {
+                withAnimation {
+                    showReflectionCard = false
+                }
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.significantTimeChangeNotification)) { _ in
+            let isSunday = Date().isSunday
+            notificationViewModel.shouldShowReflectionCard = isSunday
         }
         .alert(isPresented: $showNotificationAlert) {
             Alert(

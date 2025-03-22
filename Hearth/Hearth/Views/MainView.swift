@@ -11,6 +11,9 @@ import SwiftData
 struct MainView: View {
     @State private var selectedTab = 0
     
+    @EnvironmentObject var notificationViewModel: NotificationViewModel
+    @Environment(\.scenePhase) var scenePhase
+    
     @StateObject var profileViewModel = ProfileViewModel()
     @StateObject var homeViewModel = HomeViewModel()
     @StateObject var reflectionViewModel = VerseReflectionViewModel()
@@ -42,6 +45,11 @@ struct MainView: View {
             }
             Tab("Profile", systemImage: "person.fill", value: 3) {
                 ProfileView()
+            }
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active {
+                notificationViewModel.checkNotificationStatus()
             }
         }
     }

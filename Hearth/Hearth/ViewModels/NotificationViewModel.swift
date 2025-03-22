@@ -13,6 +13,8 @@ class NotificationViewModel: ObservableObject {
     @Published var dailyJournalTime = Date()
     @Published var bibleVerseTime = Date()
     @Published var showNotificationAlert = false
+    @Published var weeklyReflectionTime = Date()
+    @Published var shouldShowReflectionCard = false
     
     private var hasRequestedBefore: Bool {
         get { UserDefaults.standard.bool(forKey: "HasRequestedNotificationsBefore") }
@@ -61,6 +63,8 @@ class NotificationViewModel: ObservableObject {
     func scheduleReminders() {
         scheduleNotification(title: "Daily Journal Reminder", body: "Don't forget to add to your journal today!", date: dailyJournalTime, identifier: "dailyJournalReminder")
         scheduleNotification(title: "New Bible Verse", body: "A new Bible verse is ready for you.", date: bibleVerseTime, identifier: "bibleVerseReminder")
+        
+        scheduleWeeklyReflectionNotification(date: weeklyReflectionTime)
         saveReminderTimes()
     }
     
@@ -86,6 +90,7 @@ class NotificationViewModel: ObservableObject {
     private func saveReminderTimes() {
         UserDefaults.standard.set(dailyJournalTime, forKey: "DailyJournalReminderTime")
         UserDefaults.standard.set(bibleVerseTime, forKey: "BibleVerseReminderTime")
+        UserDefaults.standard.set(weeklyReflectionTime, forKey: "WeeklyReflectionReminderTime")
     }
     
     private func loadSavedReminderTimes() {
@@ -95,6 +100,14 @@ class NotificationViewModel: ObservableObject {
         
         if let verseTime = UserDefaults.standard.object(forKey: "BibleVerseReminderTime") as? Date {
             bibleVerseTime = verseTime
+        }
+        
+        // FOR THE ALGORITHM
+        if let reflectionTime = UserDefaults.standard.object(forKey: "WeeklyReflectionReminderTime") as? Date {
+            weeklyReflectionTime = reflectionTime
+        } else {
+            // Default reflection time should (finger crossed) be 9am
+            weeklyReflectionTime = Calendar.current.date(bySettingHour: 9, minute: 0, second: 0, of: Date()) ?? Date()
         }
     }
     
@@ -109,5 +122,30 @@ class NotificationViewModel: ObservableObject {
         dailyJournalTime = Date()
         bibleVerseTime = Date()
     }
-
+    
+    private func scheduleWeeklyReflectionNotification(date: Date) {
+        let content = UNMutableNotificationContent()
+        content.title = "Weekly Reflection"
+        content.body = "It's Sunday! Check out your highest impact journal entry from this week."
+        content.sound = .default
+        
+        var dateComponents = Calendar.current.dateComponents([.hour, .minute], from: date)
+        dateComponents.weekday = 1
+        dateComponents.hour = 9
+        dateComponents.minute = 0
+        
+        let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: true)
+        
+        let request = UNNotificationRequest(
+            identifier: "weeklyReflectionReminder",
+            content: content,
+            trigger: trigger
+        )
+        
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error = error {
+                print("Error scheduling weekly reflection reminder: \(error.localizedDescription)")
+            }
+        }
+    }
 }

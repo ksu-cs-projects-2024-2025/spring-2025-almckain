@@ -11,8 +11,12 @@ import Firebase
 
 @main
 struct HearthApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    
     @AppStorage("isOnboardingComplete") private var isOnboardingComplete: Bool = false
-
+    
+    @StateObject var notificationViewModel = NotificationViewModel()
+    
     init() {
         FirebaseApp.configure()
         // Testing purposes to control which screen is being presented
@@ -26,10 +30,18 @@ struct HearthApp: App {
             if isOnboardingComplete {
                 // Parent container for the tab bar and all children views
                 MainView()
+                    .environmentObject(notificationViewModel)
+                    .onAppear {
+                        appDelegate.notificationViewModel = notificationViewModel
+                    }
             } else {
                 // Parent container for the onboarding sequence
                 // OnboardingView()
                 SplashPageView()
+                    .environmentObject(notificationViewModel)
+                    .onAppear {
+                        appDelegate.notificationViewModel = notificationViewModel
+                    }
             }
             
         }
