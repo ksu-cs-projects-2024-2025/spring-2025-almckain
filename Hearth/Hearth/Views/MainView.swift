@@ -19,6 +19,7 @@ struct MainView: View {
     @StateObject var reflectionViewModel = VerseReflectionViewModel()
     @StateObject var calendarViewModel = CalendarViewModel()
     @StateObject var journalEntryViewModel = JournalEntryViewModel()
+    @StateObject var entryReflectionViewModel = ReflectionViewModel()
     
     // Stylizes tab bar
     init() {
@@ -32,7 +33,7 @@ struct MainView: View {
         TabView(selection: $selectedTab) {
             Tab("Home", systemImage: "house.fill", value: 0) {
                 HomeView(
-                    profileViewModel: profileViewModel, homeViewModel: homeViewModel, reflectionViewModel: reflectionViewModel
+                    profileViewModel: profileViewModel, homeViewModel: homeViewModel, reflectionViewModel: reflectionViewModel, entryReflectionViewModel: entryReflectionViewModel
                 )
             }
             Tab("Calendar", systemImage: "calendar", value: 1) {

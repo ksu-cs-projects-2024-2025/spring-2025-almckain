@@ -11,6 +11,7 @@ struct HomeView: View {
     @ObservedObject var profileViewModel: ProfileViewModel
     @ObservedObject var homeViewModel: HomeViewModel
     @ObservedObject var reflectionViewModel: VerseReflectionViewModel
+    @ObservedObject var entryReflectionViewModel: ReflectionViewModel
     
     @Environment(\.scenePhase) var scenePhase
     @EnvironmentObject var notificationViewModel: NotificationViewModel
@@ -31,10 +32,9 @@ struct HomeView: View {
                         .ignoresSafeArea()
                     ScrollView {
                         if showReflectionCard {
-                            NewReflectionCardView()
+                            NewReflectionCardView(reflectionViewModel: entryReflectionViewModel)
                                 .padding(.top, 10)
                                 .transition(.move(edge: .leading))
-                                .animation(.easeInOut(duration: 0.5), value: showReflectionCard)
                         }
                         
                         BibleVerseCardView(viewModel: homeViewModel.bibleVerseViewModel, reflectionViewModel: reflectionViewModel)
@@ -42,23 +42,16 @@ struct HomeView: View {
                     }
                     .navigationTitle("\(homeViewModel.fetchGreeting()), \(profileViewModel.user?.firstName ?? "Guest")")
                     .navigationBarTitleDisplayMode(.large)
-                    .onAppear {
-                        if notificationViewModel.shouldShowReflectionCard {
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                                withAnimation {
-                                    showReflectionCard = true
-                                }
-                            }
-                        }
-                    }
                 }
             }
         }
+        .animation(.easeInOut(duration: 0.5), value: showReflectionCard)
         .onAppear {
-            if Date().isSunday && Date().isAfter9AM {
-                notificationViewModel.shouldShowReflectionCard = true
-            } else {
-                notificationViewModel.shouldShowReflectionCard = false
+            notificationViewModel.updateReflectionCardVisibility()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                withAnimation(.easeInOut(duration: 0.5)) {
+                    showReflectionCard = notificationViewModel.shouldShowReflectionCard
+                }
             }
             
             profileViewModel.fetchUserData()
@@ -77,20 +70,18 @@ struct HomeView: View {
                 }
             }
         }
-        .onChange(of: notificationViewModel.shouldShowReflectionCard) { _, newVal in
-            if newVal {
-                withAnimation {
-                    showReflectionCard = true
-                }
-            } else {
-                withAnimation {
-                    showReflectionCard = false
-                }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
+            notificationViewModel.updateReflectionCardVisibility()
+            withAnimation(.easeInOut(duration: 0.5)) {
+                showReflectionCard = notificationViewModel.shouldShowReflectionCard
             }
         }
+        
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.significantTimeChangeNotification)) { _ in
-            let isSunday = Date().isSunday
-            notificationViewModel.shouldShowReflectionCard = isSunday
+            notificationViewModel.updateReflectionCardVisibility()
+            withAnimation(.easeInOut(duration: 0.5)) {
+                showReflectionCard = notificationViewModel.shouldShowReflectionCard
+            }
         }
         .alert(isPresented: $showNotificationAlert) {
             Alert(

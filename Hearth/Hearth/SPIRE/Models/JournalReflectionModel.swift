@@ -7,11 +7,18 @@
 
 import Foundation
 
-struct JournalReflectionModel {
-    var entryID: String
-    var title: String
-    var content: String
-    var reflectionContent: String
-    var timestamp: Date
-    var spireScore: Double
+struct JournalEntrySnapshot: Codable {
+    let title: String
+    let content: String
+    let timestamp: Date
 }
+
+struct JournalReflectionModel: Codable, Identifiable {
+    let id: String
+    let userID: String
+    let journalEntry: JournalEntrySnapshot  // Snapshot of the journal entry being reflected upon
+    let reflectionContent: String
+    let reflectionTimestamp: Date
+    let spireScore: Double
+}
+

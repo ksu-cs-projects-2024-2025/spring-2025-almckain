@@ -279,12 +279,18 @@ class TextAnalysisService {
             
             let sentenceSentiment = averageAbsoluteSentenceSentiment(entry.content)
             
-            let reflection = JournalReflectionModel(
-                entryID: entry.id,
+            let journalSnapshot = JournalEntrySnapshot(
                 title: entry.title,
                 content: entry.content,
+                timestamp: entry.timeStamp
+            )
+
+            let reflection = JournalReflectionModel(
+                id: entry.id,
+                userID: entry.userID,
+                journalEntry: journalSnapshot,
                 reflectionContent: "",
-                timestamp: entry.timeStamp,
+                reflectionTimestamp: Date(),
                 spireScore: spireScore
             )
             

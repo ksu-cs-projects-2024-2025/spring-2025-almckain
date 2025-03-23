@@ -14,6 +14,8 @@ struct NewReflectionCardView: View {
     
     @EnvironmentObject var notificationViewModel: NotificationViewModel
     
+    @ObservedObject var reflectionViewModel: ReflectionViewModel
+    
     var body: some View {
         CardView {
             VStack(spacing: 10) {
@@ -61,6 +63,11 @@ struct NewReflectionCardView: View {
                 .padding(.vertical, 5)
             }
         }
+        .onAppear {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                reflectionViewModel.fetchAndAnalyzeEntries()
+            }
+        }
         .alert("Confirm Remove", isPresented: $showAlert) {
             Button("Remove", role: .destructive) {
                 notificationViewModel.shouldShowReflectionCard = false
@@ -70,9 +77,8 @@ struct NewReflectionCardView: View {
             Text("Are you sure you want to remove this from the home screen? You can still view it in your calendar.")
         }
         .customSheet(isPresented: $showReflectionSheet) {
-            Text("Reflect on this")
-            Button("Dismiss") {
-                showReflectionSheet = false
+            if let reflection = reflectionViewModel.reflections.max(by: { $0.spireScore < $1.spireScore }) {
+                AddJournalReflectionView(reflection: reflection)
             }
         }
     }

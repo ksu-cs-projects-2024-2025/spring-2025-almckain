@@ -157,5 +157,59 @@ class EntryService {
             }
         }
     }
+    
+    func fetchEntriesForLastWeek(completion: @escaping (Result<[JournalEntryModel], Error>) -> Void) {
+        guard let userID = Auth.auth().currentUser?.uid else {
+            completion(.failure(NSError(domain: "AuthError",
+                                        code: 401,
+                                        userInfo: [NSLocalizedDescriptionKey: "User not logged in."])))
+            return
+        }
+        
+        let calendar = Calendar.current
+        let now = Date()
+        
+        // 1) Compute “this Sunday at 00:00” in local time
+        //    Sunday == 1 in Calendar.current (by default)
+        let weekday = calendar.component(.weekday, from: now)
+        let daysSinceSunday = (weekday + 6) % 7  // 0 if today *is* Sunday, 1 if Monday, etc.
+        
+        // “thisSundayMidnight” is midnight at the current Sunday (today if we’re calling on Sunday)
+        guard let thisSundayMidnight = calendar.date(
+            byAdding: .day,
+            value: -daysSinceSunday,
+            to: calendar.startOfDay(for: now)
+        ) else {
+            completion(.failure(NSError(domain: "DateCalcError", code: 400,
+                                        userInfo: [NSLocalizedDescriptionKey: "Could not compute thisSundayMidnight"])))
+            return
+        }
+        
+        // 2) Compute “previous Sunday at 00:00” (7 days earlier)
+        guard let previousSundayMidnight = calendar.date(byAdding: .day, value: -7, to: thisSundayMidnight) else {
+            completion(.failure(NSError(domain: "DateCalcError", code: 400,
+                                        userInfo: [NSLocalizedDescriptionKey: "Could not compute previousSundayMidnight"])))
+            return
+        }
+        
+        // 3) Query Firestore for [previousSundayMidnight, thisSundayMidnight)
+        db.collection("entries")
+            .whereField("userID", isEqualTo: userID)
+            .whereField("entryType", isEqualTo: EntryType.journal.rawValue)
+            .whereField("timeStamp", isGreaterThanOrEqualTo: previousSundayMidnight)
+            .whereField("timeStamp", isLessThan: thisSundayMidnight)
+            .getDocuments { snapshot, error in
+                if let error = error {
+                    completion(.failure(error))
+                    return
+                }
+                
+                let entries: [JournalEntryModel] = snapshot?.documents.compactMap {
+                    try? $0.data(as: JournalEntryModel.self)
+                } ?? []
+                
+                completion(.success(entries))
+            }
+    }
 
 }

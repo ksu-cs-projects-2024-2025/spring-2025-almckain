@@ -84,4 +84,9 @@ extension Date {
         let hour = Calendar.current.component(.hour, from: self)
         return hour >= 9
     }
+    
+    var isMonday: Bool {
+        let weekday = Calendar.current.component(.weekday, from: self)
+        return weekday == 2
+    }
 }

@@ -5,7 +5,7 @@
 //  Created by Aaron McKain on 3/12/25.
 //
 
-import Foundation
+import SwiftUI
 import UserNotifications
 
 class NotificationViewModel: ObservableObject {
@@ -14,7 +14,11 @@ class NotificationViewModel: ObservableObject {
     @Published var bibleVerseTime = Date()
     @Published var showNotificationAlert = false
     @Published var weeklyReflectionTime = Date()
-    @Published var shouldShowReflectionCard = false
+    
+    @Published var shouldShowReflectionCard = true
+    
+    @AppStorage("didAnimateInThisSunday") var didAnimateInThisSunday = false
+    @AppStorage("didAnimateOutThisMonday") var didAnimateOutThisMonday = false
     
     private var hasRequestedBefore: Bool {
         get { UserDefaults.standard.bool(forKey: "HasRequestedNotificationsBefore") }
@@ -27,6 +31,8 @@ class NotificationViewModel: ObservableObject {
         loadSavedReminderTimes()
         FirebaseNotificationService.shared.registerFCMToken()
     }
+    
+    // MARK: - Checking & Requesting for notification permissions
     
     func checkNotificationStatus() {
         UNUserNotificationCenter.current().getNotificationSettings { settings in
@@ -56,6 +62,68 @@ class NotificationViewModel: ObservableObject {
                 if granted {
                     self.scheduleReminders()
                 }
+            }
+        }
+    }
+    
+    // MARK: - Weekly Reflection Logic
+    
+    func updateReflectionCardVisibility() {
+        let isSundayAfter9 = Date().isSunday && Date().isAfter9AM
+        let isMonday = Date().isMonday
+        
+        // Reset Sunday didAnimateIn if its sunday BEFORE 9am
+        //                              or if its a new Sunday
+        if Date().isSunday && !Date().isAfter9AM {
+            didAnimateInThisSunday = false
+            shouldShowReflectionCard = false
+        }
+        
+        // Reset Monday "didAnimateOut" if its a new Monday
+        if isMonday {
+            didAnimateOutThisMonday = false
+        }
+        
+        // Sunday logic - If its after 9am and not yet animated in then set it to show
+        if isSundayAfter9 && !didAnimateInThisSunday {
+            shouldShowReflectionCard = true
+            didAnimateInThisSunday = true
+        }
+        // If its sunday after 9 and its already animated in then keep it visible with no animation
+        else if isSundayAfter9 && didAnimateInThisSunday {
+            shouldShowReflectionCard = true
+        }
+        // Monday logic - if its Monday and the card is currently visible and we havent animated out set the card to hidden
+        else if isMonday && shouldShowReflectionCard && !didAnimateOutThisMonday {
+            shouldShowReflectionCard = false
+            didAnimateOutThisMonday = true
+        }
+    }
+    
+    // MARK: - Shedule notification times
+    
+    private func scheduleWeeklyReflectionNotification(date: Date) {
+        let content = UNMutableNotificationContent()
+        content.title = "Weekly Reflection"
+        content.body = "It's Sunday! Check out your highest impact journal entry from this week."
+        content.sound = .default
+        
+        var dateComponents = Calendar.current.dateComponents([.hour, .minute], from: date)
+        dateComponents.weekday = 1
+        dateComponents.hour = 9
+        dateComponents.minute = 0
+        
+        let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: true)
+        
+        let request = UNNotificationRequest(
+            identifier: "weeklyReflectionReminder",
+            content: content,
+            trigger: trigger
+        )
+        
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error = error {
+                print("Error scheduling weekly reflection reminder: \(error.localizedDescription)")
             }
         }
     }
@@ -121,31 +189,5 @@ class NotificationViewModel: ObservableObject {
         notificationsEnabled = false
         dailyJournalTime = Date()
         bibleVerseTime = Date()
-    }
-    
-    private func scheduleWeeklyReflectionNotification(date: Date) {
-        let content = UNMutableNotificationContent()
-        content.title = "Weekly Reflection"
-        content.body = "It's Sunday! Check out your highest impact journal entry from this week."
-        content.sound = .default
-        
-        var dateComponents = Calendar.current.dateComponents([.hour, .minute], from: date)
-        dateComponents.weekday = 1
-        dateComponents.hour = 9
-        dateComponents.minute = 0
-        
-        let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: true)
-        
-        let request = UNNotificationRequest(
-            identifier: "weeklyReflectionReminder",
-            content: content,
-            trigger: trigger
-        )
-        
-        UNUserNotificationCenter.current().add(request) { error in
-            if let error = error {
-                print("Error scheduling weekly reflection reminder: \(error.localizedDescription)")
-            }
-        }
     }
 }
