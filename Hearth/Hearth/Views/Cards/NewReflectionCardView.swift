@@ -43,11 +43,11 @@ struct NewReflectionCardView: View {
                     }
                     .padding()
                     .frame(width: 120)
-                    .foregroundColor(.hearthEmberLight)
+                    .foregroundColor(.hearthEmberMain)
                     .font(.headline)
                     .overlay(
                         RoundedRectangle(cornerRadius: 15)
-                            .stroke(Color.hearthEmberLight, lineWidth: 4)
+                            .stroke(Color.hearthEmberMain, lineWidth: 4)
                     )
                     
                     Button("View") {
@@ -55,7 +55,7 @@ struct NewReflectionCardView: View {
                     }
                     .padding()
                     .frame(width: 120)
-                    .background(Color.hearthEmberLight)
+                    .background(Color.hearthEmberMain)
                     .foregroundColor(.parchmentLight)
                     .font(.headline)
                     .cornerRadius(15)

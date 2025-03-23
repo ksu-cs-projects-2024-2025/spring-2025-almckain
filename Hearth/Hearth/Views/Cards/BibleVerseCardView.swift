@@ -15,7 +15,7 @@ struct BibleVerseCardView: View {
     
     var body: some View {
         CardView{
-            VStack(alignment: .leading) {
+            VStack {
                 Text("Today's Bible Verse")
                     .font(.customTitle3)
                     .foregroundStyle(.hearthEmberMain)
@@ -24,7 +24,7 @@ struct BibleVerseCardView: View {
                 
                 if let verse = viewModel.bibleVerse {
                     
-                    Text(verse.text)
+                    Text(verse.text.trimmingCharacters(in: .whitespacesAndNewlines))
                         .font(.customBody1)
                         .foregroundStyle(.parchmentDark)
                         .multilineTextAlignment(.center)
@@ -85,6 +85,11 @@ struct BibleVerseCardView: View {
             }
         }
         .presentationDetents([.fraction(0.95)])
+        .onAppear {
+            if let verse = viewModel.bibleVerse {
+                print(verse.text)
+            }
+        }
     }
 }
 

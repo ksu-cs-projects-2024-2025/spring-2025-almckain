@@ -38,13 +38,10 @@ class BibleVerseViewModel: ObservableObject {
     }
     
     private func setupDayChangeObservers() {
-        // This notification fires when the calendar day changes.
         NotificationCenter.default.addObserver(self,
                                                selector: #selector(checkForDayChange),
                                                name: UIApplication.significantTimeChangeNotification,
                                                object: nil)
-        // This notification ensures that when the app becomes active (after being in the background)
-        // we check if a new day has started.
         NotificationCenter.default.addObserver(self,
                                                selector: #selector(handleAppDidBecomeActive),
                                                name: UIApplication.didBecomeActiveNotification,
@@ -58,12 +55,10 @@ class BibleVerseViewModel: ObservableObject {
     }
     
     @objc private func handleDayChange() {
-        // Trigger a refresh when the calendar day changes.
         fetchDailyVerseIfNeeded()
     }
 
     @objc private func handleAppDidBecomeActive() {
-        // When the app becomes active, check if the day has changed.
         fetchDailyVerseIfNeeded()
     }
     
@@ -89,7 +84,6 @@ class BibleVerseViewModel: ObservableObject {
             errorMessage = "No Bible verses available."
             return
         }
-        // Only fetch a new verse if a new day has started.
         guard hasNewDayStarted() else { return }
         
         DispatchQueue.main.async { [weak self] in
@@ -103,7 +97,6 @@ class BibleVerseViewModel: ObservableObject {
             
             self.fetchDailyVerse(reference: verseReference) { [weak self] in
                 guard let self = self else { return }
-                // After fetching, update the index and last update date.
                 if self.hasNewDayStarted() {
                     self.saveCurrentIndex((currentIndex + 1) % self.dailyBibleVerses.count)
                     self.saveLastUpdateDate()
@@ -131,7 +124,6 @@ class BibleVerseViewModel: ObservableObject {
         
         isLoading = true
         
-        // If it's not a new day, try to load the cached verse data.
         if !hasNewDayStarted() {
             if let savedData = UserDefaults.standard.data(forKey: savedBibleVerseKey),
                let savedVerse = try? JSONDecoder().decode(BibleVerseModel.self, from: savedData),
@@ -144,7 +136,6 @@ class BibleVerseViewModel: ObservableObject {
             }
         }
         
-        // Either it's a new day or no cache exists – fetch a new verse.
         let currentIndex = getCurrentIndex()
         let verseReference = dailyBibleVerses[currentIndex]
         dailyVerseReference = verseReference

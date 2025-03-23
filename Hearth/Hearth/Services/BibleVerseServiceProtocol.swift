@@ -21,6 +21,14 @@ class BibleVerseService: BibleVerseServiceProtocol {
                     throw URLError(.badServerResponse)
                 }
                 
+                /// Print Raw API data
+                /*
+                if let rawString = String(data: output.data, encoding: .utf8) {
+                    print("Raw API Response: ")
+                    print(rawString)
+                }
+                 */
+                
                 return output.data
             }
             .decode(type: BibleVerseModel.self, decoder: JSONDecoder())
