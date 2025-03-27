@@ -73,11 +73,14 @@ struct EditAddBibleReflectionView: View {
                         Text((isEditingExistingReflection ? existingReflection?.bibleVerseText : verseText) ?? "")
                             .font(.customBody1)
                             .foregroundStyle(.parchmentDark)
+                            .multilineTextAlignment(.center)
+                            .italic()
                         
                         HStack {
                             Spacer()
                             Text((isEditingExistingReflection ? existingReflection?.title : verseReference) ?? "")
                                 .foregroundStyle(.parchmentDark)
+                                .font(.customBody1)
                         }
                     }
                     .padding(.vertical)
@@ -132,7 +135,7 @@ struct EditAddBibleReflectionView: View {
                     }
                     .padding()
                     .frame(width: 200)
-                    .background(Color.hearthEmberLight)
+                    .background(Color.hearthEmberMain)
                     .foregroundColor(.parchmentLight)
                     .font(.headline)
                     .cornerRadius(15)

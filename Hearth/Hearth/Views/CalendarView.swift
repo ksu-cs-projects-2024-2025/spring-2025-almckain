@@ -35,9 +35,10 @@ struct CalendarView: View {
                             .padding()
                             .font(.customButton)
                             .foregroundColor(.parchmentLight)
-                            .background(RoundedRectangle(cornerRadius: 20).foregroundStyle(.hearthEmberMain))
+                            .background(RoundedRectangle(cornerRadius: 30).foregroundStyle(.hearthEmberMain))
                             .contentShape(Rectangle())
                     }
+                    .padding(.horizontal, 10)
                 }
                 .onAppear {
                     let appearance = calendarViewModel.navBarAppearance()

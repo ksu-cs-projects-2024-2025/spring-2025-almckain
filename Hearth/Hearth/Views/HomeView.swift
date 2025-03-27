@@ -35,10 +35,12 @@ struct HomeView: View {
                             NewReflectionCardView(reflectionViewModel: entryReflectionViewModel)
                                 .padding(.top, 10)
                                 .transition(.move(edge: .leading))
+                            
+                            BibleVerseCardView(viewModel: homeViewModel.bibleVerseViewModel, reflectionViewModel: reflectionViewModel)
+                        } else {
+                            BibleVerseCardView(viewModel: homeViewModel.bibleVerseViewModel, reflectionViewModel: reflectionViewModel)
+                                .padding(.top, 10)
                         }
-                        
-                        BibleVerseCardView(viewModel: homeViewModel.bibleVerseViewModel, reflectionViewModel: reflectionViewModel)
-                        
                     }
                     .navigationTitle("\(homeViewModel.fetchGreeting()), \(profileViewModel.user?.firstName ?? "Guest")")
                     .navigationBarTitleDisplayMode(.large)

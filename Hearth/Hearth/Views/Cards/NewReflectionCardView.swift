@@ -13,8 +13,13 @@ struct NewReflectionCardView: View {
     @State private var showReflectionSheet = false
     
     @EnvironmentObject var notificationViewModel: NotificationViewModel
-    
     @ObservedObject var reflectionViewModel: ReflectionViewModel
+    
+    var todayReflection: JournalReflectionModel? {
+        reflectionViewModel.reflections.first { reflection in
+            Calendar.current.isDateInToday(reflection.reflectionTimestamp)
+        }
+    }
     
     var body: some View {
         CardView {
@@ -50,7 +55,7 @@ struct NewReflectionCardView: View {
                             .stroke(Color.hearthEmberMain, lineWidth: 4)
                     )
                     
-                    Button("View") {
+                    Button(todayReflection?.reflectionContent.isEmpty ?? true ? "Complete" : "View") {
                         showReflectionSheet = true
                     }
                     .padding()
@@ -67,6 +72,8 @@ struct NewReflectionCardView: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                 reflectionViewModel.fetchAndAnalyzeEntries()
             }
+            
+            reflectionViewModel.fetchTodayReflection { _ in }
         }
         .alert("Confirm Remove", isPresented: $showAlert) {
             Button("Remove", role: .destructive) {
@@ -77,8 +84,12 @@ struct NewReflectionCardView: View {
             Text("Are you sure you want to remove this from the home screen? You can still view it in your calendar.")
         }
         .customSheet(isPresented: $showReflectionSheet) {
-            if let reflection = reflectionViewModel.reflections.max(by: { $0.spireScore < $1.spireScore }) {
-                AddJournalReflectionView(reflection: reflection)
+            if let reflection = todayReflection {
+                if reflection.reflectionContent.isEmpty {
+                    AddJournalReflectionView(reflection: reflection, reflectionViewModel: reflectionViewModel)
+                } else {
+                    DetailedEntryReflectionView(reflectionViewModel: reflectionViewModel, reflection: reflection)
+                }
             }
         }
     }

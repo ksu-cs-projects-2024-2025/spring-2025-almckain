@@ -62,6 +62,7 @@ struct CreateNewJournalView: View {
                         .padding()
                         .background(Color.white)
                         .clipShape(RoundedRectangle(cornerRadius: 15))
+                        .submitLabel(.done)
                     
                     TextEditor(text: $content)
                         .frame(minHeight: 300)
