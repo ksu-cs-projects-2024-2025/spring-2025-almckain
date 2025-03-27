@@ -12,6 +12,7 @@ struct EntryDayListView: View {
     @ObservedObject var calendarViewModel: CalendarViewModel
     @StateObject var journalEntryViewModel: JournalEntryViewModel
     @ObservedObject var reflectionViewModel: VerseReflectionViewModel
+    @ObservedObject var journalReflectionViewModel: ReflectionViewModel
 
     @State private var isPresented: Bool = false
     
@@ -22,26 +23,35 @@ struct EntryDayListView: View {
             VStack {
                 if calendarViewModel.isLoading {
                     LoadingScreenView()
-                } else if calendarViewModel.entries.isEmpty && reflectionViewModel.fetchedReflections.isEmpty {
+                } else if calendarViewModel.entries.isEmpty && reflectionViewModel.fetchedReflections.isEmpty && journalReflectionViewModel.reflections.isEmpty {
                     Text("No entries for this day")
                         .foregroundStyle(.secondary)
                         .padding()
                 } else {
                     ScrollView {
-                        ForEach(calendarViewModel.entries, id: \.id) { entry in
-                            JournalEntryCardView(
-                                journalEntry: entry,
-                                calendarViewModel: calendarViewModel,
-                                journalEntryViewModel: journalEntryViewModel,
-                                selectedDate: selectedDate
-                            )
-                        }
-                        
-                        ForEach(reflectionViewModel.fetchedReflections, id: \.id) { reflection in
-                            ReflectionEntryCardView(
-                                reflectionEntry: reflection,
-                                reflectionViewModel: reflectionViewModel,
-                                selectedDate: selectedDate)
+                        LazyVStack(spacing: 15) {
+                            ForEach(calendarViewModel.entries, id: \.id) { entry in
+                                JournalEntryCardView(
+                                    journalEntry: entry,
+                                    calendarViewModel: calendarViewModel,
+                                    journalEntryViewModel: journalEntryViewModel,
+                                    selectedDate: selectedDate
+                                )
+                            }
+                            
+                            ForEach(reflectionViewModel.fetchedReflections, id: \.id) { reflection in
+                                ReflectionEntryCardView(
+                                    reflectionEntry: reflection,
+                                    reflectionViewModel: reflectionViewModel,
+                                    selectedDate: selectedDate)
+                            }
+                            
+                            ForEach(journalReflectionViewModel.reflections.filter {
+                                Calendar.current.isDate($0.reflectionTimestamp, inSameDayAs: selectedDate)
+                            }, id: \.id) { reflection in
+                                JournalReflectionCardView(reflection: reflection,
+                                                          reflectionViewModel: journalReflectionViewModel)
+                            }
                         }
                     }
                     .padding(.top, 10)
@@ -71,6 +81,9 @@ struct EntryDayListView: View {
         .onAppear {
             calendarViewModel.fetchEntries(for: selectedDate)
             reflectionViewModel.fetchReflections(for: selectedDate)
+            journalReflectionViewModel.fetchReflections(for: selectedDate) { _ in
+                print("Fetched journal reflection")
+            }
             let appearance = calendarViewModel.navBarAppearance()
             UINavigationBar.appearance().standardAppearance = appearance
             UINavigationBar.appearance().scrollEdgeAppearance = appearance

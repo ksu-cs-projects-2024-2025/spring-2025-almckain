@@ -8,9 +8,12 @@
 import SwiftUI
 
 struct NewReflectionCardView: View {
+    var isInCalendarView: Bool = false
     @State private var isPulsing = false
     @State private var showAlert = false
     @State private var showReflectionSheet = false
+    @State private var isExpanded = false
+    @State private var animateShake = false
     
     @EnvironmentObject var notificationViewModel: NotificationViewModel
     @ObservedObject var reflectionViewModel: ReflectionViewModel
@@ -34,39 +37,55 @@ struct NewReflectionCardView: View {
                     ShimmeringText(text: "NEW")
                         .padding(.horizontal, 5)
                 }
-                
-                CustomDivider(height: 2, color: .hearthEmberMain)
-                
-                Text("We've identified an impactful journal entry from this week. Tap to reflect on it.")
-                    .font(.customBody1)
-                    .foregroundColor(.parchmentDark)
-                    .multilineTextAlignment(.center)
-                
-                HStack {
-                    Button("Remove") {
-                        showAlert = true
+                .contentShape(Rectangle())
+                .offset(x: animateShake ? 8 : 0)
+                .animation(
+                    .easeInOut(duration: 0.1)
+                    .repeatCount(3, autoreverses: true), value: animateShake
+                )
+                .onTapGesture {
+                    withAnimation {
+                        isExpanded.toggle()
                     }
-                    .padding()
-                    .frame(width: 120)
-                    .foregroundColor(.hearthEmberMain)
-                    .font(.headline)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 15)
-                            .stroke(Color.hearthEmberMain, lineWidth: 4)
-                    )
-                    
-                    Button(todayReflection?.reflectionContent.isEmpty ?? true ? "Complete" : "View") {
-                        showReflectionSheet = true
-                    }
-                    .padding()
-                    .frame(width: 120)
-                    .background(Color.hearthEmberMain)
-                    .foregroundColor(.parchmentLight)
-                    .font(.headline)
-                    .cornerRadius(15)
+
                 }
-                .padding(.vertical, 5)
+                if isExpanded {
+                    CustomDivider(height: 2, color: .hearthEmberMain)
+                    
+                    Text("We've identified an impactful journal entry from this week. Tap to reflect on it.")
+                        .font(.customBody1)
+                        .foregroundColor(.parchmentDark)
+                        .multilineTextAlignment(.center)
+                    
+                    HStack {
+                        if !isInCalendarView {
+                            Button("Remove") {
+                                showAlert = true
+                            }
+                            .padding()
+                            .frame(width: 120)
+                            .foregroundColor(.hearthEmberMain)
+                            .font(.headline)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 15)
+                                    .stroke(Color.hearthEmberMain, lineWidth: 4)
+                            )
+                        }
+                        
+                        Button(todayReflection?.reflectionContent.isEmpty ?? true ? "Complete" : "View") {
+                            showReflectionSheet = true
+                        }
+                        .padding()
+                        .frame(width: 120)
+                        .background(Color.hearthEmberMain)
+                        .foregroundColor(.parchmentLight)
+                        .font(.headline)
+                        .cornerRadius(15)
+                    }
+                    .padding(.vertical, 5)
+                }
             }
+            .animation(.easeInOut, value: isExpanded)
         }
         .onAppear {
             DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
@@ -74,6 +93,15 @@ struct NewReflectionCardView: View {
             }
             
             reflectionViewModel.fetchTodayReflection { _ in }
+            if !isExpanded && todayReflection?.reflectionContent.isEmpty == true {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                    animateShake = true
+                }
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                    animateShake = false
+                }
+            }
         }
         .alert("Confirm Remove", isPresented: $showAlert) {
             Button("Remove", role: .destructive) {

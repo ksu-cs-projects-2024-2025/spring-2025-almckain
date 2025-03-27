@@ -38,7 +38,7 @@ struct MainView: View {
             }
             Tab("Calendar", systemImage: "calendar", value: 1) {
                 CalendarView(
-                    journalEntryViewModel: journalEntryViewModel, calendarViewModel: calendarViewModel, reflectionViewModel: reflectionViewModel
+                    journalEntryViewModel: journalEntryViewModel, calendarViewModel: calendarViewModel, reflectionViewModel: reflectionViewModel, journalReflectionViewModel: entryReflectionViewModel
                 )
             }
             Tab("Prayers", systemImage: "list.bullet.clipboard", value: 2) {

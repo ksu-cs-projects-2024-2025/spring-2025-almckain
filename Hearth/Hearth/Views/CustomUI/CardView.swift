@@ -19,15 +19,14 @@ struct CardView<Content: View>: View {
                 .foregroundStyle(.warmSandLight)
                 .shadow(
                     color: Color.parchmentDark.opacity(0.05),
-                    radius: 5, x: 0, y: 2
+                    radius: 4, x: 0, y: 2
                 )
             
             content
-                .padding([.top, .horizontal], 10)
-                .padding(.bottom, 20)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 20)
         }
         .padding(.horizontal, 10)
-        .padding(.vertical, 5)
     }
 }
 

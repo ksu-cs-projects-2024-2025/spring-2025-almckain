@@ -31,17 +31,15 @@ struct HomeView: View {
                     Color.parchmentLight
                         .ignoresSafeArea()
                     ScrollView {
-                        if showReflectionCard {
-                            NewReflectionCardView(reflectionViewModel: entryReflectionViewModel)
-                                .padding(.top, 10)
-                                .transition(.move(edge: .leading))
-                            
+                        LazyVStack(spacing: 15) {
+                            if showReflectionCard {
+                                NewReflectionCardView(reflectionViewModel: entryReflectionViewModel)
+                                    .transition(.move(edge: .leading))
+                            }
                             BibleVerseCardView(viewModel: homeViewModel.bibleVerseViewModel, reflectionViewModel: reflectionViewModel)
-                        } else {
-                            BibleVerseCardView(viewModel: homeViewModel.bibleVerseViewModel, reflectionViewModel: reflectionViewModel)
-                                .padding(.top, 10)
                         }
                     }
+                    .padding(.top, 15)
                     .navigationTitle("\(homeViewModel.fetchGreeting()), \(profileViewModel.user?.firstName ?? "Guest")")
                     .navigationBarTitleDisplayMode(.large)
                 }
@@ -96,6 +94,11 @@ struct HomeView: View {
                 }),
                 secondaryButton: .cancel()
             )
+        }
+        .onChange(of: notificationViewModel.shouldShowReflectionCard) { oldValue, newValue in
+            withAnimation(.easeInOut(duration: 0.5)) {
+                showReflectionCard = newValue
+            }
         }
     }
 }

@@ -56,7 +56,7 @@ struct ReflectionEntryCardView: View {
                         .truncationMode(.tail)
                     
                 }
-                .padding(.vertical, 20)
+                .padding(.vertical, 15)
                 Spacer()
             }
         }

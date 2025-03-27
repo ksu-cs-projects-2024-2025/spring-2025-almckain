@@ -125,6 +125,46 @@ class ReflectionEntryService {
                 }
             }
     }
+    
+    func fetchReflections(for date: Date, completion: @escaping (Result<[JournalReflectionModel], Error>) -> Void) {
+        guard let currentUser = Auth.auth().currentUser else {
+            completion(.failure(NSError(domain: "AuthError",
+                                        code: 401,
+                                        userInfo: [NSLocalizedDescriptionKey: "User not logged in"])))
+            return
+        }
+        
+        let calendar = Calendar.current
+        let startOfDay = calendar.startOfDay(for: date)
+        guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else {
+            completion(.failure(NSError(domain: "DateError",
+                                        code: 500,
+                                        userInfo: [NSLocalizedDescriptionKey: "Date calculation error"])))
+            return
+        }
 
-
+        db.collection("entryReflections")
+            .whereField("userID", isEqualTo: currentUser.uid)
+            .whereField("reflectionTimestamp", isGreaterThanOrEqualTo: startOfDay)
+            .whereField("reflectionTimestamp", isLessThan: endOfDay)
+            .getDocuments { snapshot, error in
+                if let error = error {
+                    completion(.failure(error))
+                } else if let documents = snapshot?.documents {
+                    var reflections = [JournalReflectionModel]()
+                    for doc in documents {
+                        do {
+                            let reflection = try doc.data(as: JournalReflectionModel.self)
+                            reflections.append(reflection)
+                        } catch {
+                            completion(.failure(error))
+                            return
+                        }
+                    }
+                    completion(.success(reflections))
+                } else {
+                    completion(.success([]))
+                }
+            }
+    }
 }

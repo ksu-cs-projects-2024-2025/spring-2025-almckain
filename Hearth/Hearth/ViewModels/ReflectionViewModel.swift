@@ -143,4 +143,35 @@ class ReflectionViewModel: ObservableObject {
             }
         }
     }
+    
+    func fetchReflections(for date: Date, completion: @escaping ([JournalReflectionModel]) -> Void) {
+        reflectionService.fetchReflections(for: date) { result in
+            switch result {
+            case .success(let fetchedReflections):
+                // Update local `reflections` array with new or updated reflections
+                for reflection in fetchedReflections {
+                    if let index = self.reflections.firstIndex(where: { $0.id == reflection.id }) {
+                        self.reflections[index] = reflection
+                    } else {
+                        self.reflections.append(reflection)
+                    }
+                }
+                
+                // Filter them by the exact date if needed, or just pass them all up
+                let sameDayReflections = fetchedReflections.filter {
+                    Calendar.current.isDate($0.reflectionTimestamp, inSameDayAs: date)
+                }
+
+                DispatchQueue.main.async {
+                    completion(sameDayReflections)
+                }
+            case .failure(let error):
+                print("Error fetching reflections: \(error)")
+                DispatchQueue.main.async {
+                    completion([])
+                }
+            }
+        }
+    }
+
 }
