@@ -28,9 +28,23 @@ struct NewReflectionCardView: View {
         CardView {
             VStack(spacing: 10) {
                 HStack {
-                    Text("Your Weekly Reflection")
-                        .font(.customTitle3)
-                        .foregroundColor(.hearthEmberMain)
+                    ZStack {
+                        if !isExpanded {
+                            Text("View Your Weekly Reflection")
+                                .font(.customTitle3)
+                                .foregroundColor(.hearthEmberMain)
+                                .transition(.opacity)
+                                .id("collapsed")
+                        } else {
+                            Text("Your Weekly Reflection")
+                                .font(.customTitle3)
+                                .foregroundColor(.hearthEmberMain)
+                                .transition(.opacity)
+                                .id("expanded")
+                        }
+                    }
+                    .animation(.easeInOut(duration: 0.3), value: isExpanded)
+
                     
                     Spacer ()
                     
@@ -58,19 +72,17 @@ struct NewReflectionCardView: View {
                         .multilineTextAlignment(.center)
                     
                     HStack {
-                        if !isInCalendarView {
-                            Button("Remove") {
-                                showAlert = true
-                            }
-                            .padding()
-                            .frame(width: 120)
-                            .foregroundColor(.hearthEmberMain)
-                            .font(.headline)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 15)
-                                    .stroke(Color.hearthEmberMain, lineWidth: 4)
-                            )
+                        Button("Remove") {
+                            showAlert = true
                         }
+                        .padding()
+                        .frame(width: 120)
+                        .foregroundColor(.hearthEmberMain)
+                        .font(.headline)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 15)
+                                .stroke(Color.hearthEmberMain, lineWidth: 4)
+                        )
                         
                         Button(todayReflection?.reflectionContent.isEmpty ?? true ? "Complete" : "View") {
                             showReflectionSheet = true
@@ -109,7 +121,7 @@ struct NewReflectionCardView: View {
             }
             Button("Cancel", role: .cancel) { }
         } message: {
-            Text("Are you sure you want to remove this from the home screen? You can still view it in your calendar.")
+            Text("Are you sure you want to remove this weeks suggestion? This cannot be undone.")
         }
         .customSheet(isPresented: $showReflectionSheet) {
             if let reflection = todayReflection {

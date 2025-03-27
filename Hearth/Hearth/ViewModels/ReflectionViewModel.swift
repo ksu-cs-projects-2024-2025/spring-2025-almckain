@@ -11,6 +11,7 @@ import SwiftUI
 @MainActor
 class ReflectionViewModel: ObservableObject {
     @Published var reflections: [JournalReflectionModel] = []
+    @Published var isLoading: Bool = true
     
     private let reflectionService = ReflectionEntryService()
     private let journalEntryService = EntryService()
@@ -38,7 +39,10 @@ class ReflectionViewModel: ObservableObject {
     }
     
     func fetchAndAnalyzeEntries() {
-        if !reflections.isEmpty { return }
+        if !reflections.isEmpty {
+            self.isLoading = false
+            return
+        }
 
         Task {
             do {
@@ -50,6 +54,7 @@ class ReflectionViewModel: ObservableObject {
             } catch {
                 print("Error fetching or analyzing entries: \(error)")
             }
+            self.isLoading = false
         }
     }
     

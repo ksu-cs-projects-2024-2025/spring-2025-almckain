@@ -97,6 +97,8 @@ class NotificationViewModel: ObservableObject {
         else if isMonday && shouldShowReflectionCard && !didAnimateOutThisMonday {
             shouldShowReflectionCard = false
             didAnimateOutThisMonday = true
+        } else {
+            shouldShowReflectionCard = false
         }
     }
     

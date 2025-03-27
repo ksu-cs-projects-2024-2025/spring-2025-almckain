@@ -48,7 +48,7 @@ struct HomeView: View {
         .animation(.easeInOut(duration: 0.5), value: showReflectionCard)
         .onAppear {
             notificationViewModel.updateReflectionCardVisibility()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                 withAnimation(.easeInOut(duration: 0.5)) {
                     showReflectionCard = notificationViewModel.shouldShowReflectionCard
                 }
@@ -83,6 +83,12 @@ struct HomeView: View {
                 showReflectionCard = notificationViewModel.shouldShowReflectionCard
             }
         }
+        .onReceive(Timer.publish(every: 60, on: .main, in: .common).autoconnect()) { _ in
+            notificationViewModel.updateReflectionCardVisibility()
+            withAnimation(.easeInOut(duration: 0.5)) {
+                showReflectionCard = notificationViewModel.shouldShowReflectionCard
+            }
+        }
         .alert(isPresented: $showNotificationAlert) {
             Alert(
                 title: Text("Enable Notifications"),
@@ -100,6 +106,15 @@ struct HomeView: View {
                 showReflectionCard = newValue
             }
         }
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active {
+                notificationViewModel.updateReflectionCardVisibility()
+                withAnimation(.easeInOut(duration: 0.5)) {
+                    showReflectionCard = notificationViewModel.shouldShowReflectionCard
+                }
+            }
+        }
+
     }
 }
 
