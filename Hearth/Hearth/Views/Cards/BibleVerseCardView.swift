@@ -29,6 +29,7 @@ struct BibleVerseCardView: View {
                         .foregroundStyle(.parchmentDark)
                         .multilineTextAlignment(.center)
                         .padding(.vertical, 5)
+                        .italic()
                     
                     HStack {
                         Spacer()
@@ -87,7 +88,7 @@ struct BibleVerseCardView: View {
         .presentationDetents([.fraction(0.95)])
         .onAppear {
             if let verse = viewModel.bibleVerse {
-                print(verse.text)
+                print("A Bible verse exists.")
             }
         }
     }

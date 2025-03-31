@@ -11,6 +11,7 @@ struct DetailedBVReflectionView: View {
     let reflectionEntry: VerseReflectionModel
     var selectedDate: Date?
     @ObservedObject var reflectionViewModel: VerseReflectionViewModel
+    @Environment(\.dismiss) var dismiss
     @Binding var isPresented: Bool
     @State private var isEditing = false
     @State private var showingDeleteConfirmation = false
@@ -23,81 +24,104 @@ struct DetailedBVReflectionView: View {
     
     
     var body: some View {
-        ZStack {
-            Color.warmSandLight
-                .ignoresSafeArea()
-            VStack {
-                ScrollView {
-                    VStack {
+        NavigationStack {
+            ZStack {
+                Color.warmSandLight
+                    .ignoresSafeArea()
+                VStack {
+                    ScrollView {
                         VStack {
                             HStack {
-                                Text("Verse Reflection")
-                                    .font(.customTitle1)
-                                    .foregroundStyle(.parchmentDark)
-                                
+                                (
+                                    Text("From: ")
+                                        .font(.customHeadline1)
+                                        .foregroundStyle(.parchmentDark) +
+                                    Text(formattedTimeStamp)
+                                        .font(.customHeadline1)
+                                        .foregroundStyle(.hearthEmberDark)
+                                )
                                 Spacer()
                             }
-                            .padding(.bottom, 5)
+
                             
-                            HStack {
-                                Text(formattedTimeStamp)
-                                    .font(.customHeadline1)
-                                    .foregroundStyle(.hearthEmberDark)
-                                Spacer()
+                            CustomDivider(height: 2, color: .hearthEmberMain)
+                                .padding(.vertical, 10)
+
+                            VStack {
+                                Text("\(reflectionEntry.bibleVerseText)")
+                                    .font(.customBody1)
+                                    .italic()
+                                    .foregroundStyle(.parchmentDark)
+                                    .multilineTextAlignment(.center)
+                                    .frame(maxWidth: .infinity)
+                                
+                                HStack {
+                                    Spacer()
+                                    Text(reflectionEntry.title)
+                                        .foregroundStyle(.parchmentDark)
+                                        .font(.customBody1)
+                                }
+                            }
+                            
+                            CustomDivider(height: 2, color: .hearthEmberMain)
+                                .padding(.vertical, 10)
+                            
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 15)
+                                    .foregroundStyle(.parchmentLight)
+                                
+                                Text(reflectionEntry.reflection)
+                                    .font(.customBody1)
+                                    .foregroundStyle(.parchmentDark)
+                                    .multilineTextAlignment(.leading)
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
                             }
                         }
-                        
-                        CustomDivider(height: 2, color: .hearthEmberDark)
-                        
-                        Text("\(reflectionEntry.bibleVerseText)")
-                            .font(.customHeadline1)
-                            .italic()
-                            .foregroundStyle(.parchmentDark)
-                            .multilineTextAlignment(.center)
-                            .frame(maxWidth: .infinity)
-                        
-                        HStack {
-                            Spacer()
-                            Text(reflectionEntry.title)
-                                .foregroundStyle(.parchmentDark)
-                                .font(.customBody1)
-                        }
-                        
-                        CustomDivider(height: 2, color: .hearthEmberDark)
-                        
-                        Text(reflectionEntry.reflection)
-                            .font(.customBody1)
-                            .foregroundStyle(.parchmentDark)
-                            .multilineTextAlignment(.leading)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical)
                     }
-                }
-                
-                Spacer()
-                
-                HStack {
-                    Button("Edit") {
-                        isEditing = true
-                    }
-                    .padding()
-                    .frame(width: 100)
-                    .foregroundColor(.hearthEmberLight)
-                    .font(.headline)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 15)
-                            .stroke(Color.hearthEmberLight, lineWidth: 4)
+                    .navigationTitle("View Reflection")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .navigationBarClearBackground(
+                        UIColor(named: "WarmSandLight"),
+                        titleFont: UIFont.systemFont(ofSize: 25, weight: .bold),
+                        titleColor: UIColor(named: "ParchmentDark")
                     )
-                    
-                    Button("Delete") {
-                        showingDeleteConfirmation = true
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button {
+                                dismiss()
+                            } label: {
+                                Image(systemName: "x.circle.fill")
+                            }
+                        }
                     }
-                    .padding()
-                    .frame(width: 100)
-                    .background(Color.hearthEmberLight)
-                    .foregroundColor(.parchmentLight)
-                    .font(.headline)
-                    .cornerRadius(15)
+                    
+                    Spacer()
+                    
+                    HStack {
+                        Button("Delete") {
+                            showingDeleteConfirmation = true
+                        }
+                        .padding()
+                        .frame(width: 100)
+                        .foregroundColor(.hearthEmberMain)
+                        .font(.headline)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 15)
+                                .stroke(Color.hearthEmberMain, lineWidth: 4)
+                        )
+                        
+                        
+                        Button("Edit") {
+                            isEditing = true
+                        }
+                        .padding()
+                        .frame(width: 100)
+                        .background(Color.hearthEmberMain)
+                        .foregroundColor(.parchmentLight)
+                        .font(.headline)
+                        .cornerRadius(15)
+                    }
                 }
             }
         }

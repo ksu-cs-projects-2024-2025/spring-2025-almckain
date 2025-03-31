@@ -11,6 +11,7 @@ struct CreateNewJournalView: View {
     @State private var title: String
     @State private var content: String
     @Binding var isPresenting: Bool
+    @Environment(\.dismiss) var dismiss
     
     var viewModel: JournalEntryViewModel
     var calendarViewModel: CalendarViewModel
@@ -37,14 +38,6 @@ struct CreateNewJournalView: View {
                 Color.warmSandLight
                     .ignoresSafeArea()
                 ScrollView {
-                    
-                    HStack {
-                        Text("New Journal Entry")
-                            .font(.largeTitle.bold())
-                            .foregroundStyle(.parchmentDark)
-                        Spacer()
-                    }
-                    
                     HStack {
                         Text(Date.now.formatted(.dateTime
                             .month(.abbreviated)
@@ -76,7 +69,7 @@ struct CreateNewJournalView: View {
                     }
                     
                     
-                    Button(entry != nil ? "Update Entry" : "Add to Journal") {
+                    Button(entry != nil ? "Save" : "Add to Journal") {
                         if let entry = entry {
                             viewModel.updateJournalEntry(entry: entry, newTitle: title, newContent: content) { result in
                                 DispatchQueue.main.async {
@@ -107,12 +100,28 @@ struct CreateNewJournalView: View {
                     }
                     .padding()
                     .frame(width: 200)
-                    .background(Color.hearthEmberLight)
+                    .background(Color.hearthEmberMain)
                     .foregroundColor(.parchmentLight)
                     .font(.headline)
                     .cornerRadius(15)
                     
                     Spacer()
+                }
+                .navigationTitle(entry != nil ? "Edit Journal Entry" : "New Journal Entry")
+                .navigationBarTitleDisplayMode(.inline)
+                .navigationBarClearBackground(
+                    UIColor(named: "WarmSandLight"),
+                    titleFont: UIFont.systemFont(ofSize: 25, weight: .bold),
+                    titleColor: UIColor(named: "ParchmentDark")
+                )
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button {
+                            dismiss()
+                        } label: {
+                            Image(systemName: "x.circle.fill")
+                        }
+                    }
                 }
                 
                 if viewModel.isLoading {

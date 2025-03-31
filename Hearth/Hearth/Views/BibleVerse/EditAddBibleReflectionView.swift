@@ -17,6 +17,7 @@ struct EditAddBibleReflectionView: View {
     @State private var content: String = ""
     @Binding var isEditingPresented: Bool
     @FocusState private var textBoxIsFocused: Bool
+    @Environment(\.dismiss) var dismiss
     
     var existingReflection: VerseReflectionModel?
     private var isEditingExistingReflection: Bool {
@@ -34,117 +35,131 @@ struct EditAddBibleReflectionView: View {
     }
     
     var body: some View {
-        ZStack {
-            Color.warmSandLight
-                .ignoresSafeArea()
-            ScrollView {
-                VStack {
+        NavigationStack {
+            ZStack {
+                Color.warmSandLight
+                    .ignoresSafeArea()
+                ScrollView {
                     VStack {
-                        HStack {
-                            VStack {
-                                Text(isEditingExistingReflection ? "Edit Verse Reflection" : "New Verse Reflection")
-                                    .font(.largeTitle.bold())
-                                    .foregroundStyle(.parchmentDark)
+                        VStack {
+                            HStack {
+                                let displayTimestamp = existingReflection?.timeStamp ?? Date.now
+                                (
+                                    Text(isEditingExistingReflection ? "From: " : "Date: ")
+                                        .font(.customHeadline1)
+                                        .foregroundStyle(.parchmentDark) +
+                                    Text(displayTimestamp.formatted(.dateTime
+                                        .month(.abbreviated)
+                                        .day(.defaultDigits)
+                                        .year()
+                                        .hour(.twoDigits(amPM: .abbreviated))
+                                        .minute()
+                                    ))
+                                    .font(.customHeadline1)
+                                    .foregroundStyle(.hearthEmberDark)
+                                )
+                                
+                                Spacer()
                             }
-                            
-                            Spacer()
                         }
-                        .padding(.bottom, 5)
                         
-                        HStack {
-                            let displayTimestamp = existingReflection?.timeStamp ?? Date.now
-                            Text(displayTimestamp.formatted(.dateTime
-                                .month(.abbreviated)
-                                .day(.defaultDigits)
-                                .year()
-                                .hour(.twoDigits(amPM: .abbreviated))
-                                .minute()
-                            ))
-                            .font(.customHeadline1)
-                            .foregroundStyle(.hearthEmberDark)
-                            
-                            Spacer()
-                        }
-                    }
-                    
-                    CustomDivider(height: 2, color: .hearthEmberDark)
-
-                    VStack {
-                        Text((isEditingExistingReflection ? existingReflection?.bibleVerseText : verseText) ?? "")
-                            .font(.customBody1)
-                            .foregroundStyle(.parchmentDark)
-                            .multilineTextAlignment(.center)
-                            .italic()
                         
-                        HStack {
-                            Spacer()
-                            Text((isEditingExistingReflection ? existingReflection?.title : verseReference) ?? "")
-                                .foregroundStyle(.parchmentDark)
+                        CustomDivider(height: 2, color: .hearthEmberMain)
+                        
+                        VStack {
+                            Text((isEditingExistingReflection ? existingReflection?.bibleVerseText : verseText) ?? "")
                                 .font(.customBody1)
+                                .foregroundStyle(.parchmentDark)
+                                .multilineTextAlignment(.center)
+                                .italic()
+                            
+                            
+                            HStack {
+                                Spacer()
+                                Text((isEditingExistingReflection ? existingReflection?.title : verseReference) ?? "")
+                                    .foregroundStyle(.parchmentDark)
+                                    .font(.customBody1)
+                            }
                         }
-                    }
-                    .padding(.vertical)
-                    
-                    CustomDivider(height: 2, color: .hearthEmberDark)
-                    
-                    TextEditor(text: $content)
-                        .frame(minHeight: 100)
-                        .clipShape(RoundedRectangle(cornerRadius: 15))
                         .padding(.vertical)
-                        .focused($textBoxIsFocused)
-                    
-                    Button(isEditingExistingReflection ? "Update Reflection" : "Save Reflection") {
-                        guard !reflectionViewModel.isSaving, !content.isEmpty else { return }
                         
-                        if isEditingExistingReflection, let existingReflection = existingReflection {
-                            let updatedReflection = VerseReflectionModel(
-                                id: existingReflection.id,
-                                userID: existingReflection.userID,
-                                title: existingReflection.title,
-                                bibleVerseText: existingReflection.bibleVerseText,
-                                reflection: content,
-                                timeStamp: existingReflection.timeStamp,
-                                entryType: .bibleVerseReflection
-                            )
-
-                            reflectionViewModel.updateReflection(updatedReflection) { result in
-                                switch result {
-                                case .success:
-                                    DispatchQueue.main.async {
-                                        isEditingPresented = false
-                                        reflectionViewModel.fetchReflections(for: updatedReflection.timeStamp)
+                        CustomDivider(height: 2, color: .hearthEmberMain)
+                        
+                        TextEditor(text: $content)
+                            .frame(minHeight: 100)
+                            .clipShape(RoundedRectangle(cornerRadius: 15))
+                            .padding(.vertical)
+                            .focused($textBoxIsFocused)
+                        
+                        Button(isEditingExistingReflection ? "Update Reflection" : "Save Reflection") {
+                            guard !reflectionViewModel.isSaving, !content.isEmpty else { return }
+                            
+                            if isEditingExistingReflection, let existingReflection = existingReflection {
+                                let updatedReflection = VerseReflectionModel(
+                                    id: existingReflection.id,
+                                    userID: existingReflection.userID,
+                                    title: existingReflection.title,
+                                    bibleVerseText: existingReflection.bibleVerseText,
+                                    reflection: content,
+                                    timeStamp: existingReflection.timeStamp,
+                                    entryType: .bibleVerseReflection
+                                )
+                                
+                                reflectionViewModel.updateReflection(updatedReflection) { result in
+                                    switch result {
+                                    case .success:
+                                        DispatchQueue.main.async {
+                                            isEditingPresented = false
+                                            reflectionViewModel.fetchReflections(for: updatedReflection.timeStamp)
+                                        }
+                                    case .failure:
+                                        showingErrorAlert = true
                                     }
-                                case .failure:
-                                    showingErrorAlert = true
                                 }
-                            }
-                        } else {
-                            reflectionViewModel.saveReflection(
-                                reference: verseReference,
-                                verseText: verseText,
-                                reflectionText: content
-                            ) { result in
-                                switch result {
-                                case .success:
-                                    isEditingPresented = false
-                                case .failure:
-                                    showingErrorAlert = true
+                            } else {
+                                reflectionViewModel.saveReflection(
+                                    reference: verseReference,
+                                    verseText: verseText,
+                                    reflectionText: content
+                                ) { result in
+                                    switch result {
+                                    case .success:
+                                        isEditingPresented = false
+                                    case .failure:
+                                        showingErrorAlert = true
+                                    }
                                 }
                             }
                         }
+                        .padding()
+                        .frame(width: 200)
+                        .background(Color.hearthEmberMain)
+                        .foregroundColor(.parchmentLight)
+                        .font(.headline)
+                        .cornerRadius(15)
+                        .disabled(reflectionViewModel.isSaving)
+                        
+                        
+                        Spacer()
                     }
-                    .padding()
-                    .frame(width: 200)
-                    .background(Color.hearthEmberMain)
-                    .foregroundColor(.parchmentLight)
-                    .font(.headline)
-                    .cornerRadius(15)
-                    .disabled(reflectionViewModel.isSaving)
-
-                    
-                    Spacer()
+                    .padding(.bottom)
                 }
-                .padding(.bottom)
+                .navigationTitle(isEditingExistingReflection ? "Edit Reflection" : "New Reflection")
+                .navigationBarTitleDisplayMode(.inline)
+                .navigationBarClearBackground(
+                    UIColor(named: "WarmSandLight"),
+                    titleFont: UIFont.systemFont(ofSize: 25, weight: .bold),
+                    titleColor: UIColor(named: "ParchmentDark")
+                )
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button {
+                            dismiss()
+                        } label: {
+                            Image(systemName: "x.circle.fill")
+                        }
+                    }
+                }
             }
         }
         .onTapGesture {

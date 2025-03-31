@@ -16,79 +16,106 @@ struct DetailedJournalEntryView: View {
     @ObservedObject var calendarViewModel: CalendarViewModel
     @State private var isEditing = false
     @State private var showingDeleteConfirmation = false
-
+    @Environment(\.dismiss) var dismiss
     
     var body: some View {
-        ZStack{
-            Color.warmSandLight
-                .ignoresSafeArea()
-            VStack {
-                ScrollView {
-                    HStack {
-                        Text(entry.timeStamp.formatted(.dateTime
-                            .month(.abbreviated)
-                            .day(.defaultDigits)
-                            .year()
-                            .hour(.twoDigits(amPM: .abbreviated))
-                            .minute()
-                        ))
-                        .font(.customHeadline1)
-                        .foregroundStyle(.hearthEmberDark)
-                        
-                        Spacer()
-                    }
-                    HStack {
-                        Text(entry.title)
-                            .font(.customTitle1)
-                            .foregroundStyle(.parchmentDark)
-                        Spacer()
-                    }
-                    .padding(.vertical)
-                    
-                    CustomDivider(height: 2, color: .parchmentDark)
-
-                    Text(entry.content)
-                        .padding(.vertical)
-                    
-                    if let errorMessage = viewModel.errorMessage {
-                        Text(errorMessage)
-                            .font(.customCaption1)
-                            .foregroundStyle(.hearthError)
-                    }
-
-                    Spacer()
-
-                    HStack {
-                        Button("Edit") {
-                            isEditing = true
+        NavigationStack {
+            ZStack{
+                Color.warmSandLight
+                    .ignoresSafeArea()
+                VStack {
+                    ScrollView {
+                        HStack {
+                            Text(entry.timeStamp.formatted(.dateTime
+                                .month(.abbreviated)
+                                .day(.defaultDigits)
+                                .year()
+                                .hour(.twoDigits(amPM: .abbreviated))
+                                .minute()
+                            ))
+                            .font(.customHeadline1)
+                            .foregroundStyle(.hearthEmberDark)
+                            
+                            Spacer()
                         }
-                        .padding()
-                        .frame(width: 100)
-                        .foregroundColor(.hearthEmberLight)
-                        .font(.headline)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 15)
-                                .stroke(Color.hearthEmberLight, lineWidth: 4)
-                        )
+                        HStack {
+                            Text(entry.title)
+                                .font(.customTitle1)
+                                .foregroundStyle(.parchmentDark)
+                            Spacer()
+                        }
+                        .padding(.vertical)
                         
+                        CustomDivider(height: 2, color: .hearthEmberMain)
+                        
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 15)
+                                .foregroundStyle(.parchmentLight)
+                            
+                            Text(entry.content)
+                                .padding(.vertical)
+                                .foregroundStyle(.parchmentDark)
+                                .font(.customBody1)
+                                .padding(.vertical, 5)
+                                .padding(.horizontal)
+                        }
+                        
+                        if let errorMessage = viewModel.errorMessage {
+                            Text(errorMessage)
+                                .font(.customCaption1)
+                                .foregroundStyle(.hearthError)
+                        }
+                        
+                        Spacer()
+                    }
+                    .navigationTitle("View Journal Entry")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .navigationBarClearBackground(
+                        UIColor(named: "WarmSandLight"),
+                        titleFont: UIFont.systemFont(ofSize: 25, weight: .bold),
+                        titleColor: UIColor(named: "ParchmentDark")
+                    )
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button {
+                                dismiss()
+                            } label: {
+                                Image(systemName: "x.circle.fill")
+                            }
+                        }
+                    }
+                    
+                    HStack {
                         Button("Delete") {
                             showingDeleteConfirmation = true
                         }
                         .padding()
                         .frame(width: 100)
-                        .background(Color.hearthEmberLight)
+                        .foregroundColor(.hearthEmberMain)
+                        .font(.customButton)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 15)
+                                .stroke(Color.hearthEmberMain, lineWidth: 4)
+                        )
+                        
+                        Button("Edit") {
+                            isEditing = true
+                        }
+                        .padding()
+                        .frame(width: 100)
+                        .background(Color.hearthEmberMain)
                         .foregroundColor(.parchmentLight)
-                        .font(.headline)
+                        .font(.customButton)
                         .cornerRadius(15)
                     }
                 }
-            }
-            if viewModel.isLoading {
-                ProgressView("Loading...")
-                    .padding()
-                    .background(.parchmentLight)
-                    .foregroundStyle(.hearthEmberMain)
-                    .cornerRadius(10)
+                if viewModel.isLoading {
+                    ProgressView("Loading...")
+                        .padding()
+                        .background(.parchmentLight)
+                        .foregroundStyle(.hearthEmberMain)
+                        .cornerRadius(10)
+                }
             }
         }
         .alert("Confirm Delete", isPresented: $showingDeleteConfirmation){

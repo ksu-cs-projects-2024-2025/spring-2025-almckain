@@ -61,37 +61,41 @@ struct DetailedEntryReflectionView: View {
                                     .foregroundStyle(.hearthEmberMain)
                             }
                             
-                            Text(reflection.reflectionContent)
-                                .font(.customBody1)
-                                .foregroundStyle(.parchmentDark)
-                        }
-                        
-                        HStack {
-                            Button("Edit") {
-                                
-                            }
-                            .padding()
-                            .frame(width: 120)
-                            .foregroundColor(.hearthEmberMain)
-                            .font(.headline)
-                            .overlay(
+                            ZStack {
                                 RoundedRectangle(cornerRadius: 15)
-                                    .stroke(Color.hearthEmberMain, lineWidth: 4)
-                            )
-                            
-                            Button("Delete") {
-                                showingDeleteConfirmation = true
+                                    .foregroundStyle(.parchmentLight)
+                                
+                                Text(reflection.reflectionContent)
+                                    .font(.customBody1)
+                                    .foregroundStyle(.parchmentDark)
+                                    .padding()
                             }
-                            .padding()
-                            .frame(width: 120)
-                            .background(Color.hearthEmberMain)
-                            .foregroundColor(.parchmentLight)
-                            .font(.headline)
-                            .cornerRadius(15)
                         }
-                        
                         Spacer()
                     }
+                }
+                HStack {
+                    Button("Delete") {
+                        showingDeleteConfirmation = true
+                    }
+                    .padding()
+                    .frame(width: 120)
+                    .foregroundColor(.hearthEmberMain)
+                    .font(.headline)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 15)
+                            .stroke(Color.hearthEmberMain, lineWidth: 4)
+                    )
+                    
+                    Button("Edit") {
+                        
+                    }
+                    .padding()
+                    .frame(width: 120)
+                    .background(Color.hearthEmberMain)
+                    .foregroundColor(.parchmentLight)
+                    .font(.headline)
+                    .cornerRadius(15)
                 }
             }
             .navigationTitle("View Reflection")

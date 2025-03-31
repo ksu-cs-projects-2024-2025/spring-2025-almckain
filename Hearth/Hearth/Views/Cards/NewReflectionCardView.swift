@@ -72,27 +72,33 @@ struct NewReflectionCardView: View {
                         .multilineTextAlignment(.center)
                     
                     HStack {
-                        Button("Remove") {
+                        /*
+                        Button("Decline") {
                             showAlert = true
                         }
                         .padding()
                         .frame(width: 120)
                         .foregroundColor(.hearthEmberMain)
-                        .font(.headline)
+                        .font(.customButton)
                         .overlay(
                             RoundedRectangle(cornerRadius: 15)
                                 .stroke(Color.hearthEmberMain, lineWidth: 4)
                         )
+                         */
                         
-                        Button(todayReflection?.reflectionContent.isEmpty ?? true ? "Complete" : "View") {
+                        Button(action: {
                             showReflectionSheet = true
+                        }) {
+                            Text(todayReflection?.reflectionContent.isEmpty ?? true ? "Complete" : "View")
+                                .font(.customButton)
+                                .foregroundColor(.parchmentLight)
+                                .frame(width: 120)
+                                .padding()
+                                .background(Color.hearthEmberMain)
+                                .cornerRadius(15)
                         }
-                        .padding()
-                        .frame(width: 120)
-                        .background(Color.hearthEmberMain)
-                        .foregroundColor(.parchmentLight)
-                        .font(.headline)
-                        .cornerRadius(15)
+                        .contentShape(Rectangle())
+
                     }
                     .padding(.vertical, 5)
                 }
