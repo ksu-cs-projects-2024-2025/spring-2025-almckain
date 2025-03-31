@@ -48,6 +48,7 @@ struct EntryDayListView: View {
                             
                             ForEach(journalReflectionViewModel.reflections.filter {
                                 Calendar.current.isDate($0.reflectionTimestamp, inSameDayAs: selectedDate)
+                                && !$0.reflectionContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                             }, id: \.id) { reflection in
                                 JournalReflectionCardView(reflection: reflection,
                                                           reflectionViewModel: journalReflectionViewModel)
