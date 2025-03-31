@@ -61,15 +61,11 @@ struct CreateNewJournalView: View {
                         .frame(minHeight: 300)
                         .clipShape(RoundedRectangle(cornerRadius: 15))
                         .padding(.vertical)
+                                  
+                    let isDisabled = viewModel.isLoading || title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                    || content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                     
-                    if let errorMessage = viewModel.errorMessage {
-                        Text(errorMessage)
-                            .font(.customCaption1)
-                            .foregroundStyle(.hearthError)
-                    }
-                    
-                    
-                    Button(entry != nil ? "Save" : "Add to Journal") {
+                    Button(action: {
                         if let entry = entry {
                             viewModel.updateJournalEntry(entry: entry, newTitle: title, newContent: content) { result in
                                 DispatchQueue.main.async {
@@ -97,13 +93,18 @@ struct CreateNewJournalView: View {
                                 }
                             }
                         }
+                    }) {
+                        Text(entry != nil ? "Save" : "Add to Journal")
+                            .frame(width: 200)
+                            .padding()
+                            .background(isDisabled ? Color.parchmentDark.opacity(0.3) : Color.hearthEmberMain)
+                            .foregroundColor(.parchmentLight)
+                            .font(.headline)
+                            .cornerRadius(15)
                     }
-                    .padding()
-                    .frame(width: 200)
-                    .background(Color.hearthEmberMain)
-                    .foregroundColor(.parchmentLight)
-                    .font(.headline)
-                    .cornerRadius(15)
+                    .disabled(isDisabled)
+
+
                     
                     Spacer()
                 }

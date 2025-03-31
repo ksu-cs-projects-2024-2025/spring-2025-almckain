@@ -91,9 +91,11 @@ struct EditAddBibleReflectionView: View {
                             .padding(.vertical)
                             .focused($textBoxIsFocused)
                         
-                        Button(isEditingExistingReflection ? "Update Reflection" : "Save Reflection") {
+                        let isDisabled = reflectionViewModel.isSaving || content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                        
+                        Button(action: {
                             guard !reflectionViewModel.isSaving, !content.isEmpty else { return }
-                            
+
                             if isEditingExistingReflection, let existingReflection = existingReflection {
                                 let updatedReflection = VerseReflectionModel(
                                     id: existingReflection.id,
@@ -104,7 +106,7 @@ struct EditAddBibleReflectionView: View {
                                     timeStamp: existingReflection.timeStamp,
                                     entryType: .bibleVerseReflection
                                 )
-                                
+
                                 reflectionViewModel.updateReflection(updatedReflection) { result in
                                     switch result {
                                     case .success:
@@ -130,15 +132,16 @@ struct EditAddBibleReflectionView: View {
                                     }
                                 }
                             }
+                        }) {
+                            Text(isEditingExistingReflection ? "Update Reflection" : "Save Reflection")
+                                .frame(width: 200)
+                                .padding()
+                                .background(isDisabled ? Color.parchmentDark.opacity(0.3) : Color.hearthEmberMain)
+                                .foregroundColor(.parchmentLight)
+                                .font(.headline)
+                                .cornerRadius(15)
                         }
-                        .padding()
-                        .frame(width: 200)
-                        .background(Color.hearthEmberMain)
-                        .foregroundColor(.parchmentLight)
-                        .font(.headline)
-                        .cornerRadius(15)
-                        .disabled(reflectionViewModel.isSaving)
-                        
+                        .disabled(isDisabled)                        
                         
                         Spacer()
                     }

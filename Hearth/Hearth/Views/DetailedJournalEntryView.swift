@@ -86,27 +86,31 @@ struct DetailedJournalEntryView: View {
                     }
                     
                     HStack {
-                        Button("Delete") {
+                        Button(action: {
                             showingDeleteConfirmation = true
+                        }) {
+                            Text("Delete")
+                                .frame(width: 100)
+                                .padding()
+                                .foregroundColor(.hearthEmberMain)
+                                .font(.customButton)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 15)
+                                        .stroke(Color.hearthEmberMain, lineWidth: 4)
+                                )
                         }
-                        .padding()
-                        .frame(width: 100)
-                        .foregroundColor(.hearthEmberMain)
-                        .font(.customButton)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 15)
-                                .stroke(Color.hearthEmberMain, lineWidth: 4)
-                        )
-                        
-                        Button("Edit") {
+
+                        Button(action: {
                             isEditing = true
+                        }) {
+                            Text("Edit")
+                                .frame(width: 100)
+                                .padding()
+                                .background(Color.hearthEmberMain)
+                                .foregroundColor(.parchmentLight)
+                                .font(.customButton)
+                                .cornerRadius(15)
                         }
-                        .padding()
-                        .frame(width: 100)
-                        .background(Color.hearthEmberMain)
-                        .foregroundColor(.parchmentLight)
-                        .font(.customButton)
-                        .cornerRadius(15)
                     }
                 }
                 if viewModel.isLoading {

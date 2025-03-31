@@ -70,7 +70,9 @@ struct AddJournalReflectionView: View {
                             .frame(minHeight: 200)
                             .clipShape(RoundedRectangle(cornerRadius: 15))
                         
-                        Button("Save Reflection") {
+                        let isDisabled = reflectionViewModel.isLoading || content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+
+                        Button(action: {
                             let updatedReflection = JournalReflectionModel(
                                 id: reflection.id,
                                 userID: reflection.userID,
@@ -79,7 +81,7 @@ struct AddJournalReflectionView: View {
                                 reflectionTimestamp: Date(),
                                 spireScore: reflection.spireScore
                             )
-                            
+
                             reflectionViewModel.saveReflection(updatedReflection) { success in
                                 if success {
                                     dismiss()
@@ -87,13 +89,17 @@ struct AddJournalReflectionView: View {
                                     print("Failed to save reflection.")
                                 }
                             }
+                        }) {
+                            Text("Save Reflection")
+                                .frame(width: 200)
+                                .padding()
+                                .background(isDisabled ? Color.parchmentDark.opacity(0.3) : Color.hearthEmberMain)
+                                .foregroundColor(.parchmentLight)
+                                .font(.headline)
+                                .cornerRadius(15)
                         }
-                        .padding()
-                        .frame(width: 200)
-                        .background(Color.hearthEmberMain)
-                        .foregroundColor(.parchmentLight)
-                        .font(.headline)
-                        .cornerRadius(15)
+                        .disabled(isDisabled)
+
                         
                         Spacer()
                     }

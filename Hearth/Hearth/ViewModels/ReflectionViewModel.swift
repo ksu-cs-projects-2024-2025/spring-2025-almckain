@@ -12,12 +12,16 @@ import SwiftUI
 class ReflectionViewModel: ObservableObject {
     @Published var reflections: [JournalReflectionModel] = []
     @Published var isLoading: Bool = true
+    @Published var isSaving = false
+
     
     private let reflectionService = ReflectionEntryService()
     private let journalEntryService = EntryService()
     
     func saveReflection(_ reflection: JournalReflectionModel, completion: @escaping (Bool) -> Void) {
+        isSaving = true
         reflectionService.saveReflection(reflection) { result in
+            self.isSaving = false
             switch result {
             case .success:
                 DispatchQueue.main.async {
@@ -112,19 +116,23 @@ class ReflectionViewModel: ObservableObject {
     }
 
     func updateReflection(_ reflection: JournalReflectionModel, completion: @escaping (Bool) -> Void) {
+        isSaving = true
         reflectionService.updateReflection(reflection) { result in
-            switch result {
-            case .success:
-                if let index = self.reflections.firstIndex(where: { $0.id == reflection.id }) {
-                    self.reflections[index] = reflection
-                }
-                DispatchQueue.main.async {
-                    completion(true)
-                }
-            case .failure(let error):
-                print("Error updating reflection: \(error)")
-                DispatchQueue.main.async {
-                    completion(false)
+            DispatchQueue.main.async {
+                self.isSaving = false
+                switch result {
+                case .success:
+                    if let index = self.reflections.firstIndex(where: { $0.id == reflection.id }) {
+                        self.reflections[index] = reflection
+                    }
+                    DispatchQueue.main.async {
+                        completion(true)
+                    }
+                case .failure(let error):
+                    print("Error updating reflection: \(error)")
+                    DispatchQueue.main.async {
+                        completion(false)
+                    }
                 }
             }
         }

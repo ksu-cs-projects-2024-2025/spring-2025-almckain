@@ -19,83 +19,91 @@ struct DetailedEntryReflectionView: View {
             ZStack {
                 Color.warmSandLight
                     .ignoresSafeArea()
-                ScrollView {
-                    VStack(spacing: 20) {
-                        HStack {
-                            Text("From ")
-                                .font(.customHeadline1)
-                                .foregroundStyle(.parchmentDark)
-                            Text(reflection.journalEntry.timestamp.formatted(date: .abbreviated, time: .omitted))
-                                .font(.customHeadline1)
-                                .foregroundStyle(.hearthEmberMain)
-                            Spacer()
-                        }
-                        
-                        CustomDivider(height: 2, color: .hearthEmberMain)
-                        
+                VStack {
+                    ScrollView {
                         VStack(spacing: 20) {
-                            Text(reflection.journalEntry.title)
-                                .font(.customHeadline1)
-                                .foregroundStyle(.parchmentDark)
-                            
-                            ZStack {
-                                RoundedRectangle(cornerRadius: 15)
-                                    .foregroundStyle(.warmSandMain.opacity(0.4))
-                                
-                                Text("\"\(reflection.journalEntry.content)\"")
-                                    .font(.customBody1)
+                            HStack {
+                                Text("From ")
+                                    .font(.customHeadline1)
                                     .foregroundStyle(.parchmentDark)
-                                    .padding()
+                                Text(reflection.journalEntry.timestamp.formatted(date: .abbreviated, time: .omitted))
+                                    .font(.customHeadline1)
+                                    .foregroundStyle(.hearthEmberMain)
+                                Spacer()
                             }
-                            
                             
                             CustomDivider(height: 2, color: .hearthEmberMain)
                             
-                            HStack {
-                                Text("Your Reflection")
+                            VStack(spacing: 20) {
+                                Text(reflection.journalEntry.title)
                                     .font(.customHeadline1)
                                     .foregroundStyle(.parchmentDark)
                                 
-                                Text(reflection.reflectionTimestamp.formatted(date: .abbreviated, time: .omitted))
-                                    .font(.customHeadline1)
-                                    .foregroundStyle(.hearthEmberMain)
-                            }
-                            
-                            ZStack {
-                                RoundedRectangle(cornerRadius: 15)
-                                    .foregroundStyle(.parchmentLight)
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 15)
+                                        .foregroundStyle(.warmSandMain.opacity(0.4))
+                                    
+                                    Text("\"\(reflection.journalEntry.content)\"")
+                                        .font(.customBody1)
+                                        .foregroundStyle(.parchmentDark)
+                                        .padding()
+                                }
                                 
-                                Text(reflection.reflectionContent)
-                                    .font(.customBody1)
-                                    .foregroundStyle(.parchmentDark)
-                                    .padding()
+                                
+                                CustomDivider(height: 2, color: .hearthEmberMain)
+                                
+                                HStack {
+                                    Text("Your Reflection")
+                                        .font(.customHeadline1)
+                                        .foregroundStyle(.parchmentDark)
+                                    
+                                    Text(reflection.reflectionTimestamp.formatted(date: .abbreviated, time: .omitted))
+                                        .font(.customHeadline1)
+                                        .foregroundStyle(.hearthEmberMain)
+                                }
+                                
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 15)
+                                        .foregroundStyle(.parchmentLight)
+                                    
+                                    Text(reflection.reflectionContent)
+                                        .font(.customBody1)
+                                        .foregroundStyle(.parchmentDark)
+                                        .padding()
+                                }
                             }
+                            Spacer()
                         }
-                        Spacer()
                     }
-                }
-                HStack {
-                    Button("Delete") {
-                        showingDeleteConfirmation = true
-                    }
-                    .padding()
-                    .frame(width: 120)
-                    .foregroundColor(.hearthEmberMain)
-                    .font(.headline)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 15)
-                            .stroke(Color.hearthEmberMain, lineWidth: 4)
-                    )
+                    Spacer()
                     
-                    Button("Edit") {
+                    HStack {
+                        Button(action: {
+                            showingDeleteConfirmation = true
+                        }) {
+                            Text("Delete")
+                                .frame(width: 120)
+                                .padding()
+                                .foregroundColor(.hearthEmberMain)
+                                .font(.headline)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 15)
+                                        .stroke(Color.hearthEmberMain, lineWidth: 4)
+                                )
+                        }
                         
+                        Button(action: {
+                            // Edit action here
+                        }) {
+                            Text("Edit")
+                                .frame(width: 120)
+                                .padding()
+                                .background(Color.hearthEmberMain)
+                                .foregroundColor(.parchmentLight)
+                                .font(.headline)
+                                .cornerRadius(15)
+                        }
                     }
-                    .padding()
-                    .frame(width: 120)
-                    .background(Color.hearthEmberMain)
-                    .foregroundColor(.parchmentLight)
-                    .font(.headline)
-                    .cornerRadius(15)
                 }
             }
             .navigationTitle("View Reflection")
