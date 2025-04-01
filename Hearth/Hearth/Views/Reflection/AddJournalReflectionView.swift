@@ -16,11 +16,13 @@ struct AddJournalReflectionView: View {
     @State private var content: String
     
     var reflection: JournalReflectionModel
+    var isEditing: Bool
     
-    init(reflection: JournalReflectionModel, reflectionViewModel: ReflectionViewModel) {
+    init(reflection: JournalReflectionModel, reflectionViewModel: ReflectionViewModel, isEditing: Bool = false) {
         self.reflection = reflection
         _content = State(initialValue: reflection.reflectionContent)
         self.reflectionViewModel = reflectionViewModel
+        self.isEditing = isEditing
     }
     
     var body: some View {
@@ -82,15 +84,21 @@ struct AddJournalReflectionView: View {
                                 spireScore: reflection.spireScore
                             )
 
-                            reflectionViewModel.saveReflection(updatedReflection) { success in
+                            let completion: (Bool) -> Void = { success in
                                 if success {
                                     dismiss()
                                 } else {
-                                    print("Failed to save reflection.")
+                                    print("Failed to \(isEditing ? "update" : "save") reflection.")
                                 }
                             }
+
+                            if isEditing {
+                                reflectionViewModel.updateReflection(updatedReflection, completion: completion)
+                            } else {
+                                reflectionViewModel.saveReflection(updatedReflection, completion: completion)
+                            }
                         }) {
-                            Text("Save Reflection")
+                            Text(isEditing ? "Save" : "Save Reflection")
                                 .frame(width: 200)
                                 .padding()
                                 .background(isDisabled ? Color.parchmentDark.opacity(0.3) : Color.hearthEmberMain)

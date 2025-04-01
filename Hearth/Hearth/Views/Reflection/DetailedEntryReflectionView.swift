@@ -13,6 +13,7 @@ struct DetailedEntryReflectionView: View {
     @Environment(\.dismiss) var dismiss
     
     @State private var showingDeleteConfirmation = false
+    @State private var showEditSheet = false
     
     var body: some View {
         NavigationView {
@@ -93,7 +94,7 @@ struct DetailedEntryReflectionView: View {
                         }
                         
                         Button(action: {
-                            // Edit action here
+                            showEditSheet = true
                         }) {
                             Text("Edit")
                                 .frame(width: 120)
@@ -144,6 +145,9 @@ struct DetailedEntryReflectionView: View {
             } message: {
                 Text("Are you sure you want to delete this entry? This action cannot be undone.")
             }
+            .customSheet(isPresented: $showEditSheet, content: {
+                AddJournalReflectionView(reflection: reflection, reflectionViewModel: reflectionViewModel, isEditing: true)
+            })
         }
     }
 }

@@ -52,7 +52,7 @@ struct WeeklyJournalCardView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
 
                     if hasTodayEntry {
-                        HStack(spacing: 12) {
+                        HStack(spacing: 24) {
                             NavigationLink {
                                 EntryDayListView(
                                     selectedDate: Date(),
@@ -62,7 +62,7 @@ struct WeeklyJournalCardView: View {
                                     journalReflectionViewModel: ReflectionViewModel()
                                 )
                             } label: {
-                                Text("View")
+                                Text("View Today")
                                     .font(.customTitle3)
                                     .foregroundColor(.hearthEmberMain)
                                     .padding(.vertical, 10)
@@ -79,6 +79,7 @@ struct WeeklyJournalCardView: View {
                                 isPresented.toggle()
                             })
                         }
+                        .padding(.horizontal, 14)
                     } else {
                         CapsuleButton(title: "Add to Journal", style: .filled ,foregroundColor: .parchmentLight, backgroundColor: .hearthEmberMain, action: {
                             isPresented.toggle()
