@@ -33,7 +33,7 @@ struct MainView: View {
         TabView(selection: $selectedTab) {
             Tab("Home", systemImage: "house.fill", value: 0) {
                 HomeView(
-                    profileViewModel: profileViewModel, homeViewModel: homeViewModel, reflectionViewModel: reflectionViewModel, entryReflectionViewModel: entryReflectionViewModel
+                    profileViewModel: profileViewModel, homeViewModel: homeViewModel, reflectionViewModel: reflectionViewModel, entryReflectionViewModel: entryReflectionViewModel, journalEntryViewModel: journalEntryViewModel
                 )
             }
             Tab("Calendar", systemImage: "calendar", value: 1) {

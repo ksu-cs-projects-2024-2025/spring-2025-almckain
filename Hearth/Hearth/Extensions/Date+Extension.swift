@@ -89,4 +89,28 @@ extension Date {
         let weekday = Calendar.current.component(.weekday, from: self)
         return weekday == 2
     }
+    
+    /// Returns the Sunday of the current week at 00:00 in the local time zone.
+    var startOfCurrentWeek: Date {
+        let calendar = Calendar.current
+        let weekday = calendar.component(.weekday, from: self)
+        // In Swift's default calendar, Sunday = 1, Monday = 2, etc.
+        let daysSinceSunday = weekday - 1  // 0 if today is Sunday, 1 if Monday, etc.
+        // Subtract that many days from "today at midnight":
+        let startOfToday = calendar.startOfDay(for: self)
+        return calendar.date(byAdding: .day, value: -daysSinceSunday, to: startOfToday)!
+    }
+
+    /// Returns an array of 7 dates starting from the Sunday of the current week.
+    var daysOfCurrentWeek: [Date] {
+        let start = self.startOfCurrentWeek
+        return (0..<7).compactMap {
+            Calendar.current.date(byAdding: .day, value: $0, to: start)
+        }
+    }
+
+    /// Check if this Date is the same calendar day as 'other'
+    func isSameDay(as other: Date) -> Bool {
+        Calendar.current.isDate(self, inSameDayAs: other)
+    }
 }

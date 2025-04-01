@@ -125,5 +125,30 @@ class JournalEntryViewModel: ObservableObject {
         }
     }
     
+    func fetchJournalEntries(forWeekStarting start: Date, ending end: Date) {
+        isLoading = true
+        entryService.fetchEntriesInRange(start: start, end: end) { [weak self] result in
+            DispatchQueue.main.async {
+                guard let self = self else { return }
+                self.isLoading = false
+                switch result {
+                case .success(let entries):
+                    self.journalEntries = entries
+                case .failure(let error):
+                    print("Error fetching weekly journal entries: \(error.localizedDescription)")
+                    self.errorMessage = "Failed to load this week's journal entries."
+                }
+            }
+        }
+    }
+    
+    func dayFormatted(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "E"
+        let short = formatter.string(from: date)
+        guard let firstLetter = short.first else { return "" }
+        return String(firstLetter).capitalized
+    }
+    
     // Other functions eventually
 }
