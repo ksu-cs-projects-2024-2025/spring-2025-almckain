@@ -42,7 +42,7 @@ struct MainView: View {
                 )
             }
             Tab("Prayers", systemImage: "list.bullet.clipboard", value: 2) {
-                JournalView()
+                PrayerReminderView()
             }
             Tab("Profile", systemImage: "person.fill", value: 3) {
                 ProfileView()
