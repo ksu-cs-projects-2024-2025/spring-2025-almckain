@@ -43,39 +43,43 @@ struct PrayerReminderCardView: View {
                     
                     Spacer()
                     
-                    Button(action: {
-                        withAnimation {
-                            if !isAddingNewPrayer {
-                                isAddingNewPrayer = true
+                    if isFutureTab || Calendar.current.isDateInToday(day) {
+                        Button(action: {
+                            withAnimation {
+                                if !isAddingNewPrayer {
+                                    isAddingNewPrayer = true
+                                }
                             }
+                        }) {
+                            Image(systemName: "plus.circle")
+                                .font(.title2)
+                                .foregroundStyle(.hearthEmberMain)
                         }
-                    }) {
-                        Image(systemName: "plus.circle")
-                            .font(.title2)
-                            .foregroundStyle(.hearthEmberMain)
+                        .disabled(isAddingNewPrayer)
                     }
-                    .disabled(isAddingNewPrayer)
                 }
                 
                 CustomDivider(height: 2, color: .hearthEmberMain)
                 
                 
                 if prayers.isEmpty && !isAddingNewPrayer {
-                    VStack(spacing: 8) {
-                        Text("You have no prayer reminders for this day yet.")
-                            .font(.customBody1)
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
-                        
-                        Button("Add First Prayer") {
-                            withAnimation {
-                                isAddingNewPrayer = true
+                    if Calendar.current.isDateInToday(day) {
+                        VStack(spacing: 8) {
+                            Text("You have no prayer reminders for this day yet.")
+                                .font(.customBody1)
+                                .foregroundStyle(.secondary)
+                                .multilineTextAlignment(.center)
+                            
+                            Button("Add First Prayer") {
+                                withAnimation {
+                                    isAddingNewPrayer = true
+                                }
                             }
+                            .font(.headline)
                         }
-                        .font(.headline)
+                        .transition(.opacity.combined(with: .move(edge: .top)))
+                        .padding(.vertical, 12)
                     }
-                    .transition(.opacity.combined(with: .move(edge: .top)))
-                    .padding(.vertical, 12)
                 } else if isAddingNewPrayer {
                     let newPrayer = PrayerModel.empty
                     

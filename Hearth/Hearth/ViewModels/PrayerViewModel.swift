@@ -70,57 +70,6 @@ class PrayerViewModel: ObservableObject {
             }
         }
     }
-    /*
-    func fetchPrayers(in range: DateInterval, completion: (() -> Void)? = nil) {
-        guard let userID = Auth.auth().currentUser?.uid else {
-            self.errorMessage = "User not authenticated"
-            completion?()
-            return
-        }
-
-        isLoading = true
-        errorMessage = nil
-        
-        prayerService.fetchPrayers(in: range, forUser: userID) { [weak self] result in
-            DispatchQueue.main.async {
-                self?.isLoading = false
-                switch result {
-                case .success(let prayers):
-                    self?.prayers = prayers
-                case .failure(let error):
-                    self?.errorMessage = error.localizedDescription
-                }
-                completion?()
-            }
-        }
-    }
-     */
-    
-    /*
-    func fetchFuturePrayers(limit: Int, completion: (() -> Void)? = nil) {
-            guard let userID = Auth.auth().currentUser?.uid else {
-                self.errorMessage = "User not authenticated"
-                completion?()
-                return
-            }
-            
-            isLoading = true
-            errorMessage = nil
-            
-            prayerService.fetchFuturePrayers(limit: limit, forUser: userID) { [weak self] result in
-                DispatchQueue.main.async {
-                    self?.isLoading = false
-                    switch result {
-                    case .success(let prayers):
-                        self?.prayers = prayers
-                    case .failure(let error):
-                        self?.errorMessage = error.localizedDescription
-                    }
-                    completion?()
-                }
-            }
-        }
-    */
     
     func fetchAllNeededPrayers() {
             guard let userID = Auth.auth().currentUser?.uid else {

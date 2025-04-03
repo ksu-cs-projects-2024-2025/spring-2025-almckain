@@ -68,7 +68,6 @@ struct PrayerReminderView: View {
         let sortedDays = reminderViewModel.sortedFutureDays
         
         if sortedDays.isEmpty {
-            // Show single "blank" future card
             PrayerReminderCardView(
                 prayerViewModel: reminderViewModel.prayerViewModel,
                 day: Date(),
@@ -95,13 +94,25 @@ struct PrayerReminderView: View {
     
     @ViewBuilder
     private func renderTodayTab() -> some View {
-        if reminderViewModel.hasPrayersInLast7Days {
+        let currentDay = Date().startOfDay
+        let todayPrayers = reminderViewModel.prayersByDay[currentDay] ?? []
+        
+        PrayerReminderCardView(
+            prayerViewModel: reminderViewModel.prayerViewModel,
+            day: currentDay,
+            prayers: todayPrayers,
+            isFutureTab: false
+        )
+        .padding(.top, 12)
+        
+        let otherDays = reminderViewModel.daysToShow.filter { $0 != currentDay }
+        
+        if !otherDays.isEmpty {
             LazyVStack(spacing: 12) {
-                ForEach(reminderViewModel.daysToShow, id: \.self) { day in
+                ForEach(otherDays, id: \.self) { day in
                     let dailyPrayers = reminderViewModel.prayersByDay[day] ?? []
                     if !dailyPrayers.isEmpty {
                         PrayerReminderCardView(
-                            // Pass the underlying PrayerViewModel here
                             prayerViewModel: reminderViewModel.prayerViewModel,
                             day: day,
                             prayers: dailyPrayers,
@@ -111,19 +122,10 @@ struct PrayerReminderView: View {
                     }
                 }
             }
-            .padding(.top, 12)
             .animation(.easeInOut, value: reminderViewModel.prayersByDay)
-        } else {
-            // No prayers in the last 7 days → show empty card
-            PrayerReminderCardView(
-                prayerViewModel: reminderViewModel.prayerViewModel,
-                day: Date().startOfDay,
-                prayers: [],
-                isFutureTab: false
-            )
-            .padding(.top, 12)
         }
     }
+
 }
 
 /*
