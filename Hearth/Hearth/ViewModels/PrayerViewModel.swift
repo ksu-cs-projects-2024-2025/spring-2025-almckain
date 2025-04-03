@@ -70,7 +70,7 @@ class PrayerViewModel: ObservableObject {
             }
         }
     }
-    
+    /*
     func fetchPrayers(in range: DateInterval, completion: (() -> Void)? = nil) {
         guard let userID = Auth.auth().currentUser?.uid else {
             self.errorMessage = "User not authenticated"
@@ -94,7 +94,9 @@ class PrayerViewModel: ObservableObject {
             }
         }
     }
+     */
     
+    /*
     func fetchFuturePrayers(limit: Int, completion: (() -> Void)? = nil) {
             guard let userID = Auth.auth().currentUser?.uid else {
                 self.errorMessage = "User not authenticated"
@@ -115,6 +117,39 @@ class PrayerViewModel: ObservableObject {
                         self?.errorMessage = error.localizedDescription
                     }
                     completion?()
+                }
+            }
+        }
+    */
+    
+    func fetchAllNeededPrayers() {
+            guard let userID = Auth.auth().currentUser?.uid else {
+                self.errorMessage = "User not authenticated"
+                return
+            }
+
+            isLoading = true
+            errorMessage = nil
+            
+            // 7 days ago to 15 days in the future. Adjust as you see fit.
+            let now = Date()
+            let sevenDaysAgo = Calendar.current.date(byAdding: .day, value: -6, to: now.startOfDay) ?? now
+            let fifteenDaysFromNow = Calendar.current.date(byAdding: .day, value: 15, to: now.endOfDay) ?? now
+            
+            let range = DateInterval(start: sevenDaysAgo, end: fifteenDaysFromNow)
+            
+            prayerService.fetchPrayers(in: range, forUser: userID) { [weak self] result in
+                DispatchQueue.main.async {
+                    guard let self = self else { return }
+                    self.isLoading = false
+                    
+                    switch result {
+                    case .success(let fetchedPrayers):
+                        // Overwrite the entire local array with all needed prayers
+                        self.prayers = fetchedPrayers
+                    case .failure(let error):
+                        self.errorMessage = error.localizedDescription
+                    }
                 }
             }
         }

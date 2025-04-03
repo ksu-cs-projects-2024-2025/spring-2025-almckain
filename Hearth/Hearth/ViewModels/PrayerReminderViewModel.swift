@@ -24,19 +24,48 @@ class PrayerReminderViewModel: ObservableObject {
     @Published var prayersByDay: [Date: [PrayerModel]] = [:]
     @Published var futurePrayersByDay: [Date: [PrayerModel]] = [:]
     
+    private var cancellables = Set<AnyCancellable>()
+    
     private let last7Days: [Date] = {
         (0..<7).map { offset in
             Calendar.current.startOfDay(for: Date().addingTimeInterval(TimeInterval(-86400 * Double(offset))))
         }
     }()
-        
+    
     init(prayerViewModel: PrayerViewModel) {
         self.prayerViewModel = prayerViewModel
+        prayerViewModel.$prayers
+            .receive(on: RunLoop.main)
+            .sink { [weak self] updatedPrayers in
+                self?.updateDictionaries(with: updatedPrayers)
+            }
+            .store(in: &cancellables)
     }
     
     func onAppear() {
-        fetchLast7DaysOfPrayers()
-        fetchFuturePrayers(limit: 15)
+        prayerViewModel.fetchAllNeededPrayers()
+    }
+    
+    private func updateDictionaries(with allPrayers: [PrayerModel]) {
+        let now = Date()
+        let sevenDaysAgo = Calendar.current.date(byAdding: .day, value: -6, to: now.startOfDay) ?? now
+        
+        // Filter them
+        let last7DaysPrayers = allPrayers.filter {
+            $0.timeStamp >= sevenDaysAgo && $0.timeStamp <= now.endOfDay
+        }
+        
+        let futurePrayers = allPrayers.filter {
+            $0.timeStamp > now.endOfDay
+        }
+        
+        // Group by day
+        prayersByDay = Dictionary(grouping: last7DaysPrayers) {
+            $0.timeStamp.startOfDay
+        }
+        futurePrayersByDay = Dictionary(grouping: futurePrayers) {
+            $0.timeStamp.startOfDay
+        }
     }
     
     var hasPrayersInLast7Days: Bool {
@@ -54,29 +83,5 @@ class PrayerReminderViewModel: ObservableObject {
     
     var daysToShow: [Date] {
         last7Days
-    }
-    
-    private func fetchLast7DaysOfPrayers() {
-        let sevenDaysAgo = Calendar.current.date(byAdding: .day, value: -6, to: Date().startOfDay) ?? Date()
-        let range = DateInterval(start: sevenDaysAgo, end: Date().endOfDay)
-        
-        prayerViewModel.fetchPrayers(in: range) { [weak self] in
-            guard let self = self else { return }
-            self.prayersByDay = Dictionary(
-                grouping: self.prayerViewModel.prayers,
-                by: { $0.timeStamp.startOfDay }
-            )
-        }
-    }
-    
-    private func fetchFuturePrayers(limit: Int) {
-        prayerViewModel.fetchFuturePrayers(limit: limit) { [weak self] in
-            guard let self = self else { return }
-            // Group them by day
-            self.futurePrayersByDay = Dictionary(
-                grouping: self.prayerViewModel.prayers,
-                by: { $0.timeStamp.startOfDay }
-            )
-        }
     }
 }
