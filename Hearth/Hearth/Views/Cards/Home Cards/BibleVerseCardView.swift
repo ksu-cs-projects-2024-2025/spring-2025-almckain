@@ -20,7 +20,7 @@ struct BibleVerseCardView: View {
                     .font(.customTitle3)
                     .foregroundStyle(.hearthEmberMain)
                 
-                CustomDivider(height: 2, color: .hearthEmberMain)
+                CustomDivider(height: 2, color: .hearthEmberDark)
                 
                 if let verse = viewModel.bibleVerse {
                     

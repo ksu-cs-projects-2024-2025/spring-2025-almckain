@@ -23,7 +23,7 @@ struct WeeklyJournalCardView: View {
                         .foregroundStyle(.hearthEmberMain)
                     Spacer()
                 }
-                CustomDivider(height: 2, color: .hearthEmberMain)
+                CustomDivider(height: 2, color: .hearthEmberDark)
                 
                 HStack {
                     ForEach(currentWeekDays, id: \.self) { day in

@@ -20,6 +20,7 @@ struct MainView: View {
     @StateObject var calendarViewModel = CalendarViewModel()
     @StateObject var journalEntryViewModel = JournalEntryViewModel()
     @StateObject var entryReflectionViewModel = ReflectionViewModel()
+    @StateObject var prayerViewModel = PrayerViewModel()
     
     // Stylizes tab bar
     init() {
@@ -42,7 +43,7 @@ struct MainView: View {
                 )
             }
             Tab("Prayers", systemImage: "list.bullet.clipboard", value: 2) {
-                PrayerReminderView()
+                PrayerReminderView(prayerViewModel: prayerViewModel)
             }
             Tab("Profile", systemImage: "person.fill", value: 3) {
                 ProfileView()

@@ -113,4 +113,11 @@ extension Date {
     func isSameDay(as other: Date) -> Bool {
         Calendar.current.isDate(self, inSameDayAs: other)
     }
+    
+    var endOfDay: Date {
+        var comps = DateComponents()
+        comps.day = 1
+        comps.second = -1
+        return Calendar.current.date(byAdding: comps, to: self.startOfDay) ?? self
+    }
 }
