@@ -10,6 +10,7 @@ import SwiftUI
 
 struct PrayerReminderView: View {
     @StateObject private var reminderViewModel: PrayerReminderViewModel
+    @State private var showUtilitySheet: Bool = false
     
     init(prayerViewModel: PrayerViewModel) {
         _reminderViewModel = StateObject(wrappedValue: PrayerReminderViewModel(prayerViewModel: prayerViewModel))
@@ -23,7 +24,6 @@ struct PrayerReminderView: View {
                 
                 ScrollView {
                     VStack {
-                        // Picker is now inside the ScrollView
                         Picker("Filter", selection: $reminderViewModel.selectedFilter) {
                             ForEach(ReminderFilter.allCases) { filter in
                                 Text(filter.rawValue).tag(filter)
@@ -41,11 +41,30 @@ struct PrayerReminderView: View {
                         }
                     }
                 }
+                VStack {
+                    Spacer()
+                    HStack {
+                        Spacer()
+                        Button(action: {
+                            showUtilitySheet = true
+                        }) {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.largeTitle)
+                                .padding()
+                        }
+                        .background(Circle().fill(Color.hearthEmberMain))
+                        .foregroundStyle(.white)
+                        .padding()
+                    }
+                }
             }
             .navigationTitle("Prayer Reminders")
             .navigationBarTitleDisplayMode(.large)
             .onAppear {
                 reminderViewModel.onAppear()
+            }
+            .customSheet(isPresented: $showUtilitySheet) {
+                AddPrayerSheetView(prayerViewModel: reminderViewModel.prayerViewModel)
             }
         }
     }
@@ -125,7 +144,7 @@ struct PrayerReminderView: View {
             .animation(.easeInOut, value: reminderViewModel.prayersByDay)
         }
     }
-
+    
 }
 
 /*

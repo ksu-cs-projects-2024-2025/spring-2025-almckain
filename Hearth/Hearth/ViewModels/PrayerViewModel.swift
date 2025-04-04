@@ -53,53 +53,82 @@ class PrayerViewModel: ObservableObject {
             }
         }
     }
+    /*
+     func deletePrayer(withId id: String) {
+     isLoading = true
+     errorMessage = nil
+     
+     prayerService.deletePrayer(id: id) { [weak self] result in
+     DispatchQueue.main.async {
+     self?.isLoading = false
+     switch result {
+     case .success:
+     self?.prayers.removeAll { $0.id == id }
+     case .failure(let error):
+     self?.errorMessage = error.localizedDescription
+     }
+     }
+     }
+     }
+     */
     
     func deletePrayer(withId id: String) {
         isLoading = true
         errorMessage = nil
         
-        prayerService.deletePrayer(id: id) { [weak self] result in
-            DispatchQueue.main.async {
-                self?.isLoading = false
-                switch result {
-                case .success:
-                    self?.prayers.removeAll { $0.id == id }
-                case .failure(let error):
-                    self?.errorMessage = error.localizedDescription
+        // Find the index of the prayer to be removed
+        if let index = self.prayers.firstIndex(where: { $0.id == id }) {
+            // Optimistically remove the prayer and store it in case we need to restore it
+            let removedPrayer = self.prayers.remove(at: index)
+            
+            // Attempt deletion in Firebase
+            prayerService.deletePrayer(id: id) { [weak self] result in
+                DispatchQueue.main.async {
+                    self?.isLoading = false
+                    switch result {
+                    case .success:
+                        // Deletion confirmed. Nothing else to do.
+                        break
+                    case .failure(let error):
+                        // On failure, insert the removed prayer back into its original position
+                        self?.prayers.insert(removedPrayer, at: index)
+                        self?.errorMessage = error.localizedDescription
+                    }
                 }
             }
         }
     }
     
+    
     func fetchAllNeededPrayers() {
-            guard let userID = Auth.auth().currentUser?.uid else {
-                self.errorMessage = "User not authenticated"
-                return
-            }
-
-            isLoading = true
-            errorMessage = nil
-            
-            // 7 days ago to 15 days in the future. Adjust as you see fit.
-            let now = Date()
-            let sevenDaysAgo = Calendar.current.date(byAdding: .day, value: -6, to: now.startOfDay) ?? now
-            let fifteenDaysFromNow = Calendar.current.date(byAdding: .day, value: 15, to: now.endOfDay) ?? now
-            
-            let range = DateInterval(start: sevenDaysAgo, end: fifteenDaysFromNow)
-            
-            prayerService.fetchPrayers(in: range, forUser: userID) { [weak self] result in
-                DispatchQueue.main.async {
-                    guard let self = self else { return }
-                    self.isLoading = false
-                    
-                    switch result {
-                    case .success(let fetchedPrayers):
-                        // Overwrite the entire local array with all needed prayers
-                        self.prayers = fetchedPrayers
-                    case .failure(let error):
-                        self.errorMessage = error.localizedDescription
-                    }
+        guard let userID = Auth.auth().currentUser?.uid else {
+            self.errorMessage = "User not authenticated"
+            return
+        }
+        
+        isLoading = true
+        errorMessage = nil
+        
+        // 7 days ago to 15 days in the future. Adjust as you see fit.
+        let now = Date()
+        let sevenDaysAgo = Calendar.current.date(byAdding: .day, value: -6, to: now.startOfDay) ?? now
+        let fifteenDaysFromNow = Calendar.current.date(byAdding: .day, value: 15, to: now.endOfDay) ?? now
+        
+        let range = DateInterval(start: sevenDaysAgo, end: fifteenDaysFromNow)
+        
+        prayerService.fetchPrayers(in: range, forUser: userID) { [weak self] result in
+            DispatchQueue.main.async {
+                guard let self = self else { return }
+                self.isLoading = false
+                
+                switch result {
+                case .success(let fetchedPrayers):
+                    // Overwrite the entire local array with all needed prayers
+                    self.prayers = fetchedPrayers
+                case .failure(let error):
+                    self.errorMessage = error.localizedDescription
                 }
             }
         }
+    }
 }

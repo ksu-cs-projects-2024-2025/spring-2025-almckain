@@ -21,6 +21,9 @@ struct PrayerReminderCardView: View {
         let incomplete = prayers.filter { !$0.completed }.count
         if incomplete == 0 {
             return "All Done!"
+        }
+        else if isFutureTab{
+            return ("\(prayers.count) Scheduled")
         } else {
             return "\(incomplete) \(incomplete == 1 ? "Prayer" : "Prayers") Left"
         }
@@ -153,6 +156,7 @@ struct PrayerView: View {
     // For alert if user picks a past date
     @State private var showAlert = false
     @State private var alertMessage = ""
+    @State private var showDeleteConfirmation: Bool = false
     
     init(prayer: PrayerModel, isFuturePrayer: Bool = false, initialEditing: Bool = false, onSave: @escaping (PrayerModel) -> Void, onDelete: (() -> Void)? = nil, onCancel: (() -> Void)? = nil) {
         self.prayer = prayer
@@ -170,36 +174,54 @@ struct PrayerView: View {
     
     var body: some View {
         VStack(spacing: 8){
-            HStack {
-                Circle()
-                    .stroke(isCompleted ? Color.parchmentLight : Color.hearthEmberMain, lineWidth: 2)
-                    .background(
-                        Circle()
-                            .fill(isCompleted ? Color.hearthEmberMain : .parchmentLight)
-                    )
-                    .frame(width: 24, height: 24)
-                    .onTapGesture {
-                        withAnimation(.easeInOut) {
-                            // Toggle local state
-                            isCompleted.toggle()
-                            
-                            // Persist it by calling onSave
-                            var updated = prayer
-                            updated.completed = isCompleted
-                            onSave(updated)
+            HStack(spacing: 5) {
+                VStack {
+                    Circle()
+                        .stroke(isCompleted ? Color.parchmentLight : Color.hearthEmberMain, lineWidth: 2)
+                        .background(
+                            Circle()
+                                .fill(isCompleted ? Color.hearthEmberMain : .parchmentLight)
+                                .frame(width: 24, height: 24)
+                        )
+                        .frame(width: 24, height: 24)
+                        .padding(.top, 8)
+                        .allowsHitTesting(!isEditing)
+                        .onTapGesture {
+                            withAnimation(.easeInOut) {
+                                isCompleted.toggle()
+                                
+                                var updated = prayer
+                                updated.completed = isCompleted
+                                onSave(updated)
+                            }
                         }
-                    }
-                
+                    Spacer()
+                }
                 
                 if isEditing {
-                    DynamicTextEditor(text: $prayerText, dynamicHeight: $editorHeight)
-                        .frame(height: editorHeight)
-                        .frame(maxWidth: .infinity)
-                        .padding(8)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(Color.white)
-                        )
+                    VStack {
+                        DynamicTextEditor(text: $prayerText, dynamicHeight: $editorHeight)
+                            .frame(height: editorHeight)
+                            .frame(maxWidth: .infinity)
+                        //.padding(8)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(Color.white)
+                            )
+                            .onChange(of: prayerText) { _, newValue in
+                                let filtered = newValue.filter { $0 != "\n" }
+                                if filtered.count > 50 {
+                                    prayerText = String(filtered.prefix(100))
+                                }
+                            }
+                        
+                        HStack {
+                            Spacer()
+                            Text("\(prayerText.filter { $0 != "\n" }.count)/100")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
                     
                 } else {
                     Text(prayerText)
@@ -237,6 +259,7 @@ struct PrayerView: View {
                                 onCancel?()
                             }
                         }
+                        .foregroundStyle(.hearthError)
                         
                         Button("Save") {
                             withAnimation(.easeInOut) {
@@ -262,22 +285,25 @@ struct PrayerView: View {
                     }
                     .padding(.top, 4)
                 } else {
-                    HStack(alignment: .center, spacing: 24) {
-                        Button("Delete") {
-                            withAnimation(.easeInOut) {
-                                onDelete?()
+                    Group {
+                        HStack(alignment: .center, spacing: 24) {
+                            Button("Delete") {
+                                withAnimation(.easeInOut) {
+                                    showDeleteConfirmation = true
+                                }
+                            }
+                            .foregroundStyle(.hearthError)
+                            
+                            Button("Edit") {
+                                withAnimation(.easeInOut) {
+                                    animationEnabled = false
+                                    isEditing = true
+                                    
+                                }
                             }
                         }
-                        
-                        Button("Edit") {
-                            withAnimation(.easeInOut) {
-                                animationEnabled = false
-                                isEditing = true
-                                
-                            }
-                        }
+                        .padding(.top, 4)
                     }
-                    .padding(.top, 4)
                 }
             }
         }
@@ -288,9 +314,10 @@ struct PrayerView: View {
                 .foregroundColor(.parchmentLight)
         )
         .onTapGesture {
-            withAnimation(.easeInOut) {
-                if animationEnabled {
+            if !isEditing {
+                withAnimation(.easeInOut) {
                     isExpanded.toggle()
+                    
                 }
             }
         }
@@ -301,6 +328,16 @@ struct PrayerView: View {
                 dismissButton: .default(Text("OK")) {
                     // If you'd like, reset to old date or do something else
                 }
+            )
+        }
+        .alert(isPresented: $showDeleteConfirmation) {
+            Alert(
+                title: Text("Confirm Deletion"),
+                message: Text("Are you sure you want to delete this prayer reminder? This cannot be undone."),
+                primaryButton: .destructive(Text("Delete")) {
+                    onDelete?()
+                },
+                secondaryButton: .cancel()
             )
         }
     }

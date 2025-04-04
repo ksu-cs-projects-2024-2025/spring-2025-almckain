@@ -41,8 +41,8 @@ struct HomeView: View {
                             
                             WeeklyJournalCardView(entryViewModel: journalEntryViewModel)
                         }
+                        .padding(.top, 15)
                     }
-                    .padding(.top, 15)
                     .navigationTitle("\(homeViewModel.fetchGreeting()), \(profileViewModel.user?.firstName ?? "Guest")")
                     .navigationBarTitleDisplayMode(.large)
                 }
