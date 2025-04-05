@@ -20,10 +20,16 @@ struct MainView: View {
     @StateObject var calendarViewModel = CalendarViewModel()
     @StateObject var journalEntryViewModel = JournalEntryViewModel()
     @StateObject var entryReflectionViewModel = ReflectionViewModel()
-    @StateObject var prayerViewModel = PrayerViewModel()
     
+    @StateObject var prayerViewModel = PrayerViewModel()
+    @StateObject var prayerReminderViewModel: PrayerReminderViewModel
+
     // Stylizes tab bar
     init() {
+        let prayerVM = PrayerViewModel()
+            _prayerViewModel = StateObject(wrappedValue: prayerVM)
+            _prayerReminderViewModel = StateObject(wrappedValue: PrayerReminderViewModel(prayerViewModel: prayerVM))
+        
         let appearance = tabBarAppearance()
         UITabBar.appearance().standardAppearance = appearance
         UITabBar.appearance().scrollEdgeAppearance = appearance
@@ -34,7 +40,8 @@ struct MainView: View {
         TabView(selection: $selectedTab) {
             Tab("Home", systemImage: "house.fill", value: 0) {
                 HomeView(
-                    profileViewModel: profileViewModel, homeViewModel: homeViewModel, reflectionViewModel: reflectionViewModel, entryReflectionViewModel: entryReflectionViewModel, journalEntryViewModel: journalEntryViewModel
+                    profileViewModel: profileViewModel, homeViewModel: homeViewModel, reflectionViewModel: reflectionViewModel, entryReflectionViewModel: entryReflectionViewModel, journalEntryViewModel: journalEntryViewModel,
+                        prayerViewModel: prayerViewModel
                 )
             }
             Tab("Calendar", systemImage: "calendar", value: 1) {
@@ -43,7 +50,7 @@ struct MainView: View {
                 )
             }
             Tab("Prayers", systemImage: "list.bullet.clipboard", value: 2) {
-                PrayerReminderView(prayerViewModel: prayerViewModel)
+                PrayerReminderView(reminderViewModel: prayerReminderViewModel)
             }
             Tab("Profile", systemImage: "person.fill", value: 3) {
                 ProfileView()

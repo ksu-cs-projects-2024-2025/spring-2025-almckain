@@ -53,24 +53,6 @@ class PrayerViewModel: ObservableObject {
             }
         }
     }
-    /*
-     func deletePrayer(withId id: String) {
-     isLoading = true
-     errorMessage = nil
-     
-     prayerService.deletePrayer(id: id) { [weak self] result in
-     DispatchQueue.main.async {
-     self?.isLoading = false
-     switch result {
-     case .success:
-     self?.prayers.removeAll { $0.id == id }
-     case .failure(let error):
-     self?.errorMessage = error.localizedDescription
-     }
-     }
-     }
-     }
-     */
     
     func deletePrayer(withId id: String) {
         isLoading = true
@@ -112,7 +94,7 @@ class PrayerViewModel: ObservableObject {
         // 7 days ago to 15 days in the future. Adjust as you see fit.
         let now = Date()
         let sevenDaysAgo = Calendar.current.date(byAdding: .day, value: -6, to: now.startOfDay) ?? now
-        let fifteenDaysFromNow = Calendar.current.date(byAdding: .day, value: 15, to: now.endOfDay) ?? now
+        let fifteenDaysFromNow = Calendar.current.date(byAdding: .day, value: 30, to: now.endOfDay) ?? now
         
         let range = DateInterval(start: sevenDaysAgo, end: fifteenDaysFromNow)
         

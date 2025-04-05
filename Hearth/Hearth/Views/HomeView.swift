@@ -13,6 +13,7 @@ struct HomeView: View {
     @ObservedObject var reflectionViewModel: VerseReflectionViewModel
     @ObservedObject var entryReflectionViewModel: ReflectionViewModel
     @ObservedObject var journalEntryViewModel: JournalEntryViewModel
+    @ObservedObject var prayerViewModel: PrayerViewModel
     
     @Environment(\.scenePhase) var scenePhase
     @EnvironmentObject var notificationViewModel: NotificationViewModel
@@ -40,6 +41,8 @@ struct HomeView: View {
                             BibleVerseCardView(viewModel: homeViewModel.bibleVerseViewModel, reflectionViewModel: reflectionViewModel)
                             
                             WeeklyJournalCardView(entryViewModel: journalEntryViewModel)
+                            
+                            PrayerCardView(prayerViewModel: prayerViewModel)
                         }
                         .padding(.top, 15)
                     }

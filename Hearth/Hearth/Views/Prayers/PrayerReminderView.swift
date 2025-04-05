@@ -9,12 +9,8 @@
 import SwiftUI
 
 struct PrayerReminderView: View {
-    @StateObject private var reminderViewModel: PrayerReminderViewModel
+    @ObservedObject var reminderViewModel: PrayerReminderViewModel
     @State private var showUtilitySheet: Bool = false
-    
-    init(prayerViewModel: PrayerViewModel) {
-        _reminderViewModel = StateObject(wrappedValue: PrayerReminderViewModel(prayerViewModel: prayerViewModel))
-    }
     
     var body: some View {
         NavigationStack {
@@ -63,6 +59,9 @@ struct PrayerReminderView: View {
             .onAppear {
                 reminderViewModel.onAppear()
             }
+            .onChange(of: reminderViewModel.prayerViewModel.prayers, { _, newValue in
+                reminderViewModel.onAppear()
+            })
             .customSheet(isPresented: $showUtilitySheet) {
                 AddPrayerSheetView(prayerViewModel: reminderViewModel.prayerViewModel)
             }
