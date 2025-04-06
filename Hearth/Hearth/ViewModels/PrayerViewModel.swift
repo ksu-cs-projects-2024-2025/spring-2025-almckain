@@ -58,21 +58,16 @@ class PrayerViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
         
-        // Find the index of the prayer to be removed
         if let index = self.prayers.firstIndex(where: { $0.id == id }) {
-            // Optimistically remove the prayer and store it in case we need to restore it
             let removedPrayer = self.prayers.remove(at: index)
             
-            // Attempt deletion in Firebase
             prayerService.deletePrayer(id: id) { [weak self] result in
                 DispatchQueue.main.async {
                     self?.isLoading = false
                     switch result {
                     case .success:
-                        // Deletion confirmed. Nothing else to do.
                         break
                     case .failure(let error):
-                        // On failure, insert the removed prayer back into its original position
                         self?.prayers.insert(removedPrayer, at: index)
                         self?.errorMessage = error.localizedDescription
                     }
@@ -91,7 +86,6 @@ class PrayerViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
         
-        // 7 days ago to 15 days in the future. Adjust as you see fit.
         let now = Date()
         let sevenDaysAgo = Calendar.current.date(byAdding: .day, value: -6, to: now.startOfDay) ?? now
         let fifteenDaysFromNow = Calendar.current.date(byAdding: .day, value: 30, to: now.endOfDay) ?? now
@@ -105,7 +99,6 @@ class PrayerViewModel: ObservableObject {
                 
                 switch result {
                 case .success(let fetchedPrayers):
-                    // Overwrite the entire local array with all needed prayers
                     self.prayers = fetchedPrayers
                 case .failure(let error):
                     self.errorMessage = error.localizedDescription

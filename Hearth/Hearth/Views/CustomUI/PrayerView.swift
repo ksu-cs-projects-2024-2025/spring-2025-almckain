@@ -86,7 +86,6 @@ struct PrayerView: View {
                         DynamicTextEditor(text: $prayerText, dynamicHeight: $editorHeight)
                             .frame(height: editorHeight)
                             .frame(maxWidth: .infinity)
-                        //.padding(8)
                             .background(
                                 RoundedRectangle(cornerRadius: 12)
                                     .fill(Color.white)
@@ -151,10 +150,8 @@ struct PrayerView: View {
                                 var updatedPrayer = prayer
                                 updatedPrayer.content = prayerText
                                 
-                                // If this is a future prayer, we must ensure date is in the future
                                 if isFuturePrayer {
                                     guard reminderDate > Date() else {
-                                        // Show an alert or revert to old date
                                         showAlert = true
                                         alertMessage = "The selected date/time must be in the future."
                                         return
@@ -209,7 +206,7 @@ struct PrayerView: View {
                 title: Text("Invalid Date"),
                 message: Text(alertMessage),
                 dismissButton: .default(Text("OK")) {
-                    // If you'd like, reset to old date or do something else
+                    
                 }
             )
         }

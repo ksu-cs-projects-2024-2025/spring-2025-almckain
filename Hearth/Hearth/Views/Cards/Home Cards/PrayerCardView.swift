@@ -11,12 +11,10 @@ struct PrayerCardView: View {
     @State private var isAddingNewPrayer = false
     @ObservedObject var prayerViewModel: PrayerViewModel
     
-    // Filter all of today's prayers
     private var todayPrayers: [PrayerModel] {
         prayerViewModel.prayers.filter { Calendar.current.isDateInToday($0.timeStamp) }
     }
     
-    // Use your existing logic for filtered prayers (today's + extra future ones)
     private var filteredPrayers: [PrayerModel] {
         let now = Date()
         let todayPrayers = prayerViewModel.prayers.filter {
@@ -33,7 +31,6 @@ struct PrayerCardView: View {
         return todayPrayers + extraPrayers
     }
     
-    // Group the filtered prayers by day
     private var groupedPrayers: [(date: Date, prayers: [PrayerModel])] {
         let sortedPrayers = filteredPrayers.sorted { $0.timeStamp < $1.timeStamp }
         let groups = Dictionary(grouping: sortedPrayers) { $0.timeStamp.startOfDay }
@@ -41,7 +38,6 @@ struct PrayerCardView: View {
         return sortedDates.map { (date: $0, prayers: groups[$0]!) }
     }
     
-    // Future groups are those not on today's date
     private var futureGroups: [(date: Date, prayers: [PrayerModel])] {
         groupedPrayers.filter { !Calendar.current.isDateInToday($0.date) }
     }
@@ -166,7 +162,6 @@ struct PrayerCardView: View {
         .onAppear {
             prayerViewModel.fetchAllNeededPrayers()
             
-            // Recalculate on day change
             let midnight = Calendar.current.nextDate(
                 after: Date(),
                 matching: DateComponents(hour: 0),

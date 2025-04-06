@@ -110,11 +110,9 @@ class PrayerService {
                 return
             }
             
-            // Grab all prayers whose timeStamp is greater than 'now'
-            // and limit to the first `limit` entries, sorted ascending by timeStamp
             db.collection(collection)
                 .whereField("userID", isEqualTo: userID)
-                .whereField("timeStamp", isGreaterThan: Date())   // only future
+                .whereField("timeStamp", isGreaterThan: Date())
                 .order(by: "timeStamp", descending: false)
                 .limit(to: limit)
                 .getDocuments { snapshot, error in
@@ -128,7 +126,6 @@ class PrayerService {
                         return
                     }
                     
-                    // Map each Firestore doc to a PrayerModel
                     let prayers = documents.compactMap { doc in
                         try? doc.data(as: PrayerModel.self)
                     }
