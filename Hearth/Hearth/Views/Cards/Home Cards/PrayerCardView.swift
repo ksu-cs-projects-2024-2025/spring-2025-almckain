@@ -11,29 +11,29 @@ struct PrayerCardView: View {
     @State private var isAddingNewPrayer = false
     @ObservedObject var prayerViewModel: PrayerViewModel
     
+    // Filter all of today's prayers
+    private var todayPrayers: [PrayerModel] {
+        prayerViewModel.prayers.filter { Calendar.current.isDateInToday($0.timeStamp) }
+    }
+    
+    // Use your existing logic for filtered prayers (today's + extra future ones)
     private var filteredPrayers: [PrayerModel] {
         let now = Date()
-        
-        // 1. Get all of today's prayers (completed + non-completed)
         let todayPrayers = prayerViewModel.prayers.filter {
             Calendar.current.isDateInToday($0.timeStamp)
         }
-        
-        // 2. Get future prayers (after today) that are NOT completed
         let futurePrayers = prayerViewModel.prayers.filter {
             $0.timeStamp > now && !$0.completed
         }.sorted { $0.timeStamp < $1.timeStamp }
         
-        // 3. Calculate how many future prayers to add (max 5 total)
         let maxVisible = 5
         let remainingSlots = max(maxVisible - todayPrayers.count, 0)
         let extraPrayers = Array(futurePrayers.prefix(remainingSlots))
         
-        // 4. Combine today's prayers with future ones (up to 5 total)
         return todayPrayers + extraPrayers
     }
     
-    
+    // Group the filtered prayers by day
     private var groupedPrayers: [(date: Date, prayers: [PrayerModel])] {
         let sortedPrayers = filteredPrayers.sorted { $0.timeStamp < $1.timeStamp }
         let groups = Dictionary(grouping: sortedPrayers) { $0.timeStamp.startOfDay }
@@ -41,11 +41,16 @@ struct PrayerCardView: View {
         return sortedDates.map { (date: $0, prayers: groups[$0]!) }
     }
     
+    // Future groups are those not on today's date
+    private var futureGroups: [(date: Date, prayers: [PrayerModel])] {
+        groupedPrayers.filter { !Calendar.current.isDateInToday($0.date) }
+    }
+    
     var body: some View {
         CardView {
             VStack {
                 HStack {
-                    Text("Upcoming Reminders")
+                    Text("Prayer Reminders")
                         .font(.customTitle3)
                         .foregroundStyle(.hearthEmberMain)
                     Spacer()
@@ -64,23 +69,50 @@ struct PrayerCardView: View {
                 }
                 CustomDivider(height: 2, color: .hearthEmberDark)
                 
-                // Using the PrayerView, list todays prayers and the next 5 upcoming prayers. Could be 5 prayers today. Or it could be 1 today, one tomorrow, .... Either way the most displayed will be 5.
-                
-                if groupedPrayers.isEmpty {
-                    Text("No prayers available")
-                        .font(.customBody1)
-                        .foregroundStyle(.secondary)
-                } else {
-                    // For each group, display a header and then the prayers for that day
-                    ForEach(groupedPrayers, id: \.date) { group in
-                        LazyVStack(alignment: .leading, spacing: 4) {
-                            Text(formattedDate(for: group.date))
-                                .font(.headline)
-                                .foregroundColor(.hearthEmberMain)
-                            ForEach(group.prayers) { prayer in
+                VStack(spacing: 4) {
+                    HStack {
+                        Text("Today")
+                            .font(.headline)
+                            .foregroundColor(.hearthEmberMain)
+                        
+                        Spacer()
+                    }
+                    
+                    if todayPrayers.isEmpty && !isAddingNewPrayer {
+                        VStack(spacing: 8) {
+                            Text("You have no prayer reminders for today yet.")
+                                .font(.customBody1)
+                                .foregroundStyle(.secondary)
+                            Button("Add First Prayer") {
+                                withAnimation {
+                                    isAddingNewPrayer = true
+                                }
+                            }
+                            .font(.headline)
+                        }
+                        .padding(.vertical, 12)
+                    } else {
+                        LazyVStack {
+                            if isAddingNewPrayer {
+                                let newPrayer = PrayerModel.empty
+                                PrayerView(
+                                    prayer: newPrayer,
+                                    isFuturePrayer: false,
+                                    initialEditing: true
+                                ) { finalPrayer in
+                                    prayerViewModel.addPrayer(finalPrayer)
+                                    isAddingNewPrayer = false
+                                } onCancel: {
+                                    isAddingNewPrayer = false
+                                }
+                                .id(newPrayer.id)
+                            }
+                            
+                            ForEach(todayPrayers) { prayer in
                                 PrayerView(
                                     prayer: prayer,
-                                    isFuturePrayer: prayer.timeStamp > Date()
+                                    isFuturePrayer: prayer.timeStamp > Date(),
+                                    displayInHome: true
                                 ) { updatedPrayer in
                                     withAnimation {
                                         prayerViewModel.updatePrayer(updatedPrayer)
@@ -90,11 +122,43 @@ struct PrayerCardView: View {
                                         prayerViewModel.deletePrayer(withId: prayer.id)
                                     }
                                 }
-                                
+                            }
+                        }
+                    }
+                }
+                .padding(.vertical, 4)
+                
+                if !futureGroups.isEmpty {
+                    ForEach(futureGroups, id: \.date) { group in
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(formattedDate(for: group.date))
+                                .font(.headline)
+                                .foregroundColor(.hearthEmberMain)
+                            ForEach(group.prayers) { prayer in
+                                PrayerView(
+                                    prayer: prayer,
+                                    isFuturePrayer: prayer.timeStamp > Date(),
+                                    displayInHome: true
+                                ) { updatedPrayer in
+                                    withAnimation {
+                                        prayerViewModel.updatePrayer(updatedPrayer)
+                                    }
+                                } onDelete: {
+                                    withAnimation {
+                                        prayerViewModel.deletePrayer(withId: prayer.id)
+                                    }
+                                }
                             }
                         }
                         .padding(.vertical, 4)
                     }
+                }
+                
+                if todayPrayers.isEmpty && futureGroups.isEmpty && !isAddingNewPrayer {
+                    Text("No prayers available")
+                        .font(.customBody1)
+                        .foregroundStyle(.secondary)
+                        .padding(.vertical, 12)
                 }
             }
         }
@@ -103,7 +167,11 @@ struct PrayerCardView: View {
             prayerViewModel.fetchAllNeededPrayers()
             
             // Recalculate on day change
-            let midnight = Calendar.current.nextDate(after: Date(), matching: DateComponents(hour: 0), matchingPolicy: .nextTime)!
+            let midnight = Calendar.current.nextDate(
+                after: Date(),
+                matching: DateComponents(hour: 0),
+                matchingPolicy: .nextTime
+            )!
             let interval = midnight.timeIntervalSinceNow
             
             DispatchQueue.main.asyncAfter(deadline: .now() + interval + 1) {

@@ -10,6 +10,7 @@ import SwiftUI
 struct PrayerView: View {
     var prayer: PrayerModel
     var isFuturePrayer: Bool = false
+    var displayInHome: Bool = false
     
     var onSave: (PrayerModel) -> Void
     var onDelete: (() -> Void)? = nil
@@ -29,12 +30,21 @@ struct PrayerView: View {
     @State private var alertMessage = ""
     @State private var showDeleteConfirmation: Bool = false
     
-    init(prayer: PrayerModel, isFuturePrayer: Bool = false, initialEditing: Bool = false, onSave: @escaping (PrayerModel) -> Void, onDelete: (() -> Void)? = nil, onCancel: (() -> Void)? = nil) {
+    init(prayer: PrayerModel,
+         isFuturePrayer: Bool = false,
+         initialEditing: Bool = false,
+         displayInHome: Bool = false,
+         onSave: @escaping (PrayerModel) -> Void,
+         onDelete: (() -> Void)? = nil,
+         onCancel: (() -> Void)? = nil
+    ) {
         self.prayer = prayer
         self.isFuturePrayer = isFuturePrayer
         self.onSave = onSave
         self.onDelete = onDelete
         self.onCancel = onCancel
+        self.displayInHome = displayInHome
+        
         _prayerText = State(initialValue: prayer.content)
         _isCompleted = State(initialValue: prayer.completed)
         _isEditing = State(initialValue: initialEditing)
@@ -46,27 +56,29 @@ struct PrayerView: View {
     var body: some View {
         VStack(spacing: 8){
             HStack(spacing: 5) {
-                VStack {
-                    Circle()
-                        .stroke(isCompleted ? Color.parchmentLight : Color.hearthEmberMain, lineWidth: 2)
-                        .background(
-                            Circle()
-                                .fill(isCompleted ? Color.hearthEmberMain : .parchmentLight)
-                                .frame(width: 24, height: 24)
-                        )
-                        .frame(width: 24, height: 24)
-                        .padding(.top, 8)
-                        .allowsHitTesting(!isEditing)
-                        .onTapGesture {
-                            withAnimation(.easeInOut) {
-                                isCompleted.toggle()
-                                
-                                var updated = prayer
-                                updated.completed = isCompleted
-                                onSave(updated)
+                if Calendar.current.isDateInToday(prayer.timeStamp) || prayer.timeStamp < Date() {
+                    VStack {
+                        Circle()
+                            .stroke(isCompleted ? Color.parchmentLight : Color.hearthEmberMain, lineWidth: 2)
+                            .background(
+                                Circle()
+                                    .fill(isCompleted ? Color.hearthEmberMain : .parchmentLight)
+                                    .frame(width: 24, height: 24)
+                            )
+                            .frame(width: 24, height: 24)
+                            .padding(.top, 8)
+                            .allowsHitTesting(!isEditing)
+                            .onTapGesture {
+                                withAnimation(.easeInOut) {
+                                    isCompleted.toggle()
+                                    
+                                    var updated = prayer
+                                    updated.completed = isCompleted
+                                    onSave(updated)
+                                }
                             }
-                        }
-                    Spacer()
+                        Spacer()
+                    }
                 }
                 
                 if isEditing {
