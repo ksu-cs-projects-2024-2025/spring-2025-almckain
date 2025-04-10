@@ -13,6 +13,7 @@ import Combine
 @MainActor
 class PrayerViewModel: ObservableObject {
     @Published var prayers: [PrayerModel] = []
+    @Published var allPrayers: [PrayerModel] = []
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
     
@@ -105,5 +106,79 @@ class PrayerViewModel: ObservableObject {
                 }
             }
         }
+    }
+    
+    func fetchPrayersForMonth(_ date: Date) {
+        guard let userID = Auth.auth().currentUser?.uid else {
+            self.errorMessage = "User not authenticated"
+            return
+        }
+        
+        isLoading = true
+        errorMessage = nil
+        
+        prayerService.fetchAllPrayers(inMonth: date, forUser: userID) { [weak self] result in
+            DispatchQueue.main.async {
+                guard let self = self else { return }
+                self.isLoading = false
+                switch result {
+                case .success(let prayers):
+                    self.allPrayers = prayers
+                case .failure(let error):
+                    self.errorMessage = error.localizedDescription
+                }
+            }
+        }
+    }
+    
+    func fetchPrayers(for date: Date) {
+        guard let userID = Auth.auth().currentUser?.uid else {
+            self.errorMessage = "User not authenticated"
+            return
+        }
+
+        isLoading = true
+        errorMessage = nil
+
+        prayerService.fetchPrayers(for: date, forUser: userID) { [weak self] result in
+            DispatchQueue.main.async {
+                guard let self = self else { return }
+                self.isLoading = false
+
+                switch result {
+                case .success(let fetchedPrayers):
+                    self.prayers = fetchedPrayers
+                case .failure(let error):
+                    self.errorMessage = error.localizedDescription
+                }
+            }
+        }
+    }
+
+    func secondaryText(for date: Date, prayers: [PrayerModel]) -> String {
+        let calendar = Calendar.current
+        let prayersForDay = prayers.filter { calendar.isDate($0.timeStamp, inSameDayAs: date) }
+        let totalCount = prayersForDay.count
+        let incompleteCount = prayersForDay.filter { !$0.completed }.count
+
+        let today = calendar.isDateInToday(date)
+        let future = date > Date()
+        let past = date < calendar.startOfDay(for: Date())
+
+        if totalCount == 0 {
+            return ""
+        } else if today {
+            return incompleteCount == 0 ? "All Done!" : "\(incompleteCount) Prayer\(incompleteCount == 1 ? "" : "s") Left"
+        } else if future {
+            return "\(totalCount) Scheduled"
+        } else if past {
+            return incompleteCount == 0 ? "All Done!" : "\(incompleteCount) Past Due!"
+        } else {
+            return "\(totalCount) \(totalCount == 1 ? "Prayer" : "Prayers")"
+        }
+    }
+    
+    func getPrayersForDay(for selectedDate: Date) -> [PrayerModel] {
+        return prayers.filter { Calendar.current.isDate($0.timeStamp, inSameDayAs: selectedDate) }
     }
 }

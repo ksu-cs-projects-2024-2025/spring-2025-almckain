@@ -13,8 +13,18 @@ struct EntryDayListView: View {
     @StateObject var journalEntryViewModel: JournalEntryViewModel
     @ObservedObject var reflectionViewModel: VerseReflectionViewModel
     @ObservedObject var journalReflectionViewModel: ReflectionViewModel
+    @ObservedObject var prayerViewModel: PrayerViewModel
 
-    @State private var isPresented: Bool = false
+    @State private var showAddJournalSheet: Bool = false
+    @State private var showAddPrayerSheet = false
+    
+    private var prayersForDay: [PrayerModel] {
+        prayerViewModel.allPrayers.filter { prayer in
+            let sameDay = Calendar.current.isDate(prayer.timeStamp, inSameDayAs: selectedDate)
+            let hasContent = !prayer.content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            return sameDay && (hasContent || !prayer.completed)
+        }
+    }
     
     var body: some View {
         ZStack {
@@ -23,7 +33,7 @@ struct EntryDayListView: View {
             VStack {
                 if calendarViewModel.isLoading {
                     LoadingScreenView()
-                } else if calendarViewModel.entries.isEmpty && reflectionViewModel.fetchedReflections.isEmpty && journalReflectionViewModel.reflections.isEmpty {
+                } else if calendarViewModel.entries.isEmpty && reflectionViewModel.fetchedReflections.isEmpty && journalReflectionViewModel.reflections.isEmpty && prayersForDay.isEmpty {
                     Text("No entries for this day")
                         .foregroundStyle(.secondary)
                         .padding()
@@ -53,29 +63,46 @@ struct EntryDayListView: View {
                                 JournalReflectionCardView(reflection: reflection,
                                                           reflectionViewModel: journalReflectionViewModel)
                             }
+
+                            if !prayersForDay.isEmpty {
+                                PrayerCalendarCardView(
+                                    prayerViewModel: prayerViewModel,
+                                    selectedDate: selectedDate
+                                )
+                            }
+
                         }
+                        .padding(.top, 15)
                     }
-                    .padding(.top, 10)
                 }
             }
-            .customSheet(isPresented: $isPresented) {
-                CreateNewJournalView(isPresenting: $isPresented, viewModel: journalEntryViewModel, calendarViewModel: calendarViewModel, selectedDate: selectedDate)
+            .customSheet(isPresented: $showAddJournalSheet) {
+                CreateNewJournalView(isPresenting: $showAddJournalSheet, viewModel: journalEntryViewModel, calendarViewModel: calendarViewModel, selectedDate: selectedDate)
             }
             .presentationDetents([.fraction(0.95)])
+            .customSheet(isPresented: $showAddPrayerSheet) {
+                AddPrayerSheetView(prayerViewModel: prayerViewModel)
+            }
 
         }
         .navigationTitle(selectedDate.formatted(.dateTime.month(.abbreviated).day().year()))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            if calendarViewModel.isToday(selectedDate: selectedDate) {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button(action: {
-                        isPresented.toggle()
-                    }) {
-                        Image(systemName: "plus.square")
-                            .font(.customTitle3)
-                            .foregroundStyle(.hearthEmberMain)
+            ToolbarItem(placement: .topBarTrailing) {
+                Menu {
+                    if calendarViewModel.isToday(selectedDate: selectedDate) {
+                        Button("Add Journal Entry") {
+                            showAddJournalSheet.toggle()
+                        }
                     }
+                    
+                    Button("Add Prayer Reminder") {
+                        showAddPrayerSheet.toggle()
+                    }
+                } label: {
+                    Image(systemName: "plus.square")
+                        .font(.customTitle3)
+                        .foregroundStyle(.hearthEmberMain)
                 }
             }
         }
@@ -85,6 +112,7 @@ struct EntryDayListView: View {
             journalReflectionViewModel.fetchReflections(for: selectedDate) { _ in
                 print("Fetched journal reflection")
             }
+            prayerViewModel.fetchPrayers(for: selectedDate)
             let appearance = calendarViewModel.navBarAppearance()
             UINavigationBar.appearance().standardAppearance = appearance
             UINavigationBar.appearance().scrollEdgeAppearance = appearance

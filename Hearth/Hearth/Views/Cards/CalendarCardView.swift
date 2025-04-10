@@ -10,6 +10,7 @@ import SwiftUI
 struct CalendarCardView: View {
     
     @ObservedObject var calendarViewModel: CalendarViewModel
+    @ObservedObject var prayerViewModel: PrayerViewModel
     
     @State private var days: [Date] = []
     @State private var date = Date.now
@@ -52,6 +53,9 @@ struct CalendarCardView: View {
                             let isFutureDay = dayStart > Date().startOfDay
                             let isToday = dayStart == Date().startOfDay
                             let hasActivity = hasEntries || hasReflection
+                            let hasPrayer = prayerViewModel.allPrayers.contains { prayer in
+                                prayer.timeStamp.startOfDay == dayStart
+                            }
                             
                             NavigationLink(value: day) {
                                 ZStack {
@@ -74,10 +78,31 @@ struct CalendarCardView: View {
                                         .foregroundColor(hasActivity ? Color.parchmentLight : Color.parchmentDark
                                         )
                                         .opacity(isFutureDay ? 0.4 : 1.0)
+                                    
+                                    if hasPrayer {
+                                        VStack {
+                                            HStack {
+                                                Spacer()
+                                                Image(systemName: "bell.fill")
+                                                    .font(.caption)
+                                                    .foregroundColor(Color.yellow)
+                                                    .padding(6)
+                                                
+                                                    .background(
+                                                        Circle()
+                                                            .fill(Color.warmSandLight)
+                                                    )
+                                                    .offset(x: 13, y: -13)
+
+                                            }
+                                            Spacer()
+                                        }
+                                        .padding(4)
+                                    }
                                 }
                                 .frame(maxWidth: .infinity, minHeight: 40)
                             }
-                            .disabled(isFutureDay)
+                            //.disabled(isFutureDay)
                         }
                     }
                     .padding(.top, 8)
@@ -91,6 +116,8 @@ struct CalendarCardView: View {
             calendarViewModel.fetchEntriesInMonth(date)
             calendarViewModel.fetchReflectionsInMonth(date)
             
+            prayerViewModel.fetchPrayersForMonth(date)
+            
             let appearance = calendarViewModel.navBarAppearance()
             UINavigationBar.appearance().standardAppearance = appearance
             UINavigationBar.appearance().scrollEdgeAppearance = appearance
@@ -99,12 +126,13 @@ struct CalendarCardView: View {
             days = newValue.calendarDisplayDays
             calendarViewModel.fetchEntriesInMonth(newValue)
             calendarViewModel.fetchReflectionsInMonth(newValue)
+            prayerViewModel.fetchPrayersForMonth(newValue)
         }
     }
 }
 
 /*
-#Preview {
-    CalendarCardView(calendarViewModel: CalendarViewModel(), journalEntryViewModel: JournalEntryViewModel())
-}
-*/
+ #Preview {
+ CalendarCardView(calendarViewModel: CalendarViewModel(), journalEntryViewModel: JournalEntryViewModel())
+ }
+ */

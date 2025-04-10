@@ -59,7 +59,7 @@ struct WeeklyJournalCardView: View {
                                     calendarViewModel: CalendarViewModel(),
                                     journalEntryViewModel: JournalEntryViewModel(),
                                     reflectionViewModel: VerseReflectionViewModel(),
-                                    journalReflectionViewModel: ReflectionViewModel()
+                                    journalReflectionViewModel: ReflectionViewModel(), prayerViewModel: PrayerViewModel()
                                 )
                             } label: {
                                 Text("View Today")

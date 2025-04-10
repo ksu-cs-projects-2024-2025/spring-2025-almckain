@@ -13,6 +13,7 @@ struct CalendarView: View {
     @ObservedObject var calendarViewModel: CalendarViewModel
     @ObservedObject var reflectionViewModel: VerseReflectionViewModel
     @ObservedObject var journalReflectionViewModel: ReflectionViewModel
+    @ObservedObject var prayerViewModel: PrayerViewModel
     
     @State private var isPresented: Bool = false
     
@@ -23,7 +24,7 @@ struct CalendarView: View {
             NavigationStack {
                 ScrollView {
                     LazyVStack(spacing: 15) {
-                        CalendarCardView(calendarViewModel: calendarViewModel)
+                        CalendarCardView(calendarViewModel: calendarViewModel, prayerViewModel: prayerViewModel)
                         
                         Button(action: {
                             isPresented.toggle()
@@ -51,7 +52,7 @@ struct CalendarView: View {
                 .buttonStyle(.plain)
                 
                 .navigationDestination(for: Date.self) { date in
-                    EntryDayListView(selectedDate: date, calendarViewModel: calendarViewModel, journalEntryViewModel: journalEntryViewModel, reflectionViewModel: reflectionViewModel, journalReflectionViewModel: journalReflectionViewModel)
+                    EntryDayListView(selectedDate: date, calendarViewModel: calendarViewModel, journalEntryViewModel: journalEntryViewModel, reflectionViewModel: reflectionViewModel, journalReflectionViewModel: journalReflectionViewModel, prayerViewModel: prayerViewModel)
                 }
             }
         }

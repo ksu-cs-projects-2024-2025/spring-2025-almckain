@@ -23,12 +23,12 @@ struct MainView: View {
     
     @StateObject var prayerViewModel = PrayerViewModel()
     @StateObject var prayerReminderViewModel: PrayerReminderViewModel
-
+    
     // Stylizes tab bar
     init() {
         let prayerVM = PrayerViewModel()
-            _prayerViewModel = StateObject(wrappedValue: prayerVM)
-            _prayerReminderViewModel = StateObject(wrappedValue: PrayerReminderViewModel(prayerViewModel: prayerVM))
+        _prayerViewModel = StateObject(wrappedValue: prayerVM)
+        _prayerReminderViewModel = StateObject(wrappedValue: PrayerReminderViewModel(prayerViewModel: prayerVM))
         
         let appearance = tabBarAppearance()
         UITabBar.appearance().standardAppearance = appearance
@@ -41,12 +41,13 @@ struct MainView: View {
             Tab("Home", systemImage: "house.fill", value: 0) {
                 HomeView(
                     profileViewModel: profileViewModel, homeViewModel: homeViewModel, reflectionViewModel: reflectionViewModel, entryReflectionViewModel: entryReflectionViewModel, journalEntryViewModel: journalEntryViewModel,
-                        prayerViewModel: prayerViewModel
+                    prayerViewModel: prayerViewModel
                 )
             }
             Tab("Calendar", systemImage: "calendar", value: 1) {
                 CalendarView(
-                    journalEntryViewModel: journalEntryViewModel, calendarViewModel: calendarViewModel, reflectionViewModel: reflectionViewModel, journalReflectionViewModel: entryReflectionViewModel
+                    journalEntryViewModel: journalEntryViewModel, calendarViewModel: calendarViewModel, reflectionViewModel: reflectionViewModel, journalReflectionViewModel: entryReflectionViewModel,
+                        prayerViewModel: prayerViewModel
                 )
             }
             Tab("Prayers", systemImage: "list.bullet.clipboard", value: 2) {
@@ -81,7 +82,7 @@ struct MainView: View {
     }
 }
 /*
-#Preview {
-    MainView()
-}
-*/
+ #Preview {
+ MainView()
+ }
+ */
