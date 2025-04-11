@@ -10,13 +10,10 @@ import SwiftUI
 struct PrayerCalendarCardView: View {
     @ObservedObject var prayerViewModel: PrayerViewModel
     let selectedDate: Date
+    
     private var prayersForSelectedDate: [PrayerModel] {
-        prayerViewModel.allPrayers.filter {
-            Calendar.current.isDate($0.timeStamp, inSameDayAs: selectedDate)
-        }
+        prayerViewModel.prayers(for: selectedDate)
     }
-    
-    
     
     var body: some View {
         
@@ -31,7 +28,6 @@ struct PrayerCalendarCardView: View {
                 
                 ForEach(
                     prayersForSelectedDate
-                        .filter { Calendar.current.isDate($0.timeStamp, inSameDayAs: selectedDate) }
                         .sorted {
                             if !$0.completed && $1.completed {
                                 return true
@@ -47,7 +43,7 @@ struct PrayerCalendarCardView: View {
                         isFuturePrayer: prayer.timeStamp > Date()
                     ) { updatedPrayer in
                         withAnimation {
-                            prayerViewModel.updatePrayer(updatedPrayer)                     
+                            prayerViewModel.updatePrayer(updatedPrayer)
                         }
                     } onDelete: {
                         withAnimation {
@@ -60,25 +56,3 @@ struct PrayerCalendarCardView: View {
         }
     }
 }
-
-/*
-#Preview {
-    let samplePrayers: [PrayerModel] = [
-        PrayerModel(
-            id: UUID().uuidString,
-            userID: "user1",
-            content: "Pray for peace and wisdom",
-            timeStamp: Date(),
-            completed: false
-        ),
-        PrayerModel(
-            id: UUID().uuidString,
-            userID: "user1",
-            content: "Pray for peace and wisdom",
-            timeStamp: Date(),
-            completed: false
-        )
-    ]
-    PrayerCalendarCardView(prayers: samplePrayers, selectedDate: Date(), prayerViewModel: PrayerViewModel())
-}
-*/

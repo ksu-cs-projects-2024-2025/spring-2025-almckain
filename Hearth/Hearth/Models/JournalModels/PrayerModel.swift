@@ -8,7 +8,7 @@
 import Foundation
 import FirebaseAuth
 
-struct PrayerModel: Identifiable, Codable, Equatable {
+struct PrayerModel: Identifiable, Codable, Equatable, Hashable {
     var id: String
     var userID: String
     var content: String

@@ -42,10 +42,6 @@ class PrayerReminderViewModel: ObservableObject {
             .store(in: &cancellables)
     }
     
-    func onAppear() {
-        prayerViewModel.fetchAllNeededPrayers()
-    }
-    
     private func updateDictionaries(with allPrayers: [PrayerModel]) {
         let now = Date()
         let sevenDaysAgo = Calendar.current.date(byAdding: .day, value: -6, to: now.startOfDay) ?? now

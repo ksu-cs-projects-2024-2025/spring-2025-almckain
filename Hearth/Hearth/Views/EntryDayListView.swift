@@ -19,12 +19,12 @@ struct EntryDayListView: View {
     @State private var showAddPrayerSheet = false
     
     private var prayersForDay: [PrayerModel] {
-        prayerViewModel.allPrayers.filter { prayer in
-            let sameDay = Calendar.current.isDate(prayer.timeStamp, inSameDayAs: selectedDate)
+        prayerViewModel.prayers(for: selectedDate).filter { prayer in
             let hasContent = !prayer.content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            return sameDay && (hasContent || !prayer.completed)
+            return hasContent || !prayer.completed
         }
     }
+
     
     var body: some View {
         ZStack {
@@ -64,12 +64,14 @@ struct EntryDayListView: View {
                                                           reflectionViewModel: journalReflectionViewModel)
                             }
 
+                            
                             if !prayersForDay.isEmpty {
                                 PrayerCalendarCardView(
                                     prayerViewModel: prayerViewModel,
                                     selectedDate: selectedDate
                                 )
                             }
+                             
 
                         }
                         .padding(.top, 15)
@@ -112,7 +114,11 @@ struct EntryDayListView: View {
             journalReflectionViewModel.fetchReflections(for: selectedDate) { _ in
                 print("Fetched journal reflection")
             }
-            prayerViewModel.fetchPrayers(for: selectedDate)
+            
+            if !prayerViewModel.prayers.contains(where: { Calendar.current.isDate($0.timeStamp, inSameDayAs: selectedDate) }) {
+                prayerViewModel.fetchPrayers(forMonth: selectedDate)
+            }
+
             let appearance = calendarViewModel.navBarAppearance()
             UINavigationBar.appearance().standardAppearance = appearance
             UINavigationBar.appearance().scrollEdgeAppearance = appearance

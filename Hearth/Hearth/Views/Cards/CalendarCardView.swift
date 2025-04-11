@@ -53,9 +53,8 @@ struct CalendarCardView: View {
                             let isFutureDay = dayStart > Date().startOfDay
                             let isToday = dayStart == Date().startOfDay
                             let hasActivity = hasEntries || hasReflection
-                            let hasPrayer = prayerViewModel.allPrayers.contains { prayer in
-                                prayer.timeStamp.startOfDay == dayStart
-                            }
+                            
+                            let hasPrayer = !prayerViewModel.prayers(for: dayStart).isEmpty
                             
                             NavigationLink(value: day) {
                                 ZStack {
@@ -99,6 +98,7 @@ struct CalendarCardView: View {
                                         }
                                         .padding(4)
                                     }
+                                    
                                 }
                                 .frame(maxWidth: .infinity, minHeight: 40)
                             }
@@ -116,17 +116,17 @@ struct CalendarCardView: View {
             calendarViewModel.fetchEntriesInMonth(date)
             calendarViewModel.fetchReflectionsInMonth(date)
             
-            prayerViewModel.fetchPrayersForMonth(date)
+            prayerViewModel.fetchPrayers(forMonth: date)
             
             let appearance = calendarViewModel.navBarAppearance()
             UINavigationBar.appearance().standardAppearance = appearance
             UINavigationBar.appearance().scrollEdgeAppearance = appearance
         }
-        .onChange(of: date) { oldValue, newValue in
+        .onChange(of: date) { _, newValue in
             days = newValue.calendarDisplayDays
             calendarViewModel.fetchEntriesInMonth(newValue)
             calendarViewModel.fetchReflectionsInMonth(newValue)
-            prayerViewModel.fetchPrayersForMonth(newValue)
+            prayerViewModel.fetchPrayers(forMonth: date)
         }
     }
 }

@@ -12,23 +12,11 @@ struct PrayerCardView: View {
     @ObservedObject var prayerViewModel: PrayerViewModel
     
     private var todayPrayers: [PrayerModel] {
-        prayerViewModel.prayers.filter { Calendar.current.isDateInToday($0.timeStamp) }
+        prayerViewModel.todayPrayers
     }
     
     private var filteredPrayers: [PrayerModel] {
-        let now = Date()
-        let todayPrayers = prayerViewModel.prayers.filter {
-            Calendar.current.isDateInToday($0.timeStamp)
-        }
-        let futurePrayers = prayerViewModel.prayers.filter {
-            $0.timeStamp > now && !$0.completed
-        }.sorted { $0.timeStamp < $1.timeStamp }
-        
-        let maxVisible = 5
-        let remainingSlots = max(maxVisible - todayPrayers.count, 0)
-        let extraPrayers = Array(futurePrayers.prefix(remainingSlots))
-        
-        return todayPrayers + extraPrayers
+        prayerViewModel.filteredHomePrayers
     }
     
     private var groupedPrayers: [(date: Date, prayers: [PrayerModel])] {
@@ -159,20 +147,6 @@ struct PrayerCardView: View {
             }
         }
         .fixedSize(horizontal: false, vertical: true)
-        .onAppear {
-            prayerViewModel.fetchAllNeededPrayers()
-            
-            let midnight = Calendar.current.nextDate(
-                after: Date(),
-                matching: DateComponents(hour: 0),
-                matchingPolicy: .nextTime
-            )!
-            let interval = midnight.timeIntervalSinceNow
-            
-            DispatchQueue.main.asyncAfter(deadline: .now() + interval + 1) {
-                prayerViewModel.fetchAllNeededPrayers()
-            }
-        }
     }
     
     // Helper to format the group header based on the date

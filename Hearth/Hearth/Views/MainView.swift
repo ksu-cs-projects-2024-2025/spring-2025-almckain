@@ -62,6 +62,9 @@ struct MainView: View {
                 notificationViewModel.checkNotificationStatus()
             }
         }
+        .onAppear {
+            prayerViewModel.fetchPrayers(forMonth: Date())
+        }
     }
     
     func tabBarAppearance() -> UITabBarAppearance {

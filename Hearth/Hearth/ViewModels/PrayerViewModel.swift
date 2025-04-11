@@ -13,7 +13,6 @@ import Combine
 @MainActor
 class PrayerViewModel: ObservableObject {
     @Published var prayers: [PrayerModel] = []
-    @Published var allPrayers: [PrayerModel] = []
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
     
@@ -28,7 +27,7 @@ class PrayerViewModel: ObservableObject {
                 self?.isLoading = false
                 switch result {
                 case .success:
-                    self?.prayers.insert(prayer, at: 0)
+                    self?.prayers.append(prayer)
                 case .failure(let error):
                     self?.errorMessage = error.localizedDescription
                 }
@@ -45,9 +44,8 @@ class PrayerViewModel: ObservableObject {
                 self?.isLoading = false
                 switch result {
                 case .success:
-                    if let index = self?.prayers.firstIndex(where: { $0.id == prayer.id }) {
-                        self?.prayers[index] = prayer
-                    }
+                    guard let index = self?.prayers.firstIndex(where: { $0.id == prayer.id }) else { return }
+                    self?.prayers[index] = prayer
                 case .failure(let error):
                     self?.errorMessage = error.localizedDescription
                 }
@@ -58,26 +56,22 @@ class PrayerViewModel: ObservableObject {
     func deletePrayer(withId id: String) {
         isLoading = true
         errorMessage = nil
-        
-        if let index = self.prayers.firstIndex(where: { $0.id == id }) {
-            let removedPrayer = self.prayers.remove(at: index)
-            
-            prayerService.deletePrayer(id: id) { [weak self] result in
-                DispatchQueue.main.async {
-                    self?.isLoading = false
-                    switch result {
-                    case .success:
-                        break
-                    case .failure(let error):
-                        self?.prayers.insert(removedPrayer, at: index)
-                        self?.errorMessage = error.localizedDescription
-                    }
+
+        guard let index = prayers.firstIndex(where: { $0.id == id }) else { return }
+        let removedPrayer = prayers.remove(at: index)
+
+        prayerService.deletePrayer(id: id) { [weak self] result in
+            DispatchQueue.main.async {
+                self?.isLoading = false
+                if case .failure(let error) = result {
+                    self?.prayers.insert(removedPrayer, at: index)
+                    self?.errorMessage = error.localizedDescription
                 }
             }
         }
     }
     
-    
+    /*
     func fetchAllNeededPrayers() {
         guard let userID = Auth.auth().currentUser?.uid else {
             self.errorMessage = "User not authenticated"
@@ -131,7 +125,7 @@ class PrayerViewModel: ObservableObject {
         }
     }
     
-    func fetchPrayers(for date: Date) {
+    func fetchAllPrayers(for date: Date) {
         guard let userID = Auth.auth().currentUser?.uid else {
             self.errorMessage = "User not authenticated"
             return
@@ -154,6 +148,36 @@ class PrayerViewModel: ObservableObject {
             }
         }
     }
+     */
+    
+    func fetchPrayers(forMonth date: Date, append: Bool = true) {
+        guard let userID = Auth.auth().currentUser?.uid else {
+            self.errorMessage = "User not authenticated"
+            return
+        }
+
+        isLoading = true
+        errorMessage = nil
+
+        prayerService.fetchAllPrayers(inMonth: date, forUser: userID) { [weak self] result in
+            DispatchQueue.main.async {
+                self?.isLoading = false
+                switch result {
+                case .success(let prayersForMonth):
+                    if append {
+                        let newSet = Set(prayersForMonth)
+                        let combined = Array(Set(self?.prayers ?? []).union(newSet))
+                        self?.prayers = combined.sorted { $0.timeStamp < $1.timeStamp }
+                    } else {
+                        self?.prayers = prayersForMonth
+                    }
+                case .failure(let error):
+                    self?.errorMessage = error.localizedDescription
+                }
+            }
+        }
+    }
+
 
     func secondaryText(for date: Date, prayers: [PrayerModel]) -> String {
         let calendar = Calendar.current
@@ -178,7 +202,42 @@ class PrayerViewModel: ObservableObject {
         }
     }
     
-    func getPrayersForDay(for selectedDate: Date) -> [PrayerModel] {
-        return prayers.filter { Calendar.current.isDate($0.timeStamp, inSameDayAs: selectedDate) }
+    // MARK: - Helpers
+    
+    var todayPrayers: [PrayerModel] {
+        prayers.filter { Calendar.current.isDateInToday($0.timeStamp) }
     }
+    
+    var futurePrayers: [PrayerModel] {
+        prayers.filter { $0.timeStamp > Date() && !$0.completed }.sorted { $0.timeStamp < $1.timeStamp }
+    }
+    
+    var groupedPrayersByDate: [Date: [PrayerModel]] {
+        Dictionary(grouping: prayers) { $0.timeStamp.startOfDay }
+    }
+    
+    var groupedFuturePrayers: [Date: [PrayerModel]] {
+        Dictionary(grouping: futurePrayers) { $0.timeStamp.startOfDay }
+    }
+    
+    func prayers(for date: Date) -> [PrayerModel] {
+        prayers.filter { Calendar.current.isDate($0.timeStamp, inSameDayAs: date) }
+    }
+    
+    func incompletePrayers(for date: Date) -> [PrayerModel] {
+        prayers(for: date).filter { !$0.completed }
+    }
+    
+    var groupedIncompleteByDay: [Date: [PrayerModel]] {
+        let filtered = prayers.filter { !$0.completed }
+        return Dictionary(grouping: filtered) { $0.timeStamp.startOfDay }
+    }
+    
+    var filteredHomePrayers: [PrayerModel] {
+        let maxVisible = 5
+        let today = todayPrayers
+        let future = futurePrayers.prefix(max(0, maxVisible - today.count))
+        return today + future
+    }
+
 }

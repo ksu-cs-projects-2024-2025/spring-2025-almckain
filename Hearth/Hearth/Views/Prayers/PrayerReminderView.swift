@@ -56,12 +56,6 @@ struct PrayerReminderView: View {
             }
             .navigationTitle("Prayer Reminders")
             .navigationBarTitleDisplayMode(.large)
-            .onAppear {
-                reminderViewModel.onAppear()
-            }
-            .onChange(of: reminderViewModel.prayerViewModel.prayers, { _, newValue in
-                reminderViewModel.onAppear()
-            })
             .customSheet(isPresented: $showUtilitySheet) {
                 AddPrayerSheetView(prayerViewModel: reminderViewModel.prayerViewModel)
             }
