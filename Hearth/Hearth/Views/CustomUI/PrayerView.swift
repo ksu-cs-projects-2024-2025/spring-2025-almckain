@@ -15,6 +15,7 @@ struct PrayerView: View {
     var onSave: (PrayerModel) -> Void
     var onDelete: (() -> Void)? = nil
     var onCancel: (() -> Void)? = nil
+    var onAddedToToday: (() -> Void)? = nil
     
     @State private var isExpanded = false
     @State private var isEditing = false
@@ -36,13 +37,15 @@ struct PrayerView: View {
          displayInHome: Bool = false,
          onSave: @escaping (PrayerModel) -> Void,
          onDelete: (() -> Void)? = nil,
-         onCancel: (() -> Void)? = nil
+         onCancel: (() -> Void)? = nil,
+         onAddedToToday: (() -> Void)? = nil
     ) {
         self.prayer = prayer
         self.isFuturePrayer = isFuturePrayer
         self.onSave = onSave
         self.onDelete = onDelete
         self.onCancel = onCancel
+        self.onAddedToToday = onAddedToToday
         self.displayInHome = displayInHome
         
         _prayerText = State(initialValue: prayer.content)
@@ -106,7 +109,7 @@ struct PrayerView: View {
                     }
                     
                 } else {
-                    Text(prayerText)
+                    Text(prayer.content)
                         .font(.customBody1)
                         .foregroundStyle(.parchmentDark)
                         .lineLimit(isExpanded ? nil : 1)
@@ -137,6 +140,7 @@ struct PrayerView: View {
                             withAnimation(.easeInOut) {
                                 animationEnabled = true
                                 isEditing = false
+                                isExpanded = false
                                 prayerText = prayer.content
                                 onCancel?()
                             }
@@ -151,17 +155,20 @@ struct PrayerView: View {
                                 updatedPrayer.content = prayerText
                                 
                                 if isFuturePrayer {
-                                    guard reminderDate > Date() else {
-                                        showAlert = true
-                                        alertMessage = "The selected date/time must be in the future."
-                                        return
-                                    }
                                     updatedPrayer.timeStamp = reminderDate
                                 }
                                 
+                                if isFuturePrayer && Calendar.current.isDateInToday(reminderDate) && reminderDate < Date() {
+                                    print("🔥 Added prayer to today!")
+                                    onAddedToToday?()
+                                }
+                                
                                 onSave(updatedPrayer)
+                                isExpanded = false
                             }
                         }
+                        .disabled(prayerText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                        .foregroundStyle(prayerText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? .gray : .hearthEmberMain)
                     }
                     .padding(.top, 4)
                 } else {
@@ -177,6 +184,7 @@ struct PrayerView: View {
                             Button("Edit") {
                                 withAnimation(.easeInOut) {
                                     animationEnabled = false
+                                    prayerText = prayer.content
                                     isEditing = true
                                     
                                 }

@@ -13,7 +13,8 @@ struct HomeView: View {
     @ObservedObject var reflectionViewModel: VerseReflectionViewModel
     @ObservedObject var entryReflectionViewModel: ReflectionViewModel
     @ObservedObject var journalEntryViewModel: JournalEntryViewModel
-    @ObservedObject var prayerViewModel: PrayerViewModel
+    // @ObservedObject var prayerViewModel: PrayerViewModel
+    @EnvironmentObject var prayerViewModel: PrayerViewModel
     
     @Environment(\.scenePhase) var scenePhase
     @EnvironmentObject var notificationViewModel: NotificationViewModel
@@ -42,12 +43,16 @@ struct HomeView: View {
                             
                             WeeklyJournalCardView(entryViewModel: journalEntryViewModel)
                             
-                            PrayerCardView(prayerViewModel: prayerViewModel)
+                            //PrayerCardView(prayerViewModel: prayerViewModel)
+                            PrayerCardView()
                         }
                         .padding(.top, 15)
                     }
                     .navigationTitle("\(homeViewModel.fetchGreeting()), \(profileViewModel.user?.firstName ?? "Guest")")
                     .navigationBarTitleDisplayMode(.large)
+                    .refreshable {
+                        prayerViewModel.refresh()
+                    }
                 }
             }
         }

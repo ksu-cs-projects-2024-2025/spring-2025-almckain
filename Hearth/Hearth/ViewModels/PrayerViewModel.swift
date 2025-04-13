@@ -7,6 +7,7 @@
 
 import Foundation
 import FirebaseAuth
+import FirebaseFirestore
 import Combine
 
 
@@ -15,8 +16,12 @@ class PrayerViewModel: ObservableObject {
     @Published var prayers: [PrayerModel] = []
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
+    @Published var lastUpdated = Date()
+    
+    var onPrayerUpdate: (() -> Void)?
     
     private let prayerService = PrayerService()
+    private var listener: ListenerRegistration?
     
     func addPrayer(_ prayer: PrayerModel) {
         isLoading = true
@@ -28,6 +33,8 @@ class PrayerViewModel: ObservableObject {
                 switch result {
                 case .success:
                     self?.prayers.append(prayer)
+                    self?.lastUpdated = Date()
+                    self?.onPrayerUpdate?()
                 case .failure(let error):
                     self?.errorMessage = error.localizedDescription
                 }
@@ -46,6 +53,8 @@ class PrayerViewModel: ObservableObject {
                 case .success:
                     guard let index = self?.prayers.firstIndex(where: { $0.id == prayer.id }) else { return }
                     self?.prayers[index] = prayer
+                    self?.lastUpdated = Date()
+                    self?.onPrayerUpdate?()
                 case .failure(let error):
                     self?.errorMessage = error.localizedDescription
                 }
@@ -63,92 +72,18 @@ class PrayerViewModel: ObservableObject {
         prayerService.deletePrayer(id: id) { [weak self] result in
             DispatchQueue.main.async {
                 self?.isLoading = false
-                if case .failure(let error) = result {
+                switch result {
+                case .success:
+                    self?.refresh()
+                    self?.lastUpdated = Date()
+                    self?.onPrayerUpdate?()
+                case .failure(let error):
                     self?.prayers.insert(removedPrayer, at: index)
                     self?.errorMessage = error.localizedDescription
                 }
             }
         }
     }
-    
-    /*
-    func fetchAllNeededPrayers() {
-        guard let userID = Auth.auth().currentUser?.uid else {
-            self.errorMessage = "User not authenticated"
-            return
-        }
-        
-        isLoading = true
-        errorMessage = nil
-        
-        let now = Date()
-        let sevenDaysAgo = Calendar.current.date(byAdding: .day, value: -6, to: now.startOfDay) ?? now
-        let fifteenDaysFromNow = Calendar.current.date(byAdding: .day, value: 30, to: now.endOfDay) ?? now
-        
-        let range = DateInterval(start: sevenDaysAgo, end: fifteenDaysFromNow)
-        
-        prayerService.fetchPrayers(in: range, forUser: userID) { [weak self] result in
-            DispatchQueue.main.async {
-                guard let self = self else { return }
-                self.isLoading = false
-                
-                switch result {
-                case .success(let fetchedPrayers):
-                    self.prayers = fetchedPrayers
-                case .failure(let error):
-                    self.errorMessage = error.localizedDescription
-                }
-            }
-        }
-    }
-    
-    func fetchPrayersForMonth(_ date: Date) {
-        guard let userID = Auth.auth().currentUser?.uid else {
-            self.errorMessage = "User not authenticated"
-            return
-        }
-        
-        isLoading = true
-        errorMessage = nil
-        
-        prayerService.fetchAllPrayers(inMonth: date, forUser: userID) { [weak self] result in
-            DispatchQueue.main.async {
-                guard let self = self else { return }
-                self.isLoading = false
-                switch result {
-                case .success(let prayers):
-                    self.allPrayers = prayers
-                case .failure(let error):
-                    self.errorMessage = error.localizedDescription
-                }
-            }
-        }
-    }
-    
-    func fetchAllPrayers(for date: Date) {
-        guard let userID = Auth.auth().currentUser?.uid else {
-            self.errorMessage = "User not authenticated"
-            return
-        }
-
-        isLoading = true
-        errorMessage = nil
-
-        prayerService.fetchPrayers(for: date, forUser: userID) { [weak self] result in
-            DispatchQueue.main.async {
-                guard let self = self else { return }
-                self.isLoading = false
-
-                switch result {
-                case .success(let fetchedPrayers):
-                    self.prayers = fetchedPrayers
-                case .failure(let error):
-                    self.errorMessage = error.localizedDescription
-                }
-            }
-        }
-    }
-     */
     
     func fetchPrayers(forMonth date: Date, append: Bool = true) {
         guard let userID = Auth.auth().currentUser?.uid else {
@@ -164,6 +99,7 @@ class PrayerViewModel: ObservableObject {
                 self?.isLoading = false
                 switch result {
                 case .success(let prayersForMonth):
+                    print("WE FETCHED THE PRAYERS")
                     if append {
                         let newSet = Set(prayersForMonth)
                         let combined = Array(Set(self?.prayers ?? []).union(newSet))
@@ -177,7 +113,32 @@ class PrayerViewModel: ObservableObject {
             }
         }
     }
-
+    
+    func startListening(forUser userID: String) {
+        listener = prayerService.listenForPrayers(forUser: userID) { [weak self] result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let prayers):
+                    print("got one")
+                    self?.prayers = prayers
+                case .failure(let error):
+                    // Handle error as needed. Possibly update self.errorMessage, etc.
+                    print("Error listening for prayers: \(error.localizedDescription)")
+                }
+            }
+        }
+    }
+    
+    func stopListening() {
+        listener?.remove()
+        listener = nil
+    }
+    
+    deinit {
+        Task { @MainActor [weak self] in
+            self?.stopListening()
+        }
+    }
 
     func secondaryText(for date: Date, prayers: [PrayerModel]) -> String {
         let calendar = Calendar.current
@@ -239,5 +200,11 @@ class PrayerViewModel: ObservableObject {
         let future = futurePrayers.prefix(max(0, maxVisible - today.count))
         return today + future
     }
+    
+    func refresh() {
+        print("REFRESHED! ITS REFRESHED!!!")
+        fetchPrayers(forMonth: Date(), append: false)
+    }
+
 
 }

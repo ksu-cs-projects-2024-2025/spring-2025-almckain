@@ -39,22 +39,37 @@ struct MainView: View {
     var body: some View {
         TabView(selection: $selectedTab) {
             Tab("Home", systemImage: "house.fill", value: 0) {
+                /*
                 HomeView(
                     profileViewModel: profileViewModel, homeViewModel: homeViewModel, reflectionViewModel: reflectionViewModel, entryReflectionViewModel: entryReflectionViewModel, journalEntryViewModel: journalEntryViewModel,
                     prayerViewModel: prayerViewModel
                 )
+                 */
+                HomeView(
+                    profileViewModel: profileViewModel, homeViewModel: homeViewModel, reflectionViewModel: reflectionViewModel, entryReflectionViewModel: entryReflectionViewModel, journalEntryViewModel: journalEntryViewModel
+                )
+                .environmentObject(prayerViewModel)
             }
             Tab("Calendar", systemImage: "calendar", value: 1) {
+                /*
                 CalendarView(
                     journalEntryViewModel: journalEntryViewModel, calendarViewModel: calendarViewModel, reflectionViewModel: reflectionViewModel, journalReflectionViewModel: entryReflectionViewModel,
                         prayerViewModel: prayerViewModel
                 )
+                 */
+                CalendarView(
+                    journalEntryViewModel: journalEntryViewModel, calendarViewModel: calendarViewModel, reflectionViewModel: reflectionViewModel, journalReflectionViewModel: entryReflectionViewModel
+                )
+                .environmentObject(prayerViewModel)
             }
             Tab("Prayers", systemImage: "list.bullet.clipboard", value: 2) {
+                // PrayerReminderView(reminderViewModel: prayerReminderViewModel)
                 PrayerReminderView(reminderViewModel: prayerReminderViewModel)
+                    .environmentObject(prayerViewModel)
             }
             Tab("Profile", systemImage: "person.fill", value: 3) {
                 ProfileView()
+                    .environmentObject(prayerViewModel)
             }
         }
         .onChange(of: scenePhase) { _, newPhase in

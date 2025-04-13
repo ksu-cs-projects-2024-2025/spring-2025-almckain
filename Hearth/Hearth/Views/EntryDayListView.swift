@@ -13,7 +13,8 @@ struct EntryDayListView: View {
     @StateObject var journalEntryViewModel: JournalEntryViewModel
     @ObservedObject var reflectionViewModel: VerseReflectionViewModel
     @ObservedObject var journalReflectionViewModel: ReflectionViewModel
-    @ObservedObject var prayerViewModel: PrayerViewModel
+    //@ObservedObject var prayerViewModel: PrayerViewModel
+    @EnvironmentObject var prayerViewModel: PrayerViewModel
 
     @State private var showAddJournalSheet: Bool = false
     @State private var showAddPrayerSheet = false

@@ -14,7 +14,6 @@ struct PrayerReminderCardView: View {
     let day: Date
     let prayers: [PrayerModel]
     let isFutureTab: Bool
-    
     @State private var isAddingNewPrayer = false
     
     // MARK: - Computed Properties
@@ -43,52 +42,69 @@ struct PrayerReminderCardView: View {
         }
     }
     
+    init(
+        prayerViewModel: PrayerViewModel,
+        day: Date,
+        prayers: [PrayerModel],
+        isFutureTab: Bool
+    ) {
+        self.prayerViewModel = prayerViewModel
+        self.day = day
+        self.prayers = prayers
+        self.isFutureTab = isFutureTab
+    }
+
+    
     // MARK: - Body
     var body: some View {
         CardView {
             VStack(spacing: 12) {
-                HStack {
-                    Text(dayLabel)
-                        .font(.customTitle3)
-                        .foregroundStyle(.hearthEmberMain)
-                    
-                    if !prayers.isEmpty {
-                        Text("•  \(leftText)")
-                            .font(.customBody1)
-                            .foregroundStyle(.parchmentDark.opacity(0.6))
-                            .padding(.leading, 10)
-                    }
-                    
-                    Spacer()
-                    
-                    if isFutureTab || Calendar.current.isDateInToday(day) {
-                        Button(action: {
-                            withAnimation {
-                                if !isAddingNewPrayer {
-                                    isAddingNewPrayer = true
-                                }
-                            }
-                        }) {
-                            Image(systemName: "plus.circle")
-                                .font(.title2)
-                                .foregroundStyle(.hearthEmberMain)
+                if !prayers.isEmpty {
+                    HStack {
+                        Text(dayLabel)
+                            .font(.customTitle3)
+                            .foregroundStyle(.hearthEmberMain)
+                        
+                        if !prayers.isEmpty {
+                            Text("•  \(leftText)")
+                                .font(.customBody1)
+                                .foregroundStyle(.parchmentDark.opacity(0.6))
+                                .padding(.leading, 10)
                         }
-                        .disabled(isAddingNewPrayer)
+                        
+                        Spacer()
+                        
+                        if isFutureTab || Calendar.current.isDateInToday(day) {
+                            Button(action: {
+                                withAnimation {
+                                    if !isAddingNewPrayer {
+                                        isAddingNewPrayer = true
+                                    }
+                                }
+                            }) {
+                                Image(systemName: "plus.circle")
+                                    .font(.title2)
+                                    .foregroundStyle(.hearthEmberMain)
+                            }
+                            .disabled(isAddingNewPrayer)
+                        }
                     }
+                    
+                    CustomDivider(height: 2, color: .hearthEmberMain)
                 }
-                
-                CustomDivider(height: 2, color: .hearthEmberMain)
                 
                 
                 if prayers.isEmpty && !isAddingNewPrayer {
                     if Calendar.current.isDateInToday(day) {
                         VStack(spacing: 8) {
-                            Text("You have no prayer reminders for this day yet.")
-                                .font(.customBody1)
-                                .foregroundStyle(.secondary)
-                                .multilineTextAlignment(.center)
+                            Text(isFutureTab
+                                 ? "You have no reminders scheduled yet."
+                                 : "You have no prayer reminders for this day yet.")
+                            .font(.customBody1)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
                             
-                            Button("Add First Prayer") {
+                            Button(isFutureTab ? "Schedule Prayer Reminder" : "Add First Prayer") {
                                 withAnimation {
                                     isAddingNewPrayer = true
                                 }
@@ -103,14 +119,18 @@ struct PrayerReminderCardView: View {
                     
                     PrayerView(
                         prayer: newPrayer,
-                        isFuturePrayer: isFutureTab,
-                        initialEditing: true
-                    ) { finalPrayer in
-                        prayerViewModel.addPrayer(finalPrayer)
-                        isAddingNewPrayer = false
-                    } onCancel: {
-                        isAddingNewPrayer = false
-                    }
+                        isFuturePrayer: true,
+                        initialEditing: true,
+                        displayInHome: false,
+                        onSave: { finalPrayer in
+                            prayerViewModel.addPrayer(finalPrayer)
+                            isAddingNewPrayer = false
+                        },
+                        onDelete: nil,
+                        onCancel: {
+                            isAddingNewPrayer = false
+                        }
+                    )
                     .id(newPrayer.id)
                     
                 }
@@ -134,7 +154,7 @@ struct PrayerReminderCardView: View {
         .fixedSize(horizontal: false, vertical: true)
     }
     
-
+    
     
     private var prayersLeft: Int {
         prayers.filter { !$0.completed }.count

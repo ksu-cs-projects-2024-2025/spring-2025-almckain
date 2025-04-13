@@ -1,5 +1,5 @@
 //
-//  FeedView.swift
+//  PrayerReminderView.swift
 //  Hearth
 //
 //  Created by Aaron McKain on 2/6/25.
@@ -11,6 +11,7 @@ import SwiftUI
 struct PrayerReminderView: View {
     @ObservedObject var reminderViewModel: PrayerReminderViewModel
     @State private var showUtilitySheet: Bool = false
+    @State private var showAddedToTodayBanner: Bool = false
     
     var body: some View {
         NavigationStack {
@@ -18,16 +19,17 @@ struct PrayerReminderView: View {
                 Color.parchmentLight
                     .ignoresSafeArea()
                 
-                ScrollView {
-                    VStack {
-                        Picker("Filter", selection: $reminderViewModel.selectedFilter) {
-                            ForEach(ReminderFilter.allCases) { filter in
-                                Text(filter.rawValue).tag(filter)
-                            }
+                
+                VStack {
+                    Picker("Filter", selection: $reminderViewModel.selectedFilter) {
+                        ForEach(ReminderFilter.allCases) { filter in
+                            Text(filter.rawValue).tag(filter)
                         }
-                        .pickerStyle(SegmentedPickerStyle())
-                        .padding(.horizontal, 50)
-                        .padding(.top, 20)
+                    }
+                    .pickerStyle(SegmentedPickerStyle())
+                    .padding(.horizontal, 50)
+                    .padding(.top, 20)
+                    ScrollView {
                         
                         switch reminderViewModel.selectedFilter {
                         case .today:
@@ -35,6 +37,7 @@ struct PrayerReminderView: View {
                         case .future:
                             renderFutureTab()
                         }
+                        
                     }
                 }
                 VStack {
@@ -86,6 +89,7 @@ struct PrayerReminderView: View {
                 prayers: [],
                 isFutureTab: true
             )
+            .padding(.top, 12)
         } else {
             LazyVStack(spacing: 12) {
                 ForEach(sortedDays, id: \.self) { day in
@@ -130,6 +134,7 @@ struct PrayerReminderView: View {
                             prayers: dailyPrayers,
                             isFutureTab: false
                         )
+                        .padding(.top, 12)
                         .transition(.move(edge: .leading))
                     }
                 }

@@ -208,6 +208,40 @@ class PrayerService {
                 completion(.success(prayers))
             }
     }
+    
+    func listenForPrayers(forUser userID: String, handler: @escaping (Result<[PrayerModel], Error>) -> Void) -> ListenerRegistration? {
+        // Ensure a valid userID
+        guard !userID.isEmpty else {
+            handler(.failure(NSError(domain: "PrayerService", code: 400, userInfo: [NSLocalizedDescriptionKey: "Invalid user ID."])))
+            return nil
+        }
+        
+        // Listen to the collection where the userID matches.
+        let registration = db.collection(collection)
+            .whereField("userID", isEqualTo: userID)
+            // Optionally, you can add additional filters like a date range or ordering.
+            .order(by: "timeStamp", descending: true)
+            .addSnapshotListener { snapshot, error in
+                if let error = error {
+                    handler(.failure(error))
+                    return
+                }
+                
+                guard let documents = snapshot?.documents else {
+                    handler(.success([]))
+                    return
+                }
+                
+                let prayers = documents.compactMap { doc in
+                    try? doc.data(as: PrayerModel.self)
+                }
+                
+                handler(.success(prayers))
+            }
+        
+        return registration
+    }
+
 
 }
 

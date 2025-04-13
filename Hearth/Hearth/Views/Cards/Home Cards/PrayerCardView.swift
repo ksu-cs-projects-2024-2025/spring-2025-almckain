@@ -9,7 +9,8 @@ import SwiftUI
 
 struct PrayerCardView: View {
     @State private var isAddingNewPrayer = false
-    @ObservedObject var prayerViewModel: PrayerViewModel
+    //@ObservedObject var prayerViewModel: PrayerViewModel
+    @EnvironmentObject var prayerViewModel: PrayerViewModel
     
     private var todayPrayers: [PrayerModel] {
         prayerViewModel.todayPrayers
@@ -136,13 +137,6 @@ struct PrayerCardView: View {
                         }
                         .padding(.vertical, 4)
                     }
-                }
-                
-                if todayPrayers.isEmpty && futureGroups.isEmpty && !isAddingNewPrayer {
-                    Text("No prayers available")
-                        .font(.customBody1)
-                        .foregroundStyle(.secondary)
-                        .padding(.vertical, 12)
                 }
             }
         }

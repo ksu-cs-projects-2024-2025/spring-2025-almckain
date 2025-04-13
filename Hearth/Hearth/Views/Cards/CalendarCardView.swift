@@ -10,7 +10,8 @@ import SwiftUI
 struct CalendarCardView: View {
     
     @ObservedObject var calendarViewModel: CalendarViewModel
-    @ObservedObject var prayerViewModel: PrayerViewModel
+    //@ObservedObject var prayerViewModel: PrayerViewModel
+    @EnvironmentObject var prayerViewModel: PrayerViewModel
     
     @State private var days: [Date] = []
     @State private var date = Date.now

@@ -53,6 +53,14 @@ struct PrayerCalendarCardView: View {
                 }
             }
             .fixedSize(horizontal: false, vertical: true)
+            .onChange(of: prayerViewModel.lastUpdated) { _, _ in
+                prayerViewModel.refresh()
+            }
+            .onAppear {
+                prayerViewModel.onPrayerUpdate = { [weak prayerViewModel] in
+                    prayerViewModel?.refresh()
+                }
+            }
         }
     }
 }
