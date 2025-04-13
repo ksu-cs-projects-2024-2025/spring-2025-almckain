@@ -24,7 +24,7 @@ class NotificationViewModel: ObservableObject {
         get { UserDefaults.standard.bool(forKey: "HasRequestedNotificationsBefore") }
         set { UserDefaults.standard.set(newValue, forKey: "HasRequestedNotificationsBefore") }
     }
-
+    
     
     init() {
         //checkNotificationStatus()
@@ -192,4 +192,34 @@ class NotificationViewModel: ObservableObject {
         dailyJournalTime = Date()
         bibleVerseTime = Date()
     }
+    
+    func schedulePrayerNotification(for prayer: PrayerModel) {
+        guard prayer.receiveReminder else {
+            return
+        }
+        
+        
+        let content = UNMutableNotificationContent()
+        content.title = "Prayer Reminder"
+        content.body = prayer.content
+        content.sound = .default
+        
+        let triggerDateComponents = Calendar.current.dateComponents(
+            [.year, .month, .day, .hour, .minute],
+            from: prayer.timeStamp
+        )
+                
+        let trigger = UNCalendarNotificationTrigger(dateMatching: triggerDateComponents, repeats: false)
+        let request = UNNotificationRequest(identifier: prayer.id, content: content, trigger: trigger)
+        
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error = error {
+                print("NOTIFICATION DEBUG: Error scheduling notification for \(prayer.id): \(error.localizedDescription)")
+            } else {
+                print("NOTIFICATION DEBUG: Successfully scheduled notification for \(prayer.id)")
+            }
+        }
+    }
+    
+    
 }

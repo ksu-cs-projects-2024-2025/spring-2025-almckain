@@ -14,12 +14,20 @@ struct PrayerModel: Identifiable, Codable, Equatable, Hashable {
     var content: String
     var timeStamp: Date
     var completed: Bool
+    var receiveReminder: Bool = false
     var entryType: EntryType = .prayerReminder
 }
 
 extension PrayerModel {
     static var empty: PrayerModel {
-        PrayerModel(id: UUID().uuidString, userID: Auth.auth().currentUser?.uid ?? "", content: "", timeStamp: Date(), completed: false)
+        PrayerModel(
+            id: UUID().uuidString,
+            userID: Auth.auth().currentUser?.uid ?? "",
+            content: "",
+            timeStamp: Date(),
+            completed: false,
+            receiveReminder: false
+        )
     }
     
     var isToday: Bool {

@@ -12,11 +12,13 @@ struct PrayerView: View {
     var isFuturePrayer: Bool = false
     var displayInHome: Bool = false
     
+    // Closures
     var onSave: (PrayerModel) -> Void
     var onDelete: (() -> Void)? = nil
     var onCancel: (() -> Void)? = nil
     var onAddedToToday: (() -> Void)? = nil
     
+    // Display states
     @State private var isExpanded = false
     @State private var isEditing = false
     @State private var animationEnabled = true
@@ -24,12 +26,17 @@ struct PrayerView: View {
     @State private var isCompleted: Bool
     @State private var editorHeight: CGFloat = 40
     
+    // Reminder states
     @State private var reminderDate: Date
+    @State private var receiveReminder: Bool
     
     // For alert if user picks a past date
     @State private var showAlert = false
     @State private var alertMessage = ""
     @State private var showDeleteConfirmation: Bool = false
+    
+    // Notification viewmodel - register a notification whenever saved or edited
+    @EnvironmentObject var notificationViewModel: NotificationViewModel
     
     init(prayer: PrayerModel,
          isFuturePrayer: Bool = false,
@@ -54,12 +61,13 @@ struct PrayerView: View {
         _isExpanded = State(initialValue: initialEditing)
         
         _reminderDate = State(initialValue: prayer.timeStamp > Date.distantPast ? prayer.timeStamp : Date())
+        _receiveReminder = State(initialValue: prayer.receiveReminder)
     }
     
     var body: some View {
-        VStack(spacing: 8){
+        VStack(spacing: 12){
             HStack(spacing: 5) {
-                if Calendar.current.isDateInToday(prayer.timeStamp) || prayer.timeStamp < Date() {
+                if !isEditing && (Calendar.current.isDateInToday(prayer.timeStamp) || prayer.timeStamp < Date()) {
                     VStack {
                         Circle()
                             .stroke(isCompleted ? Color.parchmentLight : Color.hearthEmberMain, lineWidth: 2)
@@ -124,16 +132,40 @@ struct PrayerView: View {
             
             if isExpanded {
                 if isEditing {
-                    if isFuturePrayer {
-                        DatePicker(
-                            "Reminder Time",
-                            selection: $reminderDate,
-                            in: Date()...,
-                            displayedComponents: [.date, .hourAndMinute]
-                        )
-                        .labelsHidden()
-                        .padding(.vertical, 4)
-                    }
+                    //if isFuturePrayer {
+                        VStack {
+                            HStack {
+                                Text("Receive Notification: ")
+                                    .font(.customBody1)
+                                    .foregroundStyle(.parchmentDark)
+                                
+                                Spacer()
+                                
+                                Toggle("", isOn: $receiveReminder)
+                                    .padding(.horizontal)
+                            }
+                            if receiveReminder {
+                                HStack {
+                                    Text("Reminder Time: ")
+                                        .font(.customBody1)
+                                        .foregroundStyle(.parchmentDark)
+                                    
+                                    Spacer()
+                                    
+                                    DatePicker(
+                                        "",
+                                        selection: $reminderDate,
+                                        in: Date()...,
+                                        displayedComponents: [.date, .hourAndMinute]
+                                    )
+                                    .labelsHidden()
+                                    .padding(.vertical, 4)
+                                }
+                                .transition(.opacity.combined(with: .move(edge: .top)))
+                            }
+                        }
+                        .animation(.easeInOut, value: receiveReminder)
+                    //}
                     
                     HStack(alignment: .center, spacing: 24) {
                         Button("Cancel") {
@@ -149,21 +181,33 @@ struct PrayerView: View {
                         
                         Button("Save") {
                             withAnimation(.easeInOut) {
+                                print("DEBUG: reminderDate before saving:", reminderDate)
                                 animationEnabled = true
                                 isEditing = false
+                                
                                 var updatedPrayer = prayer
                                 updatedPrayer.content = prayerText
-                                
-                                if isFuturePrayer {
+                                updatedPrayer.receiveReminder = receiveReminder
+                                if receiveReminder {
                                     updatedPrayer.timeStamp = reminderDate
                                 }
                                 
                                 if isFuturePrayer && Calendar.current.isDateInToday(reminderDate) && reminderDate < Date() {
-                                    print("🔥 Added prayer to today!")
+                                    print("Added prayer to today!")
                                     onAddedToToday?()
                                 }
                                 
+                                print("NOTIFICATION DEBUG: Removing any existing notifications for ID \(updatedPrayer.id)")
+                                UNUserNotificationCenter.current()
+                                    .removePendingNotificationRequests(withIdentifiers: [updatedPrayer.id])
+                                
                                 onSave(updatedPrayer)
+                                
+                                if updatedPrayer.receiveReminder {
+                                    print("NOTIFICATION DEBUG: Scheduling notification for \(updatedPrayer.id) at \(updatedPrayer.timeStamp)")
+                                    notificationViewModel.schedulePrayerNotification(for: updatedPrayer)
+                                }
+                                
                                 isExpanded = false
                             }
                         }
@@ -186,7 +230,6 @@ struct PrayerView: View {
                                     animationEnabled = false
                                     prayerText = prayer.content
                                     isEditing = true
-                                    
                                 }
                             }
                         }

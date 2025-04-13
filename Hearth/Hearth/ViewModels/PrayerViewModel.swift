@@ -100,6 +100,7 @@ class PrayerViewModel: ObservableObject {
                 switch result {
                 case .success(let prayersForMonth):
                     print("WE FETCHED THE PRAYERS")
+                    prayersForMonth.forEach { print($0) }
                     if append {
                         let newSet = Set(prayersForMonth)
                         let combined = Array(Set(self?.prayers ?? []).union(newSet))

@@ -12,6 +12,7 @@ struct AddPrayerSheetView: View {
     @Environment(\.dismiss) var dismiss
     @State private var prayerContent: String = ""
     @State private var reminderDate: Date = Date()
+    @State private var receiveReminder: Bool = false
     
     var body: some View {
         NavigationStack {
@@ -47,13 +48,24 @@ struct AddPrayerSheetView: View {
                             }
                         }
                         
-                        VStack {
-                            HStack {
-                                Text("Reminder Time: ")
-                                    .font(.customHeadline1)
-                                    .foregroundStyle(.parchmentDark)
-                                Spacer()
-                            }
+                        HStack {
+                            Text("Receive Notification: ")
+                                .font(.customHeadline1)
+                                .foregroundStyle(.parchmentDark)
+                            
+                            Spacer()
+                            
+                            Toggle("", isOn: $receiveReminder)
+                                .padding(.horizontal)
+                        }
+                        
+                        
+                        HStack {
+                            Text("Reminder Time: ")
+                                .font(.customHeadline1)
+                                .foregroundStyle(.parchmentDark)
+                            
+                            Spacer()
                             
                             DatePicker(
                                 "Select Date & Time",
@@ -76,7 +88,8 @@ struct AddPrayerSheetView: View {
                                     userID: prayerViewModel.prayers.first?.userID ?? "",
                                     content: prayerContent,
                                     timeStamp: reminderDate,
-                                    completed: false
+                                    completed: false,
+                                    receiveReminder: receiveReminder
                                 )
                                 prayerViewModel.addPrayer(newPrayer)
                                 dismiss()
