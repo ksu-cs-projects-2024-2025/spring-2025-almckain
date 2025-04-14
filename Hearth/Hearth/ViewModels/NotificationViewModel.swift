@@ -30,6 +30,11 @@ class NotificationViewModel: ObservableObject {
         //checkNotificationStatus()
         loadSavedReminderTimes()
         FirebaseNotificationService.shared.registerFCMToken()
+        
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(handleBibleVerseUpdated),
+                                               name: .dailyBibleVerseUpdated,
+                                               object: nil)
     }
     
     // MARK: - Checking & Requesting for notification permissions
@@ -132,11 +137,50 @@ class NotificationViewModel: ObservableObject {
     
     func scheduleReminders() {
         scheduleNotification(title: "Daily Journal Reminder", body: "Don't forget to add to your journal today!", date: dailyJournalTime, identifier: "dailyJournalReminder")
-        scheduleNotification(title: "New Bible Verse", body: "A new Bible verse is ready for you.", date: bibleVerseTime, identifier: "bibleVerseReminder")
+        
+        scheduleBibleVerseNotification()
         
         scheduleWeeklyReflectionNotification(date: weeklyReflectionTime)
         saveReminderTimes()
     }
+    
+    func scheduleBibleVerseNotification() {
+        let verseReference = UserDefaults.standard.string(forKey: "SavedBibleReference") ?? "New Bible Verse"
+        
+        var bibleVerseContent = "A new Bible verse is ready for you."
+        if let verseData = UserDefaults.standard.data(forKey: "SavedBibleVerse"),
+           let verse = try? JSONDecoder().decode(BibleVerseModel.self, from: verseData) {
+            bibleVerseContent = verse.text
+        }
+        
+        let content = UNMutableNotificationContent()
+        content.title = verseReference
+        content.body = bibleVerseContent
+        content.sound = .default
+        
+        let calendar = Calendar.current
+        let triggerComponents = calendar.dateComponents([.hour, .minute], from: bibleVerseTime)
+        let trigger = UNCalendarNotificationTrigger(dateMatching: triggerComponents, repeats: true)
+        
+        let request = UNNotificationRequest(identifier: "bibleVerseReminder", content: content, trigger: trigger)
+        
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error = error {
+                print("Error scheduling Bible verse notification: \(error.localizedDescription)")
+            } else {
+                print("Successfully scheduled Bible verse notification with title: \(verseReference)")
+            }
+        }
+    }
+    
+    @objc private func handleBibleVerseUpdated() {
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ["bibleVerseReminder"])
+        scheduleBibleVerseNotification()
+        
+        print("Bible verse notification updated to reflect the new verse.")
+    }
+    
+    
     
     private func scheduleNotification(title: String, body: String, date: Date, identifier: String) {
         let content = UNMutableNotificationContent()
@@ -208,7 +252,7 @@ class NotificationViewModel: ObservableObject {
             [.year, .month, .day, .hour, .minute],
             from: prayer.timeStamp
         )
-                
+        
         let trigger = UNCalendarNotificationTrigger(dateMatching: triggerDateComponents, repeats: false)
         let request = UNNotificationRequest(identifier: prayer.id, content: content, trigger: trigger)
         
