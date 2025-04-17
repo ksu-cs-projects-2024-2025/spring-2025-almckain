@@ -8,97 +8,99 @@
 import SwiftUI
 
 struct ProfileView: View {
-    @StateObject private var viewModel = ProfileViewModel()
+    @StateObject private var profileViewModel = ProfileViewModel()
     @EnvironmentObject var notificationViewModel: NotificationViewModel
     @AppStorage("isOnboardingComplete") private var isOnboardingComplete: Bool = false
+    @State private var showingDeleteAlert = false
     
     var body: some View {
-        VStack(spacing: 20) {
-            if let user = viewModel.user {
-                Text("Hello, \(user.firstName) \(user.lastName)!")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-            } else {
-                ProgressView()
-            }
-            
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Notification Settings")
-                    .font(.customTitle2)
-                    .fontWeight(.semibold)
-                
-                if notificationViewModel.notificationsEnabled {
-                    HStack {
-                        Text("Daily Journal:")
-                        Spacer()
-                        DatePicker(
-                            "",
-                            selection: $notificationViewModel.dailyJournalTime,
-                            displayedComponents: .hourAndMinute
+        NavigationStack {
+            ZStack {
+                Color.parchmentLight
+                    .ignoresSafeArea()
+                ScrollView {
+                    LazyVStack(spacing: 15) {
+                        UserCard(profileViewModel: profileViewModel)
+                        
+                        // Stats Card
+                        UserStatsCard(profileViewModel: profileViewModel)
+                        
+                        // Notification Settings Card
+                        NotificationSettingsCard(profileViewModel: profileViewModel)
+                        
+                        PrivacyCard(profileViewModel: profileViewModel, isOnboardingComplete: $isOnboardingComplete)
+                        
+                        CapsuleButton(
+                            title: "Log Out",
+                            style: .filled,
+                            foregroundColor: .parchmentLight,
+                            backgroundColor: .hearthEmberMain,
+                            action: {
+                                profileViewModel.logout {
+                                    isOnboardingComplete = false
+                                }
+                            }
                         )
-                        .datePickerStyle(.compact)
+                        .padding(10)
+                        
                     }
-                    .padding(.vertical, 5)
-                    
-                    HStack {
-                        Text("Bible Verse:")
-                        Spacer()
-                        DatePicker(
-                            "",
-                            selection: $notificationViewModel.bibleVerseTime,
-                            displayedComponents: .hourAndMinute
-                        )
-                        .datePickerStyle(.compact)
-                    }
-                    .padding(.vertical, 5)
-                    
-                    HStack {
-                        Text("Weekly Reflection:")
-                        Spacer()
-                        DatePicker(
-                            "",
-                            selection: $notificationViewModel.weeklyReflectionTime,
-                            displayedComponents: .hourAndMinute
-                        )
-                        .datePickerStyle(.compact)
-                    }
-                    .padding(.vertical, 5)
-                    
-                    Button("Update Reminder Times") {
-                        notificationViewModel.scheduleReminders()
-                    }
-                    .buttonStyle(.borderedProminent)
-                } else {
-                    Text("Notifications are disabled.")
-                        .foregroundStyle(.parchmentMedium)
-                    
-                    Button("Enable Notifications") {
-                        if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
-                            UIApplication.shared.open(settingsURL)
-                        }
-                    }
-                    .buttonStyle(.borderedProminent)
+                    .padding(.vertical, 15)
+                    .navigationTitle("Profile")
+                    .navigationBarTitleDisplayMode(.large)
                 }
             }
-            .padding()
-            .background(Color(uiColor: .systemGroupedBackground))
-            .clipShape(
-                RoundedRectangle(cornerRadius: 12)
-            )
-            .shadow(radius: 2)
-            
-            Button("Log Out") {
-                viewModel.logout {
-                    isOnboardingComplete = false
-                }
+            .onAppear {
+                profileViewModel.fetchUserData()
+                notificationViewModel.checkNotificationStatus()
+                let appearance = profileViewModel.navBarAppearance()
+                UINavigationBar.appearance().standardAppearance = appearance
+                UINavigationBar.appearance().scrollEdgeAppearance = appearance
             }
-            .buttonStyle(.borderedProminent)
-        }
-        .onAppear {
-            viewModel.fetchUserData()
         }
     }
 }
+
+struct NotificationSettingRow: View {
+    let title: String
+    @Binding var isEnabled: Bool
+    @Binding var time: Date
+    var isTimeEditable: Bool = true
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Toggle(isOn: $isEnabled) {
+                    Text(title)
+                        .font(.customBody1)
+                        .foregroundStyle(.parchmentDark)
+                }
+            }
+            
+            if isEnabled && isTimeEditable {
+                DatePicker(
+                    "Reminder Time",
+                    selection: $time,
+                    displayedComponents: .hourAndMinute
+                )
+                .datePickerStyle(.compact)
+                .labelsHidden()
+            } else if title == "Weekly Reflection" {
+                Text("Time: \(formattedTime(date: time))")
+                    .font(.caption)
+                    .foregroundStyle(.gray)
+            }
+        }
+        .padding(.vertical, 5)
+    }
+    
+    private func formattedTime(date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.timeStyle = .short
+        return formatter.string(from: date)
+    }
+}
+
+
 
 #Preview {
     ProfileView()

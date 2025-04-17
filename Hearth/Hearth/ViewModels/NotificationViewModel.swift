@@ -17,6 +17,10 @@ class NotificationViewModel: ObservableObject {
     
     @Published var shouldShowReflectionCard = true
     
+    @Published var isJournalReminderEnabled: Bool = false
+    @Published var isBibleVerseReminderEnabled: Bool = false
+    @Published var isWeeklyReflectionReminderEnabled: Bool = false
+    
     @AppStorage("didAnimateInThisSunday") var didAnimateInThisSunday = false
     @AppStorage("didAnimateOutThisMonday") var didAnimateOutThisMonday = false
     
@@ -29,6 +33,7 @@ class NotificationViewModel: ObservableObject {
     init() {
         //checkNotificationStatus()
         loadSavedReminderTimes()
+        loadReminderSettings()
         FirebaseNotificationService.shared.registerFCMToken()
         
         NotificationCenter.default.addObserver(self,
@@ -136,14 +141,32 @@ class NotificationViewModel: ObservableObject {
     }
     
     func scheduleReminders() {
-        scheduleNotification(title: "Daily Journal Reminder", body: "Don't forget to add to your journal today!", date: dailyJournalTime, identifier: "dailyJournalReminder")
+        if isJournalReminderEnabled {
+            scheduleNotification(title: "Daily Journal Reminder",
+                                 body: "Don't forget to add to your journal today!",
+                                 date: dailyJournalTime,
+                                 identifier: "dailyJournalReminder")
+        } else {
+            UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ["dailyJournalReminder"])
+        }
         
-        scheduleBibleVerseNotification()
+        if isBibleVerseReminderEnabled {
+            scheduleBibleVerseNotification()
+        } else {
+            UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ["bibleVerseReminder"])
+        }
         
-        scheduleWeeklyReflectionNotification(date: weeklyReflectionTime)
+        if isWeeklyReflectionReminderEnabled {
+            scheduleWeeklyReflectionNotification(date: weeklyReflectionTime)
+        } else {
+            UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ["weeklyReflectionReminder"])
+
+        }
+        
         saveReminderTimes()
+        saveReminderSettings()
     }
-    
+
     func scheduleBibleVerseNotification() {
         let verseReference = UserDefaults.standard.string(forKey: "SavedBibleReference") ?? "New Bible Verse"
         
@@ -265,5 +288,31 @@ class NotificationViewModel: ObservableObject {
         }
     }
     
+    private func loadReminderSettings() {
+        isJournalReminderEnabled = UserDefaults.standard.bool(forKey: "isJournalReminderEnabled")
+        isBibleVerseReminderEnabled = UserDefaults.standard.bool(forKey: "isBibleVerseReminderEnabled")
+        isWeeklyReflectionReminderEnabled = UserDefaults.standard.bool(forKey: "isWeeklyReflectionReminderEnabled")
+    }
+
+    private func saveReminderSettings() {
+        UserDefaults.standard.set(isJournalReminderEnabled, forKey: "isJournalReminderEnabled")
+        UserDefaults.standard.set(isBibleVerseReminderEnabled, forKey: "isBibleVerseReminderEnabled")
+        UserDefaults.standard.set(isWeeklyReflectionReminderEnabled, forKey: "isWeeklyReflectionReminderEnabled")
+    }
+
+    func cancelAllScheduledNotifications() {
+        let center = UNUserNotificationCenter.current()
+
+        center.removeAllPendingNotificationRequests()
+
+        center.removeAllDeliveredNotifications()
+
+        DispatchQueue.main.async {
+            self.notificationsEnabled = false
+            self.isJournalReminderEnabled = false
+            self.isBibleVerseReminderEnabled = false
+            self.isWeeklyReflectionReminderEnabled = false
+        }
+    }
     
 }
