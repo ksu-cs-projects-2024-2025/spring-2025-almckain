@@ -23,6 +23,7 @@ struct MainView: View {
     
     @StateObject var prayerViewModel = PrayerViewModel()
     @StateObject var prayerReminderViewModel: PrayerReminderViewModel
+    @StateObject var gratitudeViewModel = GratitudeViewModel()
     
     // Stylizes tab bar
     init() {
@@ -46,7 +47,8 @@ struct MainView: View {
                 )
                  */
                 HomeView(
-                    profileViewModel: profileViewModel, homeViewModel: homeViewModel, reflectionViewModel: reflectionViewModel, entryReflectionViewModel: entryReflectionViewModel, journalEntryViewModel: journalEntryViewModel
+                    profileViewModel: profileViewModel, homeViewModel: homeViewModel, reflectionViewModel: reflectionViewModel, entryReflectionViewModel: entryReflectionViewModel, journalEntryViewModel: journalEntryViewModel,
+                    gratitudeViewModel: gratitudeViewModel
                 )
                 .environmentObject(prayerViewModel)
             }

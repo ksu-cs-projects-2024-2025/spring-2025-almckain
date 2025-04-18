@@ -13,7 +13,7 @@ struct HomeView: View {
     @ObservedObject var reflectionViewModel: VerseReflectionViewModel
     @ObservedObject var entryReflectionViewModel: ReflectionViewModel
     @ObservedObject var journalEntryViewModel: JournalEntryViewModel
-    // @ObservedObject var prayerViewModel: PrayerViewModel
+    @ObservedObject var gratitudeViewModel: GratitudeViewModel
     @EnvironmentObject var prayerViewModel: PrayerViewModel
     
     @Environment(\.scenePhase) var scenePhase
@@ -45,8 +45,10 @@ struct HomeView: View {
                             
                             //PrayerCardView(prayerViewModel: prayerViewModel)
                             PrayerCardView()
+                            
+                            GratitudeCardView(gratitudeViewModel: gratitudeViewModel)
                         }
-                        .padding(.top, 15)
+                        .padding(.vertical, 15)
                     }
                     .navigationTitle("\(homeViewModel.fetchGreeting()), \(profileViewModel.user?.firstName ?? "Guest")")
                     .navigationBarTitleDisplayMode(.large)

@@ -1,0 +1,139 @@
+//
+//  GratitudeCardView.swift
+//  Hearth
+//
+//  Created by Aaron McKain on 4/17/25.
+//
+
+import SwiftUI
+
+struct GratitudeCardView: View {
+    @ObservedObject var gratitudeViewModel: GratitudeViewModel
+    @State private var isSheetPresented = false
+    @State private var currentPrompt: String = ""
+    @State private var promptSkipsRemaining = 3
+    @State private var promptIndex = 0
+    
+    init(gratitudeViewModel: GratitudeViewModel) {
+        self._gratitudeViewModel = ObservedObject(wrappedValue: gratitudeViewModel)
+        gratitudeViewModel.setupDailyPrompts()
+        let prompts = gratitudeViewModel.todaysPrompts
+        self._currentPrompt = State(initialValue: prompts.first ?? "")
+    }
+    
+    private var hasCompletedTodayGratitude: Bool {
+        gratitudeViewModel.hasTodayEntry()
+    }
+    
+    var body: some View {
+        CardView {
+            VStack {
+                HStack {
+                    Text("Moment of Gratitude")
+                        .font(.customTitle3)
+                        .foregroundStyle(.hearthEmberMain)
+                    Spacer()
+                    
+                    if hasCompletedTodayGratitude {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(.hearthEmberMain)
+                            .font(.title2)
+                    }
+                }
+                
+                CustomDivider(height: 2, color: .hearthEmberDark)
+                
+                VStack(spacing: 12) {
+                    if hasCompletedTodayGratitude {
+                        Text("You've completed a gratitude prompt today!")
+                            .font(.customBody1)
+                            .foregroundStyle(.parchmentDark)
+                            .multilineTextAlignment(.center)
+                    } else {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 15)
+                                .foregroundStyle(.parchmentLight)
+                            
+                            ZStack {
+                                Text(currentPrompt)
+                                    .font(.customBody1)
+                                    .foregroundStyle(.parchmentDark)
+                                    .padding()
+                                    .id(currentPrompt) // ensures transition triggers
+                                    .transition(.asymmetric(insertion: .move(edge: .trailing),
+                                                            removal: .move(edge: .leading)))
+                                    .animation(.easeInOut(duration: 0.25), value: currentPrompt)
+                            }
+                        }
+                        
+                        HStack(spacing: 12) {
+                            Button(action: {
+                                guard promptIndex > 0 else { return }
+                                withAnimation {
+                                    promptIndex -= 1
+                                    currentPrompt = gratitudeViewModel.todaysPrompts[promptIndex]
+                                }
+                            }) {
+                                Image(systemName: "arrow.backward.circle")
+                                    .foregroundStyle(promptIndex == 0 ? .parchmentMedium : .hearthEmberMain)
+                                    .font(.title2)
+                                    .scaleEffect(promptIndex == 0 ? 1.0 : 1.1)
+                                    .opacity(promptIndex == 0 ? 0.5 : 1.0)
+                            }
+                            .disabled(promptIndex == 0)
+                            
+                            Text("Skip")
+                                .foregroundStyle(.parchmentDark)
+                                .font(.customBody2)
+                            
+                            Button(action: {
+                                guard promptIndex < gratitudeViewModel.todaysPrompts.count - 1 else { return }
+                                withAnimation {
+                                    promptIndex += 1
+                                    currentPrompt = gratitudeViewModel.todaysPrompts[promptIndex]
+                                }
+                            }) {
+                                Image(systemName: "arrow.forward.circle")
+                                    .foregroundStyle(promptIndex == gratitudeViewModel.todaysPrompts.count - 1 ? .parchmentMedium : .hearthEmberMain)
+                                    .font(.title2)
+                                    .scaleEffect(promptIndex == gratitudeViewModel.todaysPrompts.count - 1 ? 1.0 : 1.1)
+                                    .opacity(promptIndex == gratitudeViewModel.todaysPrompts.count - 1 ? 0.5 : 1.0)
+                            }
+                            .disabled(promptIndex == gratitudeViewModel.todaysPrompts.count - 1)
+                            
+                        }
+                        .padding(.vertical, 6)
+                    }
+                    
+                    if hasCompletedTodayGratitude {
+                        Button {
+                            isSheetPresented = true
+                        } label: {
+                            Text("View Entry")
+                        }
+                    } else {
+                        // On the success we need to call markPromptCompleted from the viewmodel
+                        CapsuleButton(
+                            title: "Complete Prompt",
+                            style: .stroke,
+                            foregroundColor: .hearthEmberMain,
+                            backgroundColor: .hearthEmberMain,
+                            action: {
+                                isSheetPresented = true
+                            }
+                        )
+                    }
+                }
+            }
+            .sheet(isPresented: $isSheetPresented) {
+                Text("Complete prompt")
+            }
+        }
+    }
+}
+
+/*
+ #Preview {
+ GratitudeCardView()
+ }
+ */
