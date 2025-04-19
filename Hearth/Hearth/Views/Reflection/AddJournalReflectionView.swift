@@ -26,7 +26,7 @@ struct AddJournalReflectionView: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ZStack {
                 Color.warmSandLight
                     .ignoresSafeArea()

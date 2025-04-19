@@ -59,7 +59,7 @@ struct GratitudeCardView: View {
                                     .font(.customBody1)
                                     .foregroundStyle(.parchmentDark)
                                     .padding()
-                                    .id(currentPrompt) // ensures transition triggers
+                                    .id(currentPrompt)
                                     .transition(.asymmetric(insertion: .move(edge: .trailing),
                                                             removal: .move(edge: .leading)))
                                     .animation(.easeInOut(duration: 0.25), value: currentPrompt)
@@ -125,8 +125,13 @@ struct GratitudeCardView: View {
                     }
                 }
             }
-            .sheet(isPresented: $isSheetPresented) {
-                Text("Complete prompt")
+            .customSheet(isPresented: $isSheetPresented) {
+                let entry: GratitudeModel = GratitudeModel(id: "", userID: "", timeStamp: Date(), prompt: currentPrompt, content: "")
+                
+                AddGratitudePromptView(gratitudeViewModel: gratitudeViewModel, entry: entry, isEditing: false)
+            }
+            .onAppear {
+                gratitudeViewModel.fetchEntries(forMonth: Date())
             }
         }
     }
