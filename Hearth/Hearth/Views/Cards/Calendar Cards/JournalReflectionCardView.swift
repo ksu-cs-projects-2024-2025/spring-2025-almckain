@@ -37,7 +37,6 @@ struct JournalReflectionCardView: View {
                     }
                     
                     CustomDivider(height: 2, color: .hearthEmberDark)
-                        .padding(.trailing, 20)
                     
                     Text(reflection.reflectionContent)
                         .font(.customBody2)

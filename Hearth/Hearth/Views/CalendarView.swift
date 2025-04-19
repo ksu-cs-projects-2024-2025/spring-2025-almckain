@@ -13,22 +13,20 @@ struct CalendarView: View {
     @ObservedObject var calendarViewModel: CalendarViewModel
     @ObservedObject var reflectionViewModel: VerseReflectionViewModel
     @ObservedObject var journalReflectionViewModel: ReflectionViewModel
-    // @ObservedObject var prayerViewModel: PrayerViewModel
+    @ObservedObject var gratitudeViewModel: GratitudeViewModel
     @EnvironmentObject var prayerViewModel: PrayerViewModel
     
     @State private var isPresented: Bool = false
     
     var body: some View {
-        ZStack {
-            Color.parchmentLight
-                .ignoresSafeArea()
-            NavigationStack {
+        NavigationStack {
+            ZStack {
+                Color.parchmentLight
+                    .ignoresSafeArea()
+                
                 ScrollView {
                     LazyVStack(spacing: 15) {
-                        /*
-                        CalendarCardView(calendarViewModel: calendarViewModel, prayerViewModel: prayerViewModel)
-                         */
-                        CalendarCardView(calendarViewModel: calendarViewModel)
+                        CalendarCardView(calendarViewModel: calendarViewModel, gratitudeViewModel: gratitudeViewModel)
                         
                         Button(action: {
                             isPresented.toggle()
@@ -57,9 +55,11 @@ struct CalendarView: View {
                 
                 .navigationDestination(for: Date.self) { date in
                     /*
-                    EntryDayListView(selectedDate: date, calendarViewModel: calendarViewModel, journalEntryViewModel: journalEntryViewModel, reflectionViewModel: reflectionViewModel, journalReflectionViewModel: journalReflectionViewModel, prayerViewModel: prayerViewModel)
+                     EntryDayListView(selectedDate: date, calendarViewModel: calendarViewModel, journalEntryViewModel: journalEntryViewModel, reflectionViewModel: reflectionViewModel, journalReflectionViewModel: journalReflectionViewModel, prayerViewModel: prayerViewModel)
                      */
-                    EntryDayListView(selectedDate: date, calendarViewModel: calendarViewModel, journalEntryViewModel: journalEntryViewModel, reflectionViewModel: reflectionViewModel, journalReflectionViewModel: journalReflectionViewModel)
+                    EntryDayListView(
+                        selectedDate: date, calendarViewModel: calendarViewModel, journalEntryViewModel: journalEntryViewModel, reflectionViewModel: reflectionViewModel, journalReflectionViewModel: journalReflectionViewModel, gratitudeViewModel: gratitudeViewModel
+                    )
                 }
             }
         }

@@ -60,7 +60,7 @@ struct MainView: View {
                 )
                  */
                 CalendarView(
-                    journalEntryViewModel: journalEntryViewModel, calendarViewModel: calendarViewModel, reflectionViewModel: reflectionViewModel, journalReflectionViewModel: entryReflectionViewModel
+                    journalEntryViewModel: journalEntryViewModel, calendarViewModel: calendarViewModel, reflectionViewModel: reflectionViewModel, journalReflectionViewModel: entryReflectionViewModel, gratitudeViewModel: gratitudeViewModel
                 )
                 .environmentObject(prayerViewModel)
             }

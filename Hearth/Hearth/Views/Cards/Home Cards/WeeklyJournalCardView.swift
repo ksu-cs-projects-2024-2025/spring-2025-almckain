@@ -54,21 +54,13 @@ struct WeeklyJournalCardView: View {
                     if hasTodayEntry {
                         HStack(spacing: 24) {
                             NavigationLink {
-                                /*
                                 EntryDayListView(
                                     selectedDate: Date(),
                                     calendarViewModel: CalendarViewModel(),
                                     journalEntryViewModel: JournalEntryViewModel(),
                                     reflectionViewModel: VerseReflectionViewModel(),
-                                    journalReflectionViewModel: ReflectionViewModel(), prayerViewModel: PrayerViewModel()
-                                )
-                                 */
-                                EntryDayListView(
-                                    selectedDate: Date(),
-                                    calendarViewModel: CalendarViewModel(),
-                                    journalEntryViewModel: JournalEntryViewModel(),
-                                    reflectionViewModel: VerseReflectionViewModel(),
-                                    journalReflectionViewModel: ReflectionViewModel()
+                                    journalReflectionViewModel: ReflectionViewModel(),
+                                    gratitudeViewModel: GratitudeViewModel()
                                 )
                             } label: {
                                 Text("View Today")

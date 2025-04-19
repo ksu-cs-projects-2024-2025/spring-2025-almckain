@@ -13,7 +13,7 @@ struct EntryDayListView: View {
     @StateObject var journalEntryViewModel: JournalEntryViewModel
     @ObservedObject var reflectionViewModel: VerseReflectionViewModel
     @ObservedObject var journalReflectionViewModel: ReflectionViewModel
-    //@ObservedObject var prayerViewModel: PrayerViewModel
+    @ObservedObject var gratitudeViewModel: GratitudeViewModel
     @EnvironmentObject var prayerViewModel: PrayerViewModel
 
     @State private var showAddJournalSheet: Bool = false
@@ -26,6 +26,11 @@ struct EntryDayListView: View {
         }
     }
 
+    private var gratitudeEntriesForDay: [GratitudeModel] {
+        gratitudeViewModel.allEntries.filter {
+            Calendar.current.isDate($0.timeStamp, inSameDayAs: selectedDate)
+        }
+    }
     
     var body: some View {
         ZStack {
@@ -72,10 +77,13 @@ struct EntryDayListView: View {
                                     selectedDate: selectedDate
                                 )
                             }
-                             
+                            
+                            ForEach(gratitudeEntriesForDay, id: \.id) { entry in
+                                GratitudeCalendarCardView(gratitudeViewModel: gratitudeViewModel, entry: entry)
+                            }
 
                         }
-                        .padding(.top, 15)
+                        .padding(.vertical, 15)
                     }
                 }
             }

@@ -10,7 +10,7 @@ import SwiftUI
 struct CalendarCardView: View {
     
     @ObservedObject var calendarViewModel: CalendarViewModel
-    //@ObservedObject var prayerViewModel: PrayerViewModel
+    @ObservedObject var gratitudeViewModel: GratitudeViewModel
     @EnvironmentObject var prayerViewModel: PrayerViewModel
     
     @State private var days: [Date] = []
@@ -53,9 +53,15 @@ struct CalendarCardView: View {
                             let hasReflection = !(calendarViewModel.monthReflections[dayStart, default: []].isEmpty)
                             let isFutureDay = dayStart > Date().startOfDay
                             let isToday = dayStart == Date().startOfDay
-                            let hasActivity = hasEntries || hasReflection
+                            let hasGratitude = gratitudeViewModel.allEntries.contains {
+                                Calendar.current.isDate($0.timeStamp, inSameDayAs: dayStart)
+                            }
+                            
+                            let hasActivity = hasEntries || hasReflection || hasGratitude
                             
                             let hasPrayer = !prayerViewModel.prayers(for: dayStart).isEmpty
+                           
+
                             
                             NavigationLink(value: day) {
                                 ZStack {
@@ -116,8 +122,8 @@ struct CalendarCardView: View {
             days = date.calendarDisplayDays
             calendarViewModel.fetchEntriesInMonth(date)
             calendarViewModel.fetchReflectionsInMonth(date)
-            
             prayerViewModel.fetchPrayers(forMonth: date)
+            gratitudeViewModel.fetchEntries(forMonth: date)
             
             let appearance = calendarViewModel.navBarAppearance()
             UINavigationBar.appearance().standardAppearance = appearance
@@ -127,7 +133,8 @@ struct CalendarCardView: View {
             days = newValue.calendarDisplayDays
             calendarViewModel.fetchEntriesInMonth(newValue)
             calendarViewModel.fetchReflectionsInMonth(newValue)
-            prayerViewModel.fetchPrayers(forMonth: date)
+            prayerViewModel.fetchPrayers(forMonth: newValue)
+            gratitudeViewModel.fetchEntries(forMonth: newValue)
         }
     }
 }

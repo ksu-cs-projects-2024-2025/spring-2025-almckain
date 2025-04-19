@@ -38,7 +38,6 @@ struct ReflectionEntryCardView: View {
                     }
                     
                     CustomDivider(height: 2, color: .hearthEmberDark)
-                        .padding(.trailing, 20)
                     
                     Text("\(reflectionEntry.bibleVerseText.replacingOccurrences(of: "\n", with: " "))")
                         .font(.customHeadline2)
