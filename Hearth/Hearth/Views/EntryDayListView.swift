@@ -61,42 +61,15 @@ struct EntryDayListView: View {
                         .padding()
                 } else {
                     ScrollView {
-                        HStack(spacing: 5) {
-                            ForEach(availableFilters) { filter in
-                                Button {
-                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                                        if selectedFilters.contains(filter) {
-                                            selectedFilters.remove(filter)
-                                        } else {
-                                            selectedFilters.insert(filter)
-                                        }
-                                    }
-                                } label: {
-                                    ZStack {
-                                        if selectedFilters.contains(filter) {
-                                            Capsule()
-                                                .fill(Color.hearthEmberMain)
-                                                .matchedGeometryEffect(id: filter, in: filterChipAnimation)
-                                        } else {
-                                            Capsule()
-                                                .fill(Color.white)
-                                                .stroke(Color.hearthEmberLight, lineWidth: 2)
-                                        }
-                                        
-                                        Text(filter.label)
-                                            .font(.customBody2)
-                                            .foregroundStyle(selectedFilters.contains(filter) ? Color.parchmentLight : Color.hearthEmberLight)
-                                            .padding(.horizontal, 12)
-                                            .padding(.vertical, 6)
-                                    }
-                                    .scaleEffect(selectedFilters.contains(filter) ? 1.05 : 1.0)
-                                    .animation(.spring(response: 0.3, dampingFraction: 0.8), value: selectedFilters.contains(filter))
-                                }
-                                .padding(.horizontal, 5)
-                            }
-                            
+                        
+                        ChipsView(tags: availableFilters) { tag, isSelected in
+                            /// Your custom view
+                            chipView(tag, isSelected: isSelected)
+                        } didChangeSelection: { selection in
+                            selectedFilters = Set(selection)
                         }
-                        .padding(.top, 15)
+                        .padding(10)
+                        .background(.clear)
                         
                         LazyVStack(spacing: 15) {
                             
@@ -146,7 +119,8 @@ struct EntryDayListView: View {
                             }
                             
                         }
-                        .padding(.vertical, 15)
+                        .padding(.bottom, 15)
+                        .animation(.spring(response: 0.35, dampingFraction: 0.85), value: selectedFilters)
                     }
                 }
             }
@@ -196,6 +170,38 @@ struct EntryDayListView: View {
             UINavigationBar.appearance().scrollEdgeAppearance = appearance
             UINavigationBar.appearance().compactAppearance = appearance
             UINavigationBar.appearance().tintColor = UIColor(named: "HearthEmberMain")
+        }
+    }
+    
+    @ViewBuilder
+    func chipView(_ tag: EntryType, isSelected: Bool) -> some View {
+        HStack(spacing: 10) {
+            Text(tag.label)
+                .font(.callout)
+                .foregroundStyle(isSelected ? .white : Color.hearthEmberLight)
+            
+            if isSelected {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundStyle(.white)
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background{
+            ZStack {
+                Capsule()
+                    .fill(.white)
+                    .stroke(Color.hearthEmberLight, lineWidth: 2)
+                    .opacity(isSelected ? 0 : 1)
+                
+                Capsule()
+                    .fill(Color.hearthEmberMain)
+                    .opacity(isSelected ? 1 : 0)
+                    .shadow(color: Color.hearthEmberDark.opacity(0.25), radius: 3, x: 0, y: 1)
+            }
+            .animation(.easeInOut(duration: 0.1), value: isSelected)
+            .scaleEffect(isSelected ? 1.05 : 1.0)
+            .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isSelected)
         }
     }
 }
