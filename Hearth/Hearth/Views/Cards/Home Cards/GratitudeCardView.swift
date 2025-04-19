@@ -128,7 +128,11 @@ struct GratitudeCardView: View {
             .customSheet(isPresented: $isSheetPresented) {
                 let entry: GratitudeModel = GratitudeModel(id: "", userID: "", timeStamp: Date(), prompt: currentPrompt, content: "")
                 
-                AddGratitudePromptView(gratitudeViewModel: gratitudeViewModel, entry: entry, isEditing: false)
+                if hasCompletedTodayGratitude {
+                    DetailedGratitudeView(gratitudeViewModel: gratitudeViewModel, entry: gratitudeViewModel.todayEntry ?? entry)
+                } else {
+                    AddGratitudePromptView(gratitudeViewModel: gratitudeViewModel, entry: entry, isEditing: false)
+                }
             }
             .onAppear {
                 gratitudeViewModel.fetchEntries(forMonth: Date())

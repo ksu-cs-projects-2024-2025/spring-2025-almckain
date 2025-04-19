@@ -77,9 +77,9 @@ struct AddGratitudePromptView: View {
                         
                         Button(action: {
                             let updatedEntry = GratitudeModel(
-                                id: "",
-                                userID: "",
-                                timeStamp: Date(),
+                                id: entry.id,
+                                userID: entry.userID,
+                                timeStamp: entry.timeStamp,
                                 prompt: entry.prompt,
                                 content: content
                             )
@@ -94,7 +94,7 @@ struct AddGratitudePromptView: View {
                             }
                             
                             if isEditing {
-                                
+                                gratitudeViewModel.updateGratitude(updatedEntry, completion: completion)
                             } else {
                                 gratitudeViewModel.saveEntry(prompt: updatedEntry.prompt, content: content, completion: completion)
                             }

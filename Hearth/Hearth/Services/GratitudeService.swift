@@ -65,4 +65,30 @@ class GratitudeService {
                 completion(false)
             }
         }
+    
+    func updateGratitude(_ entry: GratitudeModel, completion: @escaping (Result<Void, Error>) -> Void) {
+        do {
+            try db.collection(collection)
+                .document(entry.id)
+                .setData(from: entry, merge: true) { error in
+                    if let error = error {
+                        completion(.failure(error))
+                    } else {
+                        completion(.success(()))
+                    }
+                }
+        } catch {
+            completion(.failure(error))
+        }
+    }
+    
+    func deleteGratitude(entryID: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        db.collection(collection).document(entryID).delete { error in
+            if let error = error {
+                completion(.failure(error))
+            } else {
+                completion(.success(()))
+            }
+        }
+    }
 }

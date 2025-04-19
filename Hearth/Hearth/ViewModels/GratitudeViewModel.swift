@@ -92,6 +92,49 @@ class GratitudeViewModel: ObservableObject {
         }
     }
     
+    func updateGratitude(_ entry: GratitudeModel, completion: @escaping (Bool) -> Void) {
+        service.updateGratitude(entry) { result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success:
+                    if let index = self.allEntries.firstIndex(where: { $0.id == entry.id }) {
+                        self.allEntries[index] = entry
+                    }
+                    
+                    DispatchQueue.main.async {
+                        completion(true)
+                    }
+                case .failure(let error):
+                    print("ERROR UPDATING GRATITUDE: \(error)")
+                    DispatchQueue.main.async {
+                        completion(false)
+                    }
+                }
+            }
+        }
+    }
+    
+    func deleteGratitude(entryID: String, completion: @escaping (Bool) -> Void) {
+        service.deleteGratitude(entryID: entryID) { result in
+            switch result {
+            case .success:
+                if let index = self.allEntries.firstIndex(where: { $0.id == entryID }) {
+                    self.allEntries.remove(at: index)
+                    self.todayEntry = nil
+                }
+                
+                DispatchQueue.main.async {
+                    completion(true)
+                }
+            case .failure(let error):
+                print("ERROR DELETING GRATITUDE: \(error)")
+                DispatchQueue.main.async {
+                    completion(false)
+                }
+            }
+        }
+    }
+    
     func setupDailyPrompts() {
         let today = Calendar.current.startOfDay(for: Date())
         let storedDate = userDefaults.object(forKey: lastDateKey) as? Date ?? Date()
