@@ -15,9 +15,25 @@ struct EntryDayListView: View {
     @ObservedObject var journalReflectionViewModel: ReflectionViewModel
     @ObservedObject var gratitudeViewModel: GratitudeViewModel
     @EnvironmentObject var prayerViewModel: PrayerViewModel
-
+    
     @State private var showAddJournalSheet: Bool = false
     @State private var showAddPrayerSheet = false
+    @State private var selectedFilters: Set<EntryType> = []
+    
+    @Namespace private var filterChipAnimation
+    
+    private var availableFilters: [EntryType] {
+        var filters: [EntryType] = []
+        if !calendarViewModel.entries.isEmpty { filters.append(.journal) }
+        if !reflectionViewModel.fetchedReflections.isEmpty { filters.append(.bibleVerseReflection) }
+        if !journalReflectionViewModel.reflections.filter({ Calendar.current.isDate($0.reflectionTimestamp, inSameDayAs: selectedDate) }).isEmpty {
+            filters.append(.selfReflection)
+        }
+        if !prayersForDay.isEmpty { filters.append(.prayerReminder) }
+        if !gratitudeEntriesForDay.isEmpty { filters.append(.gratitude) }
+        return filters
+    }
+    
     
     private var prayersForDay: [PrayerModel] {
         prayerViewModel.prayers(for: selectedDate).filter { prayer in
@@ -25,7 +41,7 @@ struct EntryDayListView: View {
             return hasContent || !prayer.completed
         }
     }
-
+    
     private var gratitudeEntriesForDay: [GratitudeModel] {
         gratitudeViewModel.allEntries.filter {
             Calendar.current.isDate($0.timeStamp, inSameDayAs: selectedDate)
@@ -45,43 +61,90 @@ struct EntryDayListView: View {
                         .padding()
                 } else {
                     ScrollView {
+                        HStack(spacing: 5) {
+                            ForEach(availableFilters) { filter in
+                                Button {
+                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                        if selectedFilters.contains(filter) {
+                                            selectedFilters.remove(filter)
+                                        } else {
+                                            selectedFilters.insert(filter)
+                                        }
+                                    }
+                                } label: {
+                                    ZStack {
+                                        if selectedFilters.contains(filter) {
+                                            Capsule()
+                                                .fill(Color.hearthEmberMain)
+                                                .matchedGeometryEffect(id: filter, in: filterChipAnimation)
+                                        } else {
+                                            Capsule()
+                                                .fill(Color.white)
+                                                .stroke(Color.hearthEmberLight, lineWidth: 2)
+                                        }
+                                        
+                                        Text(filter.label)
+                                            .font(.customBody2)
+                                            .foregroundStyle(selectedFilters.contains(filter) ? Color.parchmentLight : Color.hearthEmberLight)
+                                            .padding(.horizontal, 12)
+                                            .padding(.vertical, 6)
+                                    }
+                                    .scaleEffect(selectedFilters.contains(filter) ? 1.05 : 1.0)
+                                    .animation(.spring(response: 0.3, dampingFraction: 0.8), value: selectedFilters.contains(filter))
+                                }
+                                .padding(.horizontal, 5)
+                            }
+                            
+                        }
+                        .padding(.top, 15)
+                        
                         LazyVStack(spacing: 15) {
-                            ForEach(calendarViewModel.entries, id: \.id) { entry in
-                                JournalEntryCardView(
-                                    journalEntry: entry,
-                                    calendarViewModel: calendarViewModel,
-                                    journalEntryViewModel: journalEntryViewModel,
-                                    selectedDate: selectedDate
-                                )
+                            
+                            if selectedFilters.isEmpty || selectedFilters.contains(.journal) {
+                                ForEach(calendarViewModel.entries, id: \.id) { entry in
+                                    JournalEntryCardView(
+                                        journalEntry: entry,
+                                        calendarViewModel: calendarViewModel,
+                                        journalEntryViewModel: journalEntryViewModel,
+                                        selectedDate: selectedDate
+                                    )
+                                }
                             }
                             
-                            ForEach(reflectionViewModel.fetchedReflections, id: \.id) { reflection in
-                                ReflectionEntryCardView(
-                                    reflectionEntry: reflection,
-                                    reflectionViewModel: reflectionViewModel,
-                                    selectedDate: selectedDate)
+                            if selectedFilters.isEmpty || selectedFilters.contains(.bibleVerseReflection) {
+                                ForEach(reflectionViewModel.fetchedReflections, id: \.id) { reflection in
+                                    ReflectionEntryCardView(
+                                        reflectionEntry: reflection,
+                                        reflectionViewModel: reflectionViewModel,
+                                        selectedDate: selectedDate)
+                                }
                             }
                             
-                            ForEach(journalReflectionViewModel.reflections.filter {
-                                Calendar.current.isDate($0.reflectionTimestamp, inSameDayAs: selectedDate)
-                                && !$0.reflectionContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                            }, id: \.id) { reflection in
-                                JournalReflectionCardView(reflection: reflection,
-                                                          reflectionViewModel: journalReflectionViewModel)
-                            }
-
-                            
-                            if !prayersForDay.isEmpty {
-                                PrayerCalendarCardView(
-                                    prayerViewModel: prayerViewModel,
-                                    selectedDate: selectedDate
-                                )
+                            if selectedFilters.isEmpty || selectedFilters.contains(.selfReflection) {
+                                ForEach(journalReflectionViewModel.reflections.filter {
+                                    Calendar.current.isDate($0.reflectionTimestamp, inSameDayAs: selectedDate)
+                                    && !$0.reflectionContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                                }, id: \.id) { reflection in
+                                    JournalReflectionCardView(reflection: reflection,
+                                                              reflectionViewModel: journalReflectionViewModel)
+                                }
                             }
                             
-                            ForEach(gratitudeEntriesForDay, id: \.id) { entry in
-                                GratitudeCalendarCardView(gratitudeViewModel: gratitudeViewModel, entry: entry)
+                            if selectedFilters.isEmpty || selectedFilters.contains(.prayerReminder) {
+                                if !prayersForDay.isEmpty {
+                                    PrayerCalendarCardView(
+                                        prayerViewModel: prayerViewModel,
+                                        selectedDate: selectedDate
+                                    )
+                                }
                             }
-
+                            
+                            if selectedFilters.isEmpty || selectedFilters.contains(.gratitude) {
+                                ForEach(gratitudeEntriesForDay, id: \.id) { entry in
+                                    GratitudeCalendarCardView(gratitudeViewModel: gratitudeViewModel, entry: entry)
+                                }
+                            }
+                            
                         }
                         .padding(.vertical, 15)
                     }
@@ -94,7 +157,7 @@ struct EntryDayListView: View {
             .customSheet(isPresented: $showAddPrayerSheet) {
                 AddPrayerSheetView(prayerViewModel: prayerViewModel)
             }
-
+            
         }
         .navigationTitle(selectedDate.formatted(.dateTime.month(.abbreviated).day().year()))
         .navigationBarTitleDisplayMode(.inline)
@@ -127,7 +190,7 @@ struct EntryDayListView: View {
             if !prayerViewModel.prayers.contains(where: { Calendar.current.isDate($0.timeStamp, inSameDayAs: selectedDate) }) {
                 prayerViewModel.fetchPrayers(forMonth: selectedDate)
             }
-
+            
             let appearance = calendarViewModel.navBarAppearance()
             UINavigationBar.appearance().standardAppearance = appearance
             UINavigationBar.appearance().scrollEdgeAppearance = appearance
@@ -137,7 +200,7 @@ struct EntryDayListView: View {
     }
 }
 /*
-#Preview {
-    EntryDayListView(selectedDate: Date(), calendarViewModel: CalendarViewModel(), journalEntryViewModel: JournalEntryViewModel())
-}
-*/
+ #Preview {
+ EntryDayListView(selectedDate: Date(), calendarViewModel: CalendarViewModel(), journalEntryViewModel: JournalEntryViewModel())
+ }
+ */
