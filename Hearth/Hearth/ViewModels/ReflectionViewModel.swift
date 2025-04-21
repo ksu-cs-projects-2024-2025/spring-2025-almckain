@@ -18,6 +18,10 @@ class ReflectionViewModel: ObservableObject {
     private let reflectionService = ReflectionEntryService()
     private let journalEntryService = EntryService()
     
+    var highestSpireReflection: JournalReflectionModel? {
+        reflections.max(by: { $0.spireScore < $1.spireScore })
+    }
+    
     func saveReflection(_ reflection: JournalReflectionModel, completion: @escaping (Bool) -> Void) {
         isSaving = true
         reflectionService.saveReflection(reflection) { result in

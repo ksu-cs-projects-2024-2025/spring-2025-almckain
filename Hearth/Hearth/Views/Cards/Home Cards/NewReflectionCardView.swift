@@ -19,9 +19,7 @@ struct NewReflectionCardView: View {
     @ObservedObject var reflectionViewModel: ReflectionViewModel
     
     var todayReflection: JournalReflectionModel? {
-        reflectionViewModel.reflections.first { reflection in
-            Calendar.current.isDateInToday(reflection.reflectionTimestamp)
-        }
+        reflectionViewModel.highestSpireReflection
     }
     
     var body: some View {
