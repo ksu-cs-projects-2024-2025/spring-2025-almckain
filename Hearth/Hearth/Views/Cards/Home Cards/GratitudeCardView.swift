@@ -13,6 +13,7 @@ struct GratitudeCardView: View {
     @State private var currentPrompt: String = ""
     @State private var promptSkipsRemaining = 3
     @State private var promptIndex = 0
+    @State private var animationDirection: Edge = .trailing
     
     init(gratitudeViewModel: GratitudeViewModel) {
         self._gratitudeViewModel = ObservedObject(wrappedValue: gratitudeViewModel)
@@ -60,8 +61,10 @@ struct GratitudeCardView: View {
                                     .foregroundStyle(.parchmentDark)
                                     .padding()
                                     .id(currentPrompt)
-                                    .transition(.asymmetric(insertion: .move(edge: .trailing),
-                                                            removal: .move(edge: .leading)))
+                                    .transition(.asymmetric(
+                                        insertion: .move(edge: animationDirection),
+                                        removal: .move(edge: animationDirection == .trailing ? .leading : .trailing)
+                                    ))
                                     .animation(.easeInOut(duration: 0.25), value: currentPrompt)
                             }
                         }
@@ -69,6 +72,7 @@ struct GratitudeCardView: View {
                         HStack(spacing: 12) {
                             Button(action: {
                                 guard promptIndex > 0 else { return }
+                                animationDirection = .leading
                                 withAnimation {
                                     promptIndex -= 1
                                     currentPrompt = gratitudeViewModel.todaysPrompts[promptIndex]
@@ -88,6 +92,7 @@ struct GratitudeCardView: View {
                             
                             Button(action: {
                                 guard promptIndex < gratitudeViewModel.todaysPrompts.count - 1 else { return }
+                                animationDirection = .trailing
                                 withAnimation {
                                     promptIndex += 1
                                     currentPrompt = gratitudeViewModel.todaysPrompts[promptIndex]
