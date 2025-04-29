@@ -78,4 +78,25 @@ class ProfileViewModel: ObservableObject {
             }
         }
     }
+    
+    func reauthenticateAndDelete(password: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        guard let user = Auth.auth().currentUser,
+              let email = user.email else {
+            let err = NSError(domain: "Auth", code: 0,
+                              userInfo: [NSLocalizedDescriptionKey: "No signed-in user"])
+            return completion(.failure(err))
+        }
+        
+        let credential = EmailAuthProvider.credential(
+            withEmail: email,
+            password: password
+        )
+        
+        user.reauthenticate(with: credential) { _, error in
+            if let error = error {
+                return completion(.failure(error))
+            }
+            self.deleteAccount(completion: completion)
+        }
+    }
 }

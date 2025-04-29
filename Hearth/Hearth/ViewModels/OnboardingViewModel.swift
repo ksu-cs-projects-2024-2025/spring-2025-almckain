@@ -20,10 +20,16 @@ class OnboardingViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var isLoading: Bool = false
     @AppStorage("isOnboardingComplete") private var isOnboardingComplete: Bool = false
-
+    
     private let userService = UserService()
     
     func registerUser(completion: @escaping (Bool) -> Void) {
+        firstName = firstName.trimmingCharacters(in: .whitespacesAndNewlines)
+        lastName = lastName.trimmingCharacters(in: .whitespacesAndNewlines)
+        email = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        password = password.trimmingCharacters(in: .whitespacesAndNewlines)
+        confirmPassword = confirmPassword.trimmingCharacters(in: .whitespacesAndNewlines)
+        
         guard !firstName.isEmpty, !lastName.isEmpty, !email.isEmpty, !password.isEmpty, !confirmPassword.isEmpty else {
             errorMessage = "Please fill in all fields"
             completion(false)
@@ -43,7 +49,7 @@ class OnboardingViewModel: ObservableObject {
         }
         
         isLoading = true
-
+        
         userService.registerUser(firstName: firstName, lastName: lastName, email: email, password: password) { result in
             DispatchQueue.main.async {
                 self.isLoading = false
@@ -66,7 +72,7 @@ class OnboardingViewModel: ObservableObject {
         }
         
         isLoading = true
-
+        
         userService.loginUser(email: email, password: password) { result in
             DispatchQueue.main.async {
                 self.isLoading = false
@@ -82,11 +88,26 @@ class OnboardingViewModel: ObservableObject {
     
     var isFormValid: Bool {
         return !firstName.isEmpty &&
-               !lastName.isEmpty &&
-               !email.isEmpty &&
-               !password.isEmpty &&
-               !confirmPassword.isEmpty &&
-               hasAgreedToPrivacyPolicy
+        !lastName.isEmpty &&
+        !email.isEmpty &&
+        !password.isEmpty &&
+        !confirmPassword.isEmpty &&
+        hasAgreedToPrivacyPolicy
     }
-
+    
+    func completeOnboarding() {
+        isLoading = true
+        userService.completeUserOnboarding { result in
+            DispatchQueue.main.async {
+                self.isLoading = false
+                switch result {
+                case .success:
+                    self.isOnboardingComplete = true
+                case .failure(let error):
+                    self.errorMessage = error.localizedDescription
+                }
+            }
+        }
+    }
+    
 }

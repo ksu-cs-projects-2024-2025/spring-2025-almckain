@@ -149,6 +149,4 @@ class JournalEntryViewModel: ObservableObject {
         guard let firstLetter = short.first else { return "" }
         return String(firstLetter).capitalized
     }
-    
-    // Other functions eventually
 }

@@ -12,4 +12,5 @@ struct UserModel: Codable {
     let firstName: String
     let lastName: String
     let email: String
+    var isOnboardingComplete: Bool = false
 }

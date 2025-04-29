@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct SignupView: View {
-    @StateObject private var viewModel = OnboardingViewModel()
+    @StateObject var viewModel: OnboardingViewModel
     @FocusState private var focusedField: Field?
     @Binding var currentStep: Int
     

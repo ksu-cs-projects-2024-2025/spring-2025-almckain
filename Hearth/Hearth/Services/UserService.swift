@@ -24,7 +24,7 @@ class UserService {
                 return
             }
             
-            let newUser = UserModel(id: user.uid, firstName: firstName, lastName: lastName, email: email)
+            let newUser = UserModel(id: user.uid, firstName: firstName, lastName: lastName, email: email, isOnboardingComplete: false)
             self.createUserDocument(newUser, completion: completion)
         }
     }
@@ -44,10 +44,29 @@ class UserService {
             "id": user.id,
             "firstName": user.firstName,
             "lastName": user.lastName,
-            "email": user.email
+            "email": user.email,
+            "isOnboardingComplete": user.isOnboardingComplete
         ]
         
         db.collection("users").document(user.id).setData(userData) { error in
+            if let error = error {
+                completion(.failure(error))
+            } else {
+                completion(.success(()))
+            }
+        }
+    }
+    
+    func completeUserOnboarding(completion: @escaping (Result<Void, Error>) -> Void) {
+        guard let user = Auth.auth().currentUser else {
+            completion(.failure(NSError(domain: "UserService", code: 1, userInfo: [NSLocalizedDescriptionKey: "No user logged in."])))
+            return
+        }
+        
+        let db = Firestore.firestore()
+        db.collection("users").document(user.uid).updateData([
+            "isOnboardingComplete": true
+        ]) { error in
             if let error = error {
                 completion(.failure(error))
             } else {
