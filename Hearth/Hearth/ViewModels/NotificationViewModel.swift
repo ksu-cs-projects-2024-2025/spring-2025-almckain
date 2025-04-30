@@ -9,17 +9,16 @@ import SwiftUI
 import UserNotifications
 
 class NotificationViewModel: ObservableObject {
+    @AppStorage("isJournalReminderEnabled") var isJournalReminderEnabled = true
+    @AppStorage("isBibleVerseReminderEnabled") var isBibleVerseReminderEnabled = true
+    @AppStorage("isWeeklyReflectionReminderEnabled") var isWeeklyReflectionReminderEnabled = true
+    
     @Published var notificationsEnabled = false
     @Published var dailyJournalTime = Date()
     @Published var bibleVerseTime = Date()
     @Published var showNotificationAlert = false
     @Published var weeklyReflectionTime = Date()
-    
     @Published var shouldShowReflectionCard = true
-    
-    @Published var isJournalReminderEnabled: Bool = true
-    @Published var isBibleVerseReminderEnabled: Bool = true
-    @Published var isWeeklyReflectionReminderEnabled: Bool = true
     
     @AppStorage("didAnimateInThisSunday") var didAnimateInThisSunday = false
     @AppStorage("didAnimateOutThisMonday") var didAnimateOutThisMonday = false
@@ -31,14 +30,7 @@ class NotificationViewModel: ObservableObject {
     
     
     init() {
-        UserDefaults.standard.register(defaults: [
-          "isJournalReminderEnabled": true,
-          "isBibleVerseReminderEnabled": true,
-          "isWeeklyReflectionReminderEnabled": true
-        ])
-        //checkNotificationStatus()
-        loadSavedReminderTimes()
-        loadReminderSettings()
+        loadReminderTimes()
         FirebaseNotificationService.shared.registerFCMToken()
         
         NotificationCenter.default.addObserver(self,
@@ -168,13 +160,33 @@ class NotificationViewModel: ObservableObject {
             scheduleWeeklyReflectionNotification(date: weeklyReflectionTime)
         } else {
             UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ["weeklyReflectionReminder"])
-
         }
         
         saveReminderTimes()
-        saveReminderSettings()
     }
-
+    
+    func saveReminderTimes() {
+        UserDefaults.standard.set(dailyJournalTime, forKey: "DailyJournalReminderTime")
+        UserDefaults.standard.set(bibleVerseTime, forKey: "BibleVerseReminderTime")
+        UserDefaults.standard.set(weeklyReflectionTime, forKey: "WeeklyReflectionReminderTime")
+    }
+    
+    func loadReminderTimes() {
+        if let journalTime = UserDefaults.standard.object(forKey: "DailyJournalReminderTime") as? Date {
+            dailyJournalTime = journalTime
+        }
+        
+        if let verseTime = UserDefaults.standard.object(forKey: "BibleVerseReminderTime") as? Date {
+            bibleVerseTime = verseTime
+        }
+        
+        if let reflectionTime = UserDefaults.standard.object(forKey: "WeeklyReflectionReminderTime") as? Date {
+            weeklyReflectionTime = reflectionTime
+        } else {
+            weeklyReflectionTime = Calendar.current.date(bySettingHour: 9, minute: 0, second: 0, of: Date()) ?? Date()
+        }
+    }
+    
     func scheduleBibleVerseNotification() {
         let verseReference = UserDefaults.standard.string(forKey: "SavedBibleReference") ?? "New Bible Verse"
         
@@ -235,30 +247,6 @@ class NotificationViewModel: ObservableObject {
         }
     }
     
-    public func saveReminderTimes() {
-        UserDefaults.standard.set(dailyJournalTime, forKey: "DailyJournalReminderTime")
-        UserDefaults.standard.set(bibleVerseTime, forKey: "BibleVerseReminderTime")
-        UserDefaults.standard.set(weeklyReflectionTime, forKey: "WeeklyReflectionReminderTime")
-    }
-    
-    private func loadSavedReminderTimes() {
-        if let journalTime = UserDefaults.standard.object(forKey: "DailyJournalReminderTime") as? Date {
-            dailyJournalTime = journalTime
-        }
-        
-        if let verseTime = UserDefaults.standard.object(forKey: "BibleVerseReminderTime") as? Date {
-            bibleVerseTime = verseTime
-        }
-        
-        // FOR THE ALGORITHM
-        if let reflectionTime = UserDefaults.standard.object(forKey: "WeeklyReflectionReminderTime") as? Date {
-            weeklyReflectionTime = reflectionTime
-        } else {
-            // Default reflection time should (finger crossed) be 9am
-            weeklyReflectionTime = Calendar.current.date(bySettingHour: 9, minute: 0, second: 0, of: Date()) ?? Date()
-        }
-    }
-    
     func syncUserActivity() {
         FirebaseNotificationService.shared.updateLastActive()
     }
@@ -266,9 +254,16 @@ class NotificationViewModel: ObservableObject {
     func resetNotificationState() {
         UserDefaults.standard.removeObject(forKey: "DailyJournalReminderTime")
         UserDefaults.standard.removeObject(forKey: "BibleVerseReminderTime")
+        UserDefaults.standard.removeObject(forKey: "WeeklyReflectionReminderTime")
+        
+        isJournalReminderEnabled = true
+        isBibleVerseReminderEnabled = true
+        isWeeklyReflectionReminderEnabled = true
+        
         notificationsEnabled = false
         dailyJournalTime = Date()
         bibleVerseTime = Date()
+        weeklyReflectionTime = Calendar.current.date(bySettingHour: 9, minute: 0, second: 0, of: Date()) ?? Date()
     }
     
     func schedulePrayerNotification(for prayer: PrayerModel) {
@@ -300,31 +295,9 @@ class NotificationViewModel: ObservableObject {
         }
     }
     
-    private func loadReminderSettings() {
-        isJournalReminderEnabled = UserDefaults.standard.bool(forKey: "isJournalReminderEnabled")
-        isBibleVerseReminderEnabled = UserDefaults.standard.bool(forKey: "isBibleVerseReminderEnabled")
-        isWeeklyReflectionReminderEnabled = UserDefaults.standard.bool(forKey: "isWeeklyReflectionReminderEnabled")
-    }
-
-    private func saveReminderSettings() {
-        UserDefaults.standard.set(isJournalReminderEnabled, forKey: "isJournalReminderEnabled")
-        UserDefaults.standard.set(isBibleVerseReminderEnabled, forKey: "isBibleVerseReminderEnabled")
-        UserDefaults.standard.set(isWeeklyReflectionReminderEnabled, forKey: "isWeeklyReflectionReminderEnabled")
-    }
-
     func cancelAllScheduledNotifications() {
         let center = UNUserNotificationCenter.current()
-
         center.removeAllPendingNotificationRequests()
-
         center.removeAllDeliveredNotifications()
-
-        DispatchQueue.main.async {
-            self.notificationsEnabled = false
-            self.isJournalReminderEnabled = false
-            self.isBibleVerseReminderEnabled = false
-            self.isWeeklyReflectionReminderEnabled = false
-        }
     }
-    
 }

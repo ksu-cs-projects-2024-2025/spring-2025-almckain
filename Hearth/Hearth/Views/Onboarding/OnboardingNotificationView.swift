@@ -11,6 +11,10 @@ struct OnboardingNotificationView: View {
     @Binding var currentStep: Int
     @EnvironmentObject var notificationViewModel: NotificationViewModel
     
+    @AppStorage("isJournalReminderEnabled") private var isJournalReminderEnabled = true
+    @AppStorage("isBibleVerseReminderEnabled") private var isBibleVerseReminderEnabled = true
+    @AppStorage("isWeeklyReflectionReminderEnabled") private var isWeeklyReflectionReminderEnabled = true
+    
     var body: some View {
         ZStack {
             Color.warmSandLight
@@ -41,10 +45,10 @@ struct OnboardingNotificationView: View {
                     HStack {
                         
                         VStack(alignment: .leading, spacing: 20) {
-                            Toggle("Daily Journal Reminder", isOn: $notificationViewModel.isJournalReminderEnabled)
+                            Toggle("Daily Journal Reminder", isOn: $isJournalReminderEnabled)
                                 .font(.headline)
                             
-                            if notificationViewModel.isJournalReminderEnabled {
+                            if isJournalReminderEnabled {
                                 HStack {
                                     Text("Reminder Time:")
                                         .foregroundStyle(.parchmentDark)
@@ -57,10 +61,10 @@ struct OnboardingNotificationView: View {
                                 }
                             }
                             
-                            Toggle("Bible Verse Reminder", isOn: $notificationViewModel.isBibleVerseReminderEnabled)
+                            Toggle("Bible Verse Reminder", isOn: $isBibleVerseReminderEnabled)
                                 .font(.headline)
                             
-                            if notificationViewModel.isBibleVerseReminderEnabled {
+                            if isBibleVerseReminderEnabled {
                                 HStack {
                                     Text("Reminder Time:")
                                         .foregroundStyle(.parchmentDark)
@@ -73,10 +77,10 @@ struct OnboardingNotificationView: View {
                                 }
                             }
                             
-                            Toggle("Weekly Reflection Reminder", isOn: $notificationViewModel.isWeeklyReflectionReminderEnabled)
+                            Toggle("Weekly Reflection Reminder", isOn: $isWeeklyReflectionReminderEnabled)
                                 .font(.headline)
                             
-                            if notificationViewModel.isWeeklyReflectionReminderEnabled {
+                            if isWeeklyReflectionReminderEnabled {
                                 HStack {
                                     Text("Reflection reminder time is 9:30am every sunday and cannot be changed.")
                                         .foregroundStyle(.parchmentDark)

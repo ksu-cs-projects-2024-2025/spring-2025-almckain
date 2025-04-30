@@ -19,8 +19,11 @@ struct HearthApp: App {
     @State private var isLoading = true
     @StateObject var notificationViewModel = NotificationViewModel()
     
+    private let hasRunBeforeKey = "com.Aaron-McKain.Hearth.hasRunBefore"
+    
     init() {
         FirebaseApp.configure()
+        handleFreshInstall()
         // Testing purposes to control which screen is being presented
         //self.isOnboardingComplete = false
         // UserDefaults.standard.removeObject(forKey: "LastUsedBibleVerseIndex")
@@ -52,6 +55,20 @@ struct HearthApp: App {
                 }
             }
             .onAppear(perform: checkUserStatus)
+        }
+    }
+    
+    private func handleFreshInstall() {
+        let defaults = UserDefaults.standard
+        if !defaults.bool(forKey: hasRunBeforeKey) {
+            do {
+                try Auth.auth().signOut()
+                print("DEBUG: User signed out on fresh install")
+            } catch {
+                print("ERROR: Failed to sign out on fresh install")
+            }
+            defaults.set(true, forKey: hasRunBeforeKey)
+            defaults.synchronize()
         }
     }
     

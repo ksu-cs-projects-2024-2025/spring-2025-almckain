@@ -136,6 +136,9 @@ struct PrivacyCard: View {
                                 case .success:
                                     notificationViewModel.cancelAllScheduledNotifications()
                                     profileViewModel.clearAllUserDefaults()
+                                    UserDefaults.standard.set(true, forKey: "isJournalReminderEnabled")
+                                    UserDefaults.standard.set(true, forKey: "isBibleVerseReminderEnabled")
+                                    UserDefaults.standard.set(true, forKey: "isWeeklyReflectionReminderEnabled")
                                     isOnboardingComplete = false
                                     showingReauthSheet = false
                                 case .failure(let err):

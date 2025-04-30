@@ -12,6 +12,10 @@ struct NotificationSettingsCard: View {
     @ObservedObject var profileViewModel: ProfileViewModel
     @EnvironmentObject var notificationViewModel: NotificationViewModel
     
+    @AppStorage("isJournalReminderEnabled") private var isJournalReminderEnabled = true
+    @AppStorage("isBibleVerseReminderEnabled") private var isBibleVerseReminderEnabled = true
+    @AppStorage("isWeeklyReflectionReminderEnabled") private var isWeeklyReflectionReminderEnabled = true
+    
     var body: some View {
         CardView {
             VStack(spacing: 10) {
@@ -28,19 +32,19 @@ struct NotificationSettingsCard: View {
                     VStack(spacing: 16) {
                         NotificationSettingRow(
                             title: "Daily Journal Reminder",
-                            isEnabled: $notificationViewModel.isJournalReminderEnabled,
+                            isEnabled: $isJournalReminderEnabled,
                             time: $notificationViewModel.dailyJournalTime
                         )
                         
                         NotificationSettingRow(
                             title: "Bible Verse Reminder",
-                            isEnabled: $notificationViewModel.isBibleVerseReminderEnabled,
+                            isEnabled: $isBibleVerseReminderEnabled,
                             time: $notificationViewModel.bibleVerseTime
                         )
                         
                         NotificationSettingRow(
                             title: "Weekly Reflection",
-                            isEnabled: $notificationViewModel.isWeeklyReflectionReminderEnabled,
+                            isEnabled: $isWeeklyReflectionReminderEnabled,
                             time: $notificationViewModel.weeklyReflectionTime,
                             isTimeEditable: false
                         )
