@@ -36,7 +36,7 @@ class ProfileViewModel: ObservableObject {
                 case .success(let user):
                     self?.user = user
                 case .failure:
-                    self?.user = UserModel(id: "", firstName: "", lastName: "", email: "")
+                    self?.user = UserModel(id: "", firstName: "", lastName: "", email: "", joinedAt: Date())
                 }
                 self?.isLoading = false
             }
@@ -98,5 +98,11 @@ class ProfileViewModel: ObservableObject {
             }
             self.deleteAccount(completion: completion)
         }
+    }
+    
+    func formattedDateString() -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMMM yyyy"
+        return formatter.string(from: user?.joinedAt ?? Date())
     }
 }

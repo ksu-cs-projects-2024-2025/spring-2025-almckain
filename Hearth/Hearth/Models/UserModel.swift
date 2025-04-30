@@ -6,11 +6,13 @@
 //
 
 import Foundation
+import FirebaseFirestore
 
 struct UserModel: Codable {
-    let id: String
+    @DocumentID var id: String?
     let firstName: String
     let lastName: String
     let email: String
     var isOnboardingComplete: Bool = false
+    let joinedAt: Date
 }

@@ -24,20 +24,20 @@ class ProfileService {
                 return
             }
             
-            guard let document = document, document.exists, let data = document.data() else {
+            guard let document = document, document.exists else {
                 completion(.failure(NSError(domain: "ProfileService", code: 404, userInfo: [NSLocalizedDescriptionKey: "User data not found"])))
                 return
             }
             
             do {
-                let userData = try JSONSerialization.data(withJSONObject: data, options: [])
-                let user = try JSONDecoder().decode(UserModel.self, from: userData)
+                let user = try document.data(as: UserModel.self)
                 completion(.success(user))
             } catch {
                 completion(.failure(error))
             }
         }
     }
+    
     
     func logout(completion: @escaping (Bool) -> Void) {
         do {
@@ -131,7 +131,6 @@ class ProfileService {
         var errors: [Error] = []
         let dispatchGroup = DispatchGroup()
         
-        // 1) Gather all delete operations
         var batch = db.batch()
         var opCount = 0
         
@@ -140,7 +139,6 @@ class ProfileService {
             let colRef = db.collection(collection)
             let query: Query
             if collection == "users" {
-                // delete the user profile doc
                 query = colRef.whereField(FieldPath.documentID(), isEqualTo: uid)
             } else {
                 query = colRef.whereField("userID", isEqualTo: uid)
@@ -156,7 +154,6 @@ class ProfileService {
                 for doc in docs {
                     batch.deleteDocument(doc.reference)
                     opCount += 1
-                    // Firestore batches max out at 500 ops – commit & reset if needed
                     if opCount == 450 {
                         batch.commit { commitErr in
                             if let commitErr = commitErr {
@@ -170,9 +167,7 @@ class ProfileService {
             }
         }
         
-        // 2) Once all docs queued, commit final batch and delete Auth user
         dispatchGroup.notify(queue: .main) {
-            // commit any remaining deletes
             batch.commit { commitErr in
                 if let commitErr = commitErr {
                     errors.append(commitErr)

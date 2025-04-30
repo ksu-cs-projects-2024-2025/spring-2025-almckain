@@ -24,7 +24,7 @@ class UserService {
                 return
             }
             
-            let newUser = UserModel(id: user.uid, firstName: firstName, lastName: lastName, email: email, isOnboardingComplete: false)
+            let newUser = UserModel(id: user.uid, firstName: firstName, lastName: lastName, email: email, isOnboardingComplete: false, joinedAt: Date())
             self.createUserDocument(newUser, completion: completion)
         }
     }
@@ -40,20 +40,16 @@ class UserService {
     }
     
     private func createUserDocument(_ user: UserModel, completion: @escaping (Result<Void, Error>) -> Void) {
-        let userData: [String: Any] = [
-            "id": user.id,
-            "firstName": user.firstName,
-            "lastName": user.lastName,
-            "email": user.email,
-            "isOnboardingComplete": user.isOnboardingComplete
-        ]
-        
-        db.collection("users").document(user.id).setData(userData) { error in
-            if let error = error {
-                completion(.failure(error))
-            } else {
-                completion(.success(()))
+        do {
+            try db.collection("users").document(user.id ?? UUID().uuidString).setData(from: user) { error in
+                if let error = error {
+                    completion(.failure(error))
+                } else {
+                    completion(.success(()))
+                }
             }
+        } catch {
+            completion(.failure(error))
         }
     }
     

@@ -19,7 +19,7 @@ struct UserCard: View {
                         .foregroundStyle(.hearthEmberMain)
                 }
                 
-                Text("Joined Hearth February 2025")
+                Text("Joined Hearth \(profileViewModel.formattedDateString())")
                     .font(.customCaption1)
                     .foregroundStyle(.parchmentDark)
             }
