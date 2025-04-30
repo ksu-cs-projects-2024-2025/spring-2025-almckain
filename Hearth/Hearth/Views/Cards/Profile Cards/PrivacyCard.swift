@@ -135,6 +135,7 @@ struct PrivacyCard: View {
                                 switch result {
                                 case .success:
                                     notificationViewModel.cancelAllScheduledNotifications()
+                                    profileViewModel.clearAllUserDefaults()
                                     isOnboardingComplete = false
                                     showingReauthSheet = false
                                 case .failure(let err):

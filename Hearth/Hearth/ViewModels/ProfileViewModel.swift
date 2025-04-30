@@ -105,4 +105,12 @@ class ProfileViewModel: ObservableObject {
         formatter.dateFormat = "MMMM yyyy"
         return formatter.string(from: user?.joinedAt ?? Date())
     }
+    
+    func clearAllUserDefaults() {
+        if let bundleID = Bundle.main.bundleIdentifier {
+            UserDefaults.standard.removePersistentDomain(forName: bundleID)
+            UserDefaults.standard.synchronize()
+            print("DEBUG: Cleared all user defaults")
+        }
+    }
 }

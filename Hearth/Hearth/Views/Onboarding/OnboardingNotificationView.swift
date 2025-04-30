@@ -39,28 +39,73 @@ struct OnboardingNotificationView: View {
                         .frame(height: 1)
                         .padding(.vertical)
                     HStack {
-                        VStack(alignment: .leading) {
-                            Text("Set Reminder Times")
+                        
+                        VStack(alignment: .leading, spacing: 20) {
+                            Toggle("Daily Journal Reminder", isOn: $notificationViewModel.isJournalReminderEnabled)
                                 .font(.headline)
-                                .padding(.vertical, 10)
                             
-                            VStack(alignment: .leading) {
-                                Text("Daily Journal Reminder")
-                                    .font(.subheadline)
-                                DatePicker("Select Time", selection: $notificationViewModel.dailyJournalTime, displayedComponents: .hourAndMinute)
-                                    .datePickerStyle(.compact)
-                                    .labelsHidden()
+                            if notificationViewModel.isJournalReminderEnabled {
+                                HStack {
+                                    Text("Reminder Time:")
+                                        .foregroundStyle(.parchmentDark)
+                                        .font(.customBody1)
+                                    
+                                    Spacer()
+                                    
+                                    DatePicker("Time", selection: $notificationViewModel.dailyJournalTime, displayedComponents: .hourAndMinute)
+                                        .labelsHidden()
+                                }
                             }
-                            .padding(.vertical, 15)
                             
-                            VStack(alignment: .leading) {
-                                Text("New Bible Verse Reminder")
-                                    .font(.subheadline)
-                                DatePicker("Select Time", selection: $notificationViewModel.bibleVerseTime, displayedComponents: .hourAndMinute)
-                                    .datePickerStyle(.compact)
-                                    .labelsHidden()
+                            Toggle("Bible Verse Reminder", isOn: $notificationViewModel.isBibleVerseReminderEnabled)
+                                .font(.headline)
+                            
+                            if notificationViewModel.isBibleVerseReminderEnabled {
+                                HStack {
+                                    Text("Reminder Time:")
+                                        .foregroundStyle(.parchmentDark)
+                                        .font(.customBody1)
+                                    
+                                    Spacer()
+                                    
+                                    DatePicker("Time", selection: $notificationViewModel.bibleVerseTime, displayedComponents: .hourAndMinute)
+                                        .labelsHidden()
+                                }
                             }
-                            .padding(.vertical, 15)
+                            
+                            Toggle("Weekly Reflection Reminder", isOn: $notificationViewModel.isWeeklyReflectionReminderEnabled)
+                                .font(.headline)
+                            
+                            if notificationViewModel.isWeeklyReflectionReminderEnabled {
+                                HStack {
+                                    Text("Reflection reminder time is 9:30am every sunday and cannot be changed.")
+                                        .foregroundStyle(.parchmentDark)
+                                        .font(.customBody1)
+                                }
+                            }
+                            /*
+                             Text("Set Reminder Times")
+                             .font(.headline)
+                             .padding(.vertical, 10)
+                             
+                             VStack(alignment: .leading) {
+                             Text("Daily Journal Reminder")
+                             .font(.subheadline)
+                             DatePicker("Select Time", selection: $notificationViewModel.dailyJournalTime, displayedComponents: .hourAndMinute)
+                             .datePickerStyle(.compact)
+                             .labelsHidden()
+                             }
+                             .padding(.vertical, 15)
+                             
+                             VStack(alignment: .leading) {
+                             Text("New Bible Verse Reminder")
+                             .font(.subheadline)
+                             DatePicker("Select Time", selection: $notificationViewModel.bibleVerseTime, displayedComponents: .hourAndMinute)
+                             .datePickerStyle(.compact)
+                             .labelsHidden()
+                             }
+                             .padding(.vertical, 15)
+                             */
                         }
                         .padding(.horizontal)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -78,6 +123,7 @@ struct OnboardingNotificationView: View {
                 }
                 
                 Button(action: {
+                    notificationViewModel.saveReminderTimes()
                     notificationViewModel.scheduleReminders()
                     notificationViewModel.syncUserActivity()
                     currentStep = 2
@@ -90,7 +136,7 @@ struct OnboardingNotificationView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 21))
                         .font(.customButton)
                 }
-
+                
             }
             .padding()
             /*

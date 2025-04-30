@@ -71,7 +71,7 @@ struct UserStatsCard: View {
                                 .font(.customBody1)
                                 .multilineTextAlignment(.center)
                                 .foregroundStyle(.parchmentDark)
-                            Text("-")
+                            Text("\(profileViewModel.stats["gratitudeCount"] ?? 0)")
                                 .font(.customFootnote)
                                 .multilineTextAlignment(.center)
                                 .foregroundStyle(.parchmentDark)
@@ -104,6 +104,9 @@ struct UserStatsCard: View {
                 }
                 .padding(.horizontal)
             }
+        }
+        .onAppear {
+            profileViewModel.fetchProfileStats()
         }
     }
 }

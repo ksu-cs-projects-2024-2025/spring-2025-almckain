@@ -17,9 +17,9 @@ class NotificationViewModel: ObservableObject {
     
     @Published var shouldShowReflectionCard = true
     
-    @Published var isJournalReminderEnabled: Bool = false
-    @Published var isBibleVerseReminderEnabled: Bool = false
-    @Published var isWeeklyReflectionReminderEnabled: Bool = false
+    @Published var isJournalReminderEnabled: Bool = true
+    @Published var isBibleVerseReminderEnabled: Bool = true
+    @Published var isWeeklyReflectionReminderEnabled: Bool = true
     
     @AppStorage("didAnimateInThisSunday") var didAnimateInThisSunday = false
     @AppStorage("didAnimateOutThisMonday") var didAnimateOutThisMonday = false
@@ -31,6 +31,11 @@ class NotificationViewModel: ObservableObject {
     
     
     init() {
+        UserDefaults.standard.register(defaults: [
+          "isJournalReminderEnabled": true,
+          "isBibleVerseReminderEnabled": true,
+          "isWeeklyReflectionReminderEnabled": true
+        ])
         //checkNotificationStatus()
         loadSavedReminderTimes()
         loadReminderSettings()
@@ -136,6 +141,9 @@ class NotificationViewModel: ObservableObject {
         UNUserNotificationCenter.current().add(request) { error in
             if let error = error {
                 print("Error scheduling weekly reflection reminder: \(error.localizedDescription)")
+            } else {
+                let scheduledTime = Calendar.current.date(from: dateComponents) ?? Date()
+                print("DEBUG: Weekly Reflection was scheduled for \(scheduledTime.formatted())")
             }
         }
     }
@@ -192,6 +200,7 @@ class NotificationViewModel: ObservableObject {
                 print("Error scheduling Bible verse notification: \(error.localizedDescription)")
             } else {
                 print("Successfully scheduled Bible verse notification with title: \(verseReference)")
+                print("DEBUG: Bible verse notification was scheduled for \(self.bibleVerseTime.formatted())")
             }
         }
     }
@@ -220,11 +229,13 @@ class NotificationViewModel: ObservableObject {
         UNUserNotificationCenter.current().add(request) { error in
             if let error = error {
                 print("Error scheduling notification: \(error.localizedDescription)")
+            } else {
+                print("DEBUG: \(title) was scheduled for \(date.formatted())")
             }
         }
     }
     
-    private func saveReminderTimes() {
+    public func saveReminderTimes() {
         UserDefaults.standard.set(dailyJournalTime, forKey: "DailyJournalReminderTime")
         UserDefaults.standard.set(bibleVerseTime, forKey: "BibleVerseReminderTime")
         UserDefaults.standard.set(weeklyReflectionTime, forKey: "WeeklyReflectionReminderTime")
@@ -284,6 +295,7 @@ class NotificationViewModel: ObservableObject {
                 print("NOTIFICATION DEBUG: Error scheduling notification for \(prayer.id): \(error.localizedDescription)")
             } else {
                 print("NOTIFICATION DEBUG: Successfully scheduled notification for \(prayer.id)")
+                print("DEBUG: Prayer Reminder was scheduled for \(prayer.timeStamp.formatted()) — ID: \(prayer.id)")
             }
         }
     }

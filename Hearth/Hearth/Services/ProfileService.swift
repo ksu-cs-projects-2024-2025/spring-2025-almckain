@@ -87,6 +87,10 @@ class ProfileService {
         fetchCount(forCollection: "entryReflections", completion: completion)
     }
     
+    func fetchGratitudeCount(completion: @escaping (Int?) -> Void) {
+        fetchCount(forCollection: "gratitudeEntries", completion: completion)
+    }
+    
     func fetchAllCounts(completion: @escaping ([String: Int]) -> Void) {
         var counts: [String: Int] = [:]
         let group = DispatchGroup()
@@ -112,6 +116,12 @@ class ProfileService {
         group.enter()
         fetchEntryReflectionCount { count in
             counts["entryReflectionCount"] = count ?? 0
+            group.leave()
+        }
+        
+        group.enter()
+        fetchGratitudeCount { count in
+            counts["gratitudeCount"] = count ?? 0
             group.leave()
         }
         
