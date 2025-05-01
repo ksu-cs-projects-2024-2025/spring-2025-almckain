@@ -18,7 +18,7 @@ struct NotificationSettingsCard: View {
     
     var body: some View {
         CardView {
-            VStack(spacing: 10) {
+            VStack(spacing: 16) {
                 HStack {
                     Text("Notification Settings")
                         .font(.customTitle3)
@@ -27,53 +27,107 @@ struct NotificationSettingsCard: View {
                 }
                 
                 CustomDivider(height: 2, color: .hearthEmberDark)
+                    .padding(.bottom, 4)
                 
                 if notificationViewModel.notificationsEnabled {
-                    VStack(spacing: 16) {
-                        NotificationSettingRow(
-                            title: "Daily Journal Reminder",
+                    VStack(spacing: 20) {
+                        NotificationListItem(
+                            title: "Daily Journal",
+                            description: "Reminder to reflect on your day",
+                            iconName: "book.fill",
                             isEnabled: $isJournalReminderEnabled,
-                            time: $notificationViewModel.dailyJournalTime
+                            timeView: {
+                                DatePicker("Time", selection: $notificationViewModel.dailyJournalTime, displayedComponents: .hourAndMinute)
+                                    .labelsHidden()
+                                    .tint(.hearthEmberMain)
+                            }
                         )
                         
-                        NotificationSettingRow(
-                            title: "Bible Verse Reminder",
+                        Divider()
+                            .opacity(0.6)
+                        
+                        NotificationListItem(
+                            title: "Bible Verse",
+                            description: "New Bible verse notification",
+                            iconName: "bookmark.fill",
                             isEnabled: $isBibleVerseReminderEnabled,
-                            time: $notificationViewModel.bibleVerseTime
+                            timeView: {
+                                DatePicker("Time", selection: $notificationViewModel.bibleVerseTime, displayedComponents: .hourAndMinute)
+                                    .labelsHidden()
+                                    .tint(.hearthEmberMain)
+                            }
                         )
                         
-                        NotificationSettingRow(
+                        Divider()
+                            .opacity(0.6)
+                        
+                        NotificationListItem(
                             title: "Weekly Reflection",
+                            description: "Sunday morning reflection time",
+                            iconName: "sun.max.fill",
                             isEnabled: $isWeeklyReflectionReminderEnabled,
-                            time: $notificationViewModel.weeklyReflectionTime,
-                            isTimeEditable: false
+                            timeView: {
+                                Text(formattedTime(date: notificationViewModel.weeklyReflectionTime))
+                                    .foregroundStyle(.hearthEmberMain.opacity(0.7))
+                                    .font(.subheadline)
+                            },
+                            infoMessage: "9:00 AM every Sunday (cannot be changed)"
                         )
                         
                         CapsuleButton(
-                            title: "Update Reminder Times",
+                            title: "Update Notifications",
                             style: .filled,
                             foregroundColor: .parchmentLight,
                             backgroundColor: .hearthEmberMain,
                             action: {
-                                notificationViewModel.scheduleReminders()
+                                withAnimation(.spring()) {
+                                    notificationViewModel.scheduleReminders()
+                                }
                             }
                         )
-                        
+                        .padding(.top, 8)
                     }
                 } else {
-                    VStack {
-                        Text("Notifications are disabled.")
-                            .foregroundStyle(.parchmentMedium)
+                    VStack(spacing: 16) {
+                        HStack(spacing: 12) {
+                            Image(systemName: "bell.slash")
+                                .font(.title2)
+                                .foregroundStyle(.gray)
+                            
+                            Text("Notifications are currently disabled")
+                                .font(.headline)
+                                .foregroundStyle(.gray)
+                            
+                            Spacer()
+                        }
+                        .padding(.vertical, 8)
                         
-                        Button("Enable Notifications") {
+                        Button {
                             if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
                                 UIApplication.shared.open(settingsURL)
                             }
+                        } label: {
+                            Label("Enable in Settings", systemImage: "gear")
+                                .font(.headline)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(Color.hearthEmberMain)
+                                )
+                                .foregroundColor(.white)
                         }
-                        .buttonStyle(.borderedProminent)
                     }
+                    .padding(.vertical, 8)
                 }
             }
+            .padding(.vertical, 8)
         }
+    }
+    
+    private func formattedTime(date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.timeStyle = .short
+        return formatter.string(from: date)
     }
 }

@@ -19,118 +19,86 @@ struct OnboardingNotificationView: View {
         ZStack {
             Color.warmSandLight
                 .ignoresSafeArea()
-            VStack {
-                HStack {
+            
+            VStack(spacing: 4) {
+                VStack(alignment: .leading, spacing: 8) {
                     Text("Allow Notifications")
                         .foregroundStyle(.hearthEmberMain)
                         .font(.largeTitle)
                         .fontWeight(.bold)
-                    Spacer()
+                    
+                    Text("Receive a daily Bible verse, journal reminders, and reflection notifications to keep your journey strong.")
+                        .foregroundStyle(.parchmentDark)
+                        .font(.customBody1)
+                        .multilineTextAlignment(.leading)
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal)
-                .padding(.top)
-                
-                Text("Receive a daily Bible verse, gentle journal reminders, and prayer request notifications to keep your faith journey strong.")
-                    .foregroundStyle(.hearthEmberMain)
-                    .font(.body)
-                    .padding(.horizontal)
-                    .padding(.top, 5)
-                    .multilineTextAlignment(.center)
+                .padding(.vertical, 8)
                 
                 if notificationViewModel.notificationsEnabled {
-                    Rectangle()
-                        .fill(Color.parchmentDark)
-                        .frame(height: 1)
-                        .padding(.vertical)
-                    HStack {
-                        
-                        VStack(alignment: .leading, spacing: 20) {
-                            Toggle("Daily Journal Reminder", isOn: $isJournalReminderEnabled)
-                                .font(.headline)
-                            
-                            if isJournalReminderEnabled {
-                                HStack {
-                                    Text("Reminder Time:")
-                                        .foregroundStyle(.parchmentDark)
-                                        .font(.customBody1)
-                                    
-                                    Spacer()
-                                    
+                    ScrollView {
+                        VStack(spacing: 16) {
+                            // Journal Reminder Card
+                            NotificationCardView(
+                                title: "Daily Journal",
+                                description: "Set a gentle reminder to reflect on your day",
+                                iconName: "book.fill",
+                                isEnabled: $isJournalReminderEnabled,
+                                timePickerView: {
                                     DatePicker("Time", selection: $notificationViewModel.dailyJournalTime, displayedComponents: .hourAndMinute)
                                         .labelsHidden()
+                                        .tint(.hearthEmberMain)
                                 }
-                            }
+                            )
                             
-                            Toggle("Bible Verse Reminder", isOn: $isBibleVerseReminderEnabled)
-                                .font(.headline)
-                            
-                            if isBibleVerseReminderEnabled {
-                                HStack {
-                                    Text("Reminder Time:")
-                                        .foregroundStyle(.parchmentDark)
-                                        .font(.customBody1)
-                                    
-                                    Spacer()
-                                    
+                            // Bible Verse Card
+                            NotificationCardView(
+                                title: "Bible Verse",
+                                description: "Daily scripture to inspire your walk",
+                                iconName: "bookmark.fill",
+                                isEnabled: $isBibleVerseReminderEnabled,
+                                timePickerView: {
                                     DatePicker("Time", selection: $notificationViewModel.bibleVerseTime, displayedComponents: .hourAndMinute)
                                         .labelsHidden()
+                                        .tint(.hearthEmberMain)
                                 }
-                            }
+                            )
                             
-                            Toggle("Weekly Reflection Reminder", isOn: $isWeeklyReflectionReminderEnabled)
-                                .font(.headline)
-                            
-                            if isWeeklyReflectionReminderEnabled {
-                                HStack {
-                                    Text("Reflection reminder time is 9:30am every sunday and cannot be changed.")
-                                        .foregroundStyle(.parchmentDark)
-                                        .font(.customBody1)
-                                }
-                            }
-                            /*
-                             Text("Set Reminder Times")
-                             .font(.headline)
-                             .padding(.vertical, 10)
-                             
-                             VStack(alignment: .leading) {
-                             Text("Daily Journal Reminder")
-                             .font(.subheadline)
-                             DatePicker("Select Time", selection: $notificationViewModel.dailyJournalTime, displayedComponents: .hourAndMinute)
-                             .datePickerStyle(.compact)
-                             .labelsHidden()
-                             }
-                             .padding(.vertical, 15)
-                             
-                             VStack(alignment: .leading) {
-                             Text("New Bible Verse Reminder")
-                             .font(.subheadline)
-                             DatePicker("Select Time", selection: $notificationViewModel.bibleVerseTime, displayedComponents: .hourAndMinute)
-                             .datePickerStyle(.compact)
-                             .labelsHidden()
-                             }
-                             .padding(.vertical, 15)
-                             */
+                            // Weekly Reflection Card
+                            NotificationCardView(
+                                title: "Weekly Reflection",
+                                description: "Sunday morning reflection time",
+                                iconName: "sun.max.fill",
+                                isEnabled: $isWeeklyReflectionReminderEnabled,
+                                timePickerView: {
+                                    Text("9:00 AM every Sunday")
+                                        .foregroundStyle(.hearthEmberMain)
+                                        .font(.subheadline)
+                                        .padding(.vertical, 4)
+                                        .padding(.horizontal, 5)
+                                },
+                                infoMessage: "Weekly reflection is set for 9:00 AM every Sunday and cannot be changed."
+                            )
                         }
                         .padding(.horizontal)
-                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
+                    
+                    Text("You can change these settings anytime in the app.")
+                        .foregroundStyle(.hearthEmberMain)
+                        .font(.caption)
                 }
                 
                 Spacer()
-                if notificationViewModel.notificationsEnabled {
-                    Text("You can change the notification times now or in the app settings later.")
-                        .foregroundStyle(.hearthEmberMain)
-                        .font(.caption)
-                        .padding(.horizontal)
-                        .padding(.bottom, 5)
-                        .multilineTextAlignment(.center)
-                }
                 
+                // Continue Button
                 Button(action: {
-                    notificationViewModel.saveReminderTimes()
-                    notificationViewModel.scheduleReminders()
-                    notificationViewModel.syncUserActivity()
-                    currentStep = 2
+                    withAnimation(.spring()) {
+                        notificationViewModel.saveReminderTimes()
+                        notificationViewModel.scheduleReminders()
+                        notificationViewModel.syncUserActivity()
+                        currentStep = 2
+                    }
                 }) {
                     Text("Continue")
                         .frame(maxWidth: .infinity)
@@ -139,40 +107,32 @@ struct OnboardingNotificationView: View {
                         .foregroundColor(.parchmentLight)
                         .clipShape(RoundedRectangle(cornerRadius: 21))
                         .font(.customButton)
+                        .shadow(color: .black.opacity(0.1), radius: 4, y: 2)
                 }
-                
+                .padding(.horizontal)
+                .padding(.bottom)
             }
-            .padding()
-            /*
-             .onChange(of: currentStep, { oldValue, newStep in
-             print("currentStep changed from \(oldValue) to \(newStep)")
-             if newStep == 1 {
-             viewModel.checkNotificationStatus()
-             }
-             })
-             */
-            .onAppear {
-                if currentStep == 1 {
-                    notificationViewModel.checkNotificationStatus()
-                }
+            .padding(.top)
+        }
+        .onAppear {
+            if currentStep == 1 {
+                notificationViewModel.checkNotificationStatus()
             }
-            .alert(isPresented: $notificationViewModel.showNotificationAlert) {
-                Alert(
-                    title: Text("Enable Notifications"),
-                    message: Text("Hearth works best with notifications! Please enable notifications in Settings."),
-                    primaryButton: .default(Text("Open Settings"), action: {
-                        if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
-                            UIApplication.shared.open(settingsURL)
-                        }
-                    }),
-                    secondaryButton: .cancel()
-                )
-            }
+        }
+        .alert(isPresented: $notificationViewModel.showNotificationAlert) {
+            Alert(
+                title: Text("Enable Notifications"),
+                message: Text("Hearth works best with notifications! Please enable notifications in Settings."),
+                primaryButton: .default(Text("Open Settings"), action: {
+                    if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
+                        UIApplication.shared.open(settingsURL)
+                    }
+                }),
+                secondaryButton: .cancel()
+            )
         }
     }
 }
-
-
 
 #Preview {
     OnboardingNotificationView(currentStep: .constant(1))
