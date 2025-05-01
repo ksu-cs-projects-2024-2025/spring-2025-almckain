@@ -14,6 +14,7 @@ struct NewReflectionCardView: View {
     @State private var showReflectionSheet = false
     @State private var isExpanded = false
     @State private var animateShake = false
+    @State private var shakeTimer: Timer?
     
     @EnvironmentObject var notificationViewModel: NotificationViewModel
     @ObservedObject var reflectionViewModel: ReflectionViewModel
@@ -42,7 +43,7 @@ struct NewReflectionCardView: View {
                         }
                     }
                     .animation(.easeInOut(duration: 0.3), value: isExpanded)
-
+                    
                     
                     Spacer ()
                     
@@ -59,7 +60,7 @@ struct NewReflectionCardView: View {
                     withAnimation {
                         isExpanded.toggle()
                     }
-
+                    
                 }
                 if isExpanded {
                     CustomDivider(height: 2, color: .hearthEmberMain)
@@ -70,20 +71,6 @@ struct NewReflectionCardView: View {
                         .multilineTextAlignment(.center)
                     
                     HStack {
-                        /*
-                        Button("Decline") {
-                            showAlert = true
-                        }
-                        .padding()
-                        .frame(width: 120)
-                        .foregroundColor(.hearthEmberMain)
-                        .font(.customButton)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 15)
-                                .stroke(Color.hearthEmberMain, lineWidth: 4)
-                        )
-                         */
-                        
                         Button(action: {
                             showReflectionSheet = true
                         }) {
@@ -96,7 +83,7 @@ struct NewReflectionCardView: View {
                                 .cornerRadius(15)
                         }
                         .contentShape(Rectangle())
-
+                        
                     }
                     .padding(.vertical, 5)
                 }
@@ -108,14 +95,11 @@ struct NewReflectionCardView: View {
                 reflectionViewModel.fetchAndAnalyzeEntries()
             }
             
-            reflectionViewModel.fetchTodayReflection { _ in }
-            if !isExpanded && todayReflection?.reflectionContent.isEmpty == true {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                    animateShake = true
-                }
-                
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-                    animateShake = false
+            reflectionViewModel.fetchTodayReflection { _ in
+                DispatchQueue.main.async{
+                    if !isExpanded && (todayReflection?.reflectionContent.isEmpty == true || todayReflection == nil) {
+                        startShakeLoop()
+                    }
                 }
             }
         }
@@ -137,10 +121,25 @@ struct NewReflectionCardView: View {
             }
         }
     }
+    
+    func startShakeLoop() {
+        shakeTimer?.invalidate()
+        
+        shakeTimer = Timer.scheduledTimer(withTimeInterval: 4.0, repeats: true) { _ in
+            if !isExpanded && (todayReflection?.reflectionContent.isEmpty ?? true || todayReflection == nil) {
+                animateShake = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    animateShake = false
+                }
+            } else {
+                shakeTimer?.invalidate()
+            }
+        }
+    }
 }
 
 /*
-#Preview {
-    NewReflectionCardView()
-}
-*/
+ #Preview {
+ NewReflectionCardView()
+ }
+ */

@@ -42,8 +42,8 @@ struct CalendarView: View {
                         .padding(.horizontal, 10)
                         .padding(.bottom, 50)
                     }
+                    .padding(.top, 15)
                 }
-                .padding(.top, 15)
                 .onAppear {
                     let appearance = calendarViewModel.navBarAppearance()
                     UINavigationBar.appearance().standardAppearance = appearance

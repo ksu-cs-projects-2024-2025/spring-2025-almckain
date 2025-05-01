@@ -74,22 +74,22 @@ struct HearthApp: App {
     
     private func checkUserStatus() {
         guard let user = Auth.auth().currentUser else {
-                    // No user logged in, show onboarding
-                    isOnboardingComplete = false
-                    isLoading = false
-                    return
-                }
-                
-                let db = Firestore.firestore()
-                db.collection("users").document(user.uid).getDocument { document, error in
-                    if let document = document, document.exists {
-                        let data = document.data()
-                        let onboardingCompleteFromFirestore = data?["isOnboardingComplete"] as? Bool ?? false
-                        isOnboardingComplete = onboardingCompleteFromFirestore
-                    } else {
-                        isOnboardingComplete = false
-                    }
-                    isLoading = false
-                }
+            // No user logged in, show onboarding
+            isOnboardingComplete = false
+            isLoading = false
+            return
+        }
+        
+        let db = Firestore.firestore()
+        db.collection("users").document(user.uid).getDocument { document, error in
+            if let document = document, document.exists {
+                let data = document.data()
+                let onboardingCompleteFromFirestore = data?["isOnboardingComplete"] as? Bool ?? false
+                isOnboardingComplete = onboardingCompleteFromFirestore
+            } else {
+                isOnboardingComplete = false
+            }
+            isLoading = false
+        }
     }
 }

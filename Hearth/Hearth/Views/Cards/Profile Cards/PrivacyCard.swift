@@ -120,22 +120,25 @@ struct PrivacyCard: View {
                     Spacer()
                     
                     HStack {
-                        Button("Cancel") {
+                        Button(action: {
                             showingReauthSheet = false
                             password = ""
                             reauthError = nil
+                        }) {
+                            Text("Cancel")
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color(UIColor.systemGray5))
+                                .cornerRadius(10)
                         }
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color(UIColor.systemGray5))
-                        .cornerRadius(10)
+
                         
-                        Button("Delete") {
+                        Button(action: {
                             profileViewModel.reauthenticateAndDelete(password: password) { result in
                                 switch result {
                                 case .success:
                                     notificationViewModel.cancelAllScheduledNotifications()
-                                    profileViewModel.clearAllUserDefaults()
+                                    //profileViewModel.clearAllUserDefaults()
                                     UserDefaults.standard.set(true, forKey: "isJournalReminderEnabled")
                                     UserDefaults.standard.set(true, forKey: "isBibleVerseReminderEnabled")
                                     UserDefaults.standard.set(true, forKey: "isWeeklyReflectionReminderEnabled")
@@ -145,14 +148,16 @@ struct PrivacyCard: View {
                                     reauthError = err.localizedDescription
                                 }
                             }
+                        }) {
+                            Text("Delete")
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.red)
+                                .foregroundColor(.white)
+                                .cornerRadius(10)
+                                .opacity(password.isEmpty ? 0.6 : 1)
                         }
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color.red)
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
                         .disabled(password.isEmpty)
-                        .opacity(password.isEmpty ? 0.6 : 1)
                     }
                     .padding()
                 }

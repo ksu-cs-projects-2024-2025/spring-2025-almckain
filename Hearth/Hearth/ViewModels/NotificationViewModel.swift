@@ -274,7 +274,12 @@ class NotificationViewModel: ObservableObject {
         
         let content = UNMutableNotificationContent()
         content.title = "Prayer Reminder"
-        content.body = prayer.content
+        
+        let cleaned = prayer.content
+            .replacingOccurrences(of: "\n", with: "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        content.body = cleaned
         content.sound = .default
         
         let triggerDateComponents = Calendar.current.dateComponents(

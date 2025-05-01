@@ -57,6 +57,7 @@ struct AddPrayerSheetView: View {
                             
                             Toggle("", isOn: $receiveReminder)
                                 .padding(.horizontal)
+                                .tint(.hearthEmberMain)
                         }
                         
                         

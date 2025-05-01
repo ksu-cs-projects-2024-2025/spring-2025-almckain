@@ -61,48 +61,6 @@ struct ProfileView: View {
     }
 }
 
-struct NotificationSettingRow: View {
-    let title: String
-    @Binding var isEnabled: Bool
-    @Binding var time: Date
-    var isTimeEditable: Bool = true
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                Toggle(isOn: $isEnabled) {
-                    Text(title)
-                        .font(.customBody1)
-                        .foregroundStyle(.parchmentDark)
-                }
-            }
-            
-            if isEnabled && isTimeEditable {
-                DatePicker(
-                    "Reminder Time",
-                    selection: $time,
-                    displayedComponents: .hourAndMinute
-                )
-                .datePickerStyle(.compact)
-                .labelsHidden()
-            } else if title == "Weekly Reflection" {
-                Text("Time: \(formattedTime(date: time))")
-                    .font(.caption)
-                    .foregroundStyle(.gray)
-            }
-        }
-        .padding(.vertical, 5)
-    }
-    
-    private func formattedTime(date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.timeStyle = .short
-        return formatter.string(from: date)
-    }
-}
-
-
-
 #Preview {
     ProfileView()
 }

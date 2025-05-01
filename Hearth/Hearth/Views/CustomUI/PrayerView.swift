@@ -143,6 +143,7 @@ struct PrayerView: View {
                                 
                                 Toggle("", isOn: $receiveReminder)
                                     .padding(.horizontal)
+                                    .tint(.hearthEmberMain)
                             }
                             if receiveReminder {
                                 HStack {
