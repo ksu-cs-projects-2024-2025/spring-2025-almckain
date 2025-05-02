@@ -46,7 +46,7 @@ struct ProfileView: View {
                             action: {
                                 profileViewModel.logout {
                                     isOnboardingComplete = false
-                                    profileViewModel.clearAllUserDefaults()
+                                    //profileViewModel.clearAllUserDefaults()
                                 }
                             }
                         )
