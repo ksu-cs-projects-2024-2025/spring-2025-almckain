@@ -12,6 +12,7 @@ struct PrayerReminderView: View {
     @ObservedObject var reminderViewModel: PrayerReminderViewModel
     @State private var showUtilitySheet: Bool = false
     @State private var showAddedToTodayBanner: Bool = false
+    @State private var showInitialLoading = true
     
     var body: some View {
         NavigationStack {
@@ -19,41 +20,68 @@ struct PrayerReminderView: View {
                 Color.parchmentLight
                     .ignoresSafeArea()
                 
-                
-                VStack {
-                    Picker("Filter", selection: $reminderViewModel.selectedFilter) {
-                        ForEach(ReminderFilter.allCases) { filter in
-                            Text(filter.rawValue).tag(filter)
+                if showInitialLoading {
+                    VStack{
+                        LazyVStack(spacing: 12) {
+                            SkeletonView(RoundedRectangle(cornerRadius: 10))
+                                .frame(height: 30)
+                                .padding(.horizontal, 50)
+                            
+                            PrayerReminderLoadingCard()
+                            
+                            PrayerReminderLoadingCard()
+                            
+                            PrayerReminderLoadingCard()
+                        }
+                        .padding(.top, 20)
+                        Spacer()
+                    }
+                    
+                } else {
+                    VStack {
+                        Picker("Filter", selection: $reminderViewModel.selectedFilter) {
+                            ForEach(ReminderFilter.allCases) { filter in
+                                Text(filter.rawValue).tag(filter)
+                            }
+                        }
+                        .pickerStyle(SegmentedPickerStyle())
+                        .padding(.horizontal, 50)
+                        .padding(.top, 20)
+                        ScrollView {
+                            
+                            switch reminderViewModel.selectedFilter {
+                            case .today:
+                                renderTodayTab()
+                            case .future:
+                                renderFutureTab()
+                            }
+                            
                         }
                     }
-                    .pickerStyle(SegmentedPickerStyle())
-                    .padding(.horizontal, 50)
-                    .padding(.top, 20)
-                    ScrollView {
-                        
-                        switch reminderViewModel.selectedFilter {
-                        case .today:
-                            renderTodayTab()
-                        case .future:
-                            renderFutureTab()
+                    VStack {
+                        Spacer()
+                        HStack {
+                            Spacer()
+                            Button(action: {
+                                showUtilitySheet = true
+                            }) {
+                                Image(systemName: "plus.circle.fill")
+                                    .font(.largeTitle)
+                                    .padding()
+                            }
+                            .background(Circle().fill(Color.hearthEmberMain))
+                            .foregroundStyle(.white)
+                            .padding()
                         }
-                        
                     }
                 }
-                VStack {
-                    Spacer()
-                    HStack {
-                        Spacer()
-                        Button(action: {
-                            showUtilitySheet = true
-                        }) {
-                            Image(systemName: "plus.circle.fill")
-                                .font(.largeTitle)
-                                .padding()
+            }
+            .onAppear {
+                if showInitialLoading {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                        withAnimation {
+                            showInitialLoading = false
                         }
-                        .background(Circle().fill(Color.hearthEmberMain))
-                        .foregroundStyle(.white)
-                        .padding()
                     }
                 }
             }

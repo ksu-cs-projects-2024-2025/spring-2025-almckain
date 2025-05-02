@@ -12,6 +12,7 @@ struct ProfileView: View {
     @EnvironmentObject var notificationViewModel: NotificationViewModel
     @AppStorage("isOnboardingComplete") private var isOnboardingComplete: Bool = false
     @State private var showingDeleteAlert = false
+    @State private var showInitialLoading = true
     
     var body: some View {
         NavigationStack {
@@ -20,6 +21,13 @@ struct ProfileView: View {
                     .ignoresSafeArea()
                 ScrollView {
                     LazyVStack(spacing: 15) {
+                        if showInitialLoading {
+                            ProfileLoadingCard(type: .name)
+                            
+                            ProfileLoadingCard(type: .stats)
+                            
+                            ProfileLoadingCard(type: .notification)
+                        } else {
                         UserCard(profileViewModel: profileViewModel)
                         
                         // Stats Card
@@ -43,6 +51,7 @@ struct ProfileView: View {
                             }
                         )
                         .padding(.horizontal, 10)
+                    }
                         
                     }
                     .padding(.vertical, 15)
@@ -51,6 +60,15 @@ struct ProfileView: View {
                 }
             }
             .onAppear {
+                
+                if showInitialLoading {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                        withAnimation {
+                            showInitialLoading = false
+                        }
+                    }
+                }
+                
                 profileViewModel.fetchUserData()
                 notificationViewModel.checkNotificationStatus()
                 let appearance = profileViewModel.navBarAppearance()
@@ -61,6 +79,8 @@ struct ProfileView: View {
     }
 }
 
-#Preview {
-    ProfileView()
-}
+/*
+ #Preview {
+ ProfileView()
+ }
+ */

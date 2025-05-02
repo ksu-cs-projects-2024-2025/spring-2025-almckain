@@ -21,14 +21,28 @@ struct HomeView: View {
     
     @State private var showNotificationAlert = false
     @State private var showReflectionCard = false
+    @State private var showInitialLoading = true
     
     @AppStorage("homeAppearCount") private var homeAppearCount = 0
     
     var body: some View {
         NavigationStack {
-            if profileViewModel.isLoading || homeViewModel.isLoading {
-                LoadingScreenView()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            if showInitialLoading {
+                ZStack{
+                    Color.parchmentLight
+                        .ignoresSafeArea()
+                    ScrollView {
+                        LazyVStack(spacing: 15) {
+                            ForEach(0..<4, id: \.self) { _ in
+                                HomeLoadingViewCard()
+                            }
+                        }
+                        .padding(.vertical, 15)
+                    }
+                    .navigationTitle("\(homeViewModel.fetchGreeting()), \(profileViewModel.user?.firstName ?? "Guest")")
+                    .navigationBarTitleDisplayMode(.large)
+                    
+                }
             } else {
                 ZStack {
                     Color.parchmentLight
@@ -47,19 +61,25 @@ struct HomeView: View {
                             PrayerCardView()
                             
                             GratitudeCardView(gratitudeViewModel: gratitudeViewModel)
+                            
                         }
                         .padding(.vertical, 15)
                     }
                     .navigationTitle("\(homeViewModel.fetchGreeting()), \(profileViewModel.user?.firstName ?? "Guest")")
                     .navigationBarTitleDisplayMode(.large)
-                    .refreshable {
-                        prayerViewModel.refresh()
-                    }
                 }
             }
         }
         .animation(.easeInOut(duration: 0.5), value: showReflectionCard)
         .onAppear {
+            if showInitialLoading {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                    withAnimation {
+                        showInitialLoading = false
+                    }
+                }
+            }
+            
             notificationViewModel.updateReflectionCardVisibility()
             DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                 withAnimation(.easeInOut(duration: 0.5)) {
@@ -127,12 +147,12 @@ struct HomeView: View {
                 }
             }
         }
-
+        
     }
 }
 
 /*
-#Preview {
-    HomeView()
-}
-*/
+ #Preview {
+ HomeView()
+ }
+ */

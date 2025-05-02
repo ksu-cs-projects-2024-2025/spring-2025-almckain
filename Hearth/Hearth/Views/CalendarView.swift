@@ -17,6 +17,7 @@ struct CalendarView: View {
     @EnvironmentObject var prayerViewModel: PrayerViewModel
     
     @State private var isPresented: Bool = false
+    @State private var showInitialLoading = true
     
     var body: some View {
         NavigationStack {
@@ -26,21 +27,29 @@ struct CalendarView: View {
                 
                 ScrollView {
                     LazyVStack(spacing: 15) {
-                        CalendarCardView(calendarViewModel: calendarViewModel, gratitudeViewModel: gratitudeViewModel)
-                        
-                        Button(action: {
-                            isPresented.toggle()
-                        }) {
-                            Text("Add to Journal")
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .font(.customButton)
-                                .foregroundColor(.parchmentLight)
-                                .background(RoundedRectangle(cornerRadius: 30).foregroundStyle(.hearthEmberMain))
-                                .contentShape(Rectangle())
+                        if showInitialLoading {
+                            CalendarLoadingViewCard()
+                            
+                            SkeletonView(RoundedRectangle(cornerRadius: 30))
+                                .frame(height: 60)
+                                .padding(.horizontal, 10)
+                        } else {
+                            CalendarCardView(calendarViewModel: calendarViewModel, gratitudeViewModel: gratitudeViewModel)
+                            
+                            Button(action: {
+                                isPresented.toggle()
+                            }) {
+                                Text("Add to Journal")
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .font(.customButton)
+                                    .foregroundColor(.parchmentLight)
+                                    .background(RoundedRectangle(cornerRadius: 30).foregroundStyle(.hearthEmberMain))
+                                    .contentShape(Rectangle())
+                            }
+                            .padding(.horizontal, 10)
+                            .padding(.bottom, 50)
                         }
-                        .padding(.horizontal, 10)
-                        .padding(.bottom, 50)
                     }
                     .padding(.top, 15)
                 }
@@ -64,6 +73,14 @@ struct CalendarView: View {
             }
         }
         .onAppear {
+            if showInitialLoading {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                    withAnimation {
+                        showInitialLoading = false
+                    }
+                }
+            }
+            
             journalEntryViewModel.onEntryUpdate = { [weak calendarViewModel] in
                 calendarViewModel?.fetchEntriesInMonth(Date())
                 calendarViewModel?.fetchEntries(for: Date())
