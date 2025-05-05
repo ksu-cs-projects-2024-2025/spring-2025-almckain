@@ -13,15 +13,20 @@ struct AddGratitudePromptView: View {
     @Environment(\.dismiss) var dismiss
     
     @State private var content: String
+    @State private var selectedPrompt: String
     
     var entry: GratitudeModel
     var isEditing: Bool
+    var showPromptSelector: Bool = false
     
-    init(gratitudeViewModel: GratitudeViewModel, entry: GratitudeModel, isEditing: Bool) {
+    init(gratitudeViewModel: GratitudeViewModel, entry: GratitudeModel, isEditing: Bool, showPromptSelector: Bool = false) {
         self.gratitudeViewModel = gratitudeViewModel
         self.entry = entry
         self.isEditing = isEditing
+        self.showPromptSelector = showPromptSelector
         _content = State(initialValue: entry.content)
+        let initialPrompt = entry.prompt.isEmpty ? gratitudeViewModel.todaysPrompts.first ?? "" : entry.prompt
+        _selectedPrompt = State(initialValue: initialPrompt)
     }
     
     var body: some View {
@@ -45,22 +50,26 @@ struct AddGratitudePromptView: View {
                         
                         CustomDivider(height: 2, color: .hearthEmberMain)
                         
-                        HStack {
-                            Text("Prompt:")
-                                .font(.customHeadline1)
-                                .foregroundStyle(.parchmentDark)
+                        if showPromptSelector {
+                            PromptSelectorView(gratitudeViewModel: gratitudeViewModel, selectedPrompt: $selectedPrompt)
+                        } else {
+                            HStack {
+                                Text("Prompt:")
+                                    .font(.customHeadline1)
+                                    .foregroundStyle(.parchmentDark)
+                                
+                                Spacer()
+                            }
                             
-                            Spacer()
-                        }
-                        
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 15)
-                                .foregroundStyle(.parchmentLight)
-                            
-                            Text(entry.prompt)
-                                .font(.customBody1)
-                                .foregroundStyle(.parchmentDark)
-                                .padding()
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 15)
+                                    .foregroundStyle(.parchmentLight)
+                                
+                                Text(entry.prompt)
+                                    .font(.customBody1)
+                                    .foregroundStyle(.parchmentDark)
+                                    .padding()
+                            }
                         }
                         
                         CustomDivider(height: 2, color: .hearthEmberMain)
@@ -80,7 +89,7 @@ struct AddGratitudePromptView: View {
                                 id: entry.id,
                                 userID: entry.userID,
                                 timeStamp: entry.timeStamp,
-                                prompt: entry.prompt,
+                                prompt: showPromptSelector ? selectedPrompt : entry.prompt,
                                 content: content
                             )
                             

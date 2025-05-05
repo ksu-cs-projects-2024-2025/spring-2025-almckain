@@ -18,7 +18,7 @@ struct GratitudeCalendarCardView: View {
         CustomCalendarCardView {
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
-                    Text("Gratitude Prompt")
+                    Text("Gratitude Entry")
                         .font(.customHeadline2)
                         .foregroundStyle(.hearthEmberMain)
                     Text("•")
@@ -29,22 +29,48 @@ struct GratitudeCalendarCardView: View {
                 
                 CustomDivider(height: 2, color: .hearthEmberDark)
                 
-                ZStack {
-                    RoundedRectangle(cornerRadius: 15)
-                        .foregroundStyle(.parchmentLight)
+                VStack(spacing: 10) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 15)
+                            .foregroundStyle(.parchmentLight)
+                        
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("Prompt:")
+                                .font(.customBody2)
+                                .foregroundStyle(.parchmentDark.opacity(0.8))
+                                .padding(.horizontal)
+                                .padding(.top, 8)
+                            
+                            Text(entry.prompt)
+                                .font(.customBody1)
+                                .foregroundStyle(.parchmentDark)
+                                .padding(.horizontal)
+                                .padding(.bottom, 8)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    }
                     
-                    Text(entry.prompt)
-                        .font(.customBody1)
-                        .foregroundStyle(.parchmentDark)
-                        .padding(10)
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 15)
+                            .foregroundStyle(.white)
+                        
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("Your Response:")
+                                .font(.customBody2)
+                                .foregroundStyle(.parchmentDark.opacity(0.8))
+                                .padding(.horizontal)
+                                .padding(.top, 8)
+                            
+                            Text(entry.content)
+                                .font(.customBody1)
+                                .foregroundStyle(.parchmentDark)
+                                .lineLimit(3)
+                                .padding(.horizontal)
+                                .padding(.bottom, 8)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    }
                 }
-                
-                Text(entry.content)
-                    .font(.customBody2)
-                    .foregroundStyle(.parchmentDark)
-                    .multilineTextAlignment(.leading)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 5)
             }
         }
         .onTapGesture {

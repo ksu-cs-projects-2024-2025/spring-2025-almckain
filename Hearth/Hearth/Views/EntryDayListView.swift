@@ -18,6 +18,7 @@ struct EntryDayListView: View {
     
     @State private var showAddJournalSheet: Bool = false
     @State private var showAddPrayerSheet = false
+    @State private var showAddGratitudeSheet = false
     @State private var selectedFilters: Set<EntryType> = []
     
     @Namespace private var filterChipAnimation
@@ -128,9 +129,29 @@ struct EntryDayListView: View {
                 CreateNewJournalView(isPresenting: $showAddJournalSheet, viewModel: journalEntryViewModel, calendarViewModel: calendarViewModel, selectedDate: selectedDate)
             }
             .presentationDetents([.fraction(0.95)])
+            
             .customSheet(isPresented: $showAddPrayerSheet) {
                 AddPrayerSheetView(prayerViewModel: prayerViewModel)
             }
+            .presentationDetents([.fraction(0.95)])
+
+            .customSheet(isPresented: $showAddGratitudeSheet) {
+                let entry = GratitudeModel(
+                    id: UUID().uuidString,
+                    userID: "", // Fill this in if you have user ID context
+                    timeStamp: selectedDate,
+                    prompt: gratitudeViewModel.todaysPrompts.first ?? "",
+                    content: ""
+                )
+                
+                AddGratitudePromptView(
+                    gratitudeViewModel: gratitudeViewModel,
+                    entry: entry,
+                    isEditing: false,
+                    showPromptSelector: true
+                )
+            }
+            .presentationDetents([.fraction(0.95)])
             
         }
         .navigationTitle(selectedDate.formatted(.dateTime.month(.abbreviated).day().year()))
@@ -141,6 +162,10 @@ struct EntryDayListView: View {
                     if calendarViewModel.isToday(selectedDate: selectedDate) {
                         Button("Add Journal Entry") {
                             showAddJournalSheet.toggle()
+                        }
+                        
+                        Button("Add Gratitude Prompt") {
+                            showAddGratitudeSheet.toggle()
                         }
                     }
                     
