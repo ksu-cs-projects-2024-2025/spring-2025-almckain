@@ -44,10 +44,12 @@ struct GratitudeCalendarCardView: View {
                             Text(entry.prompt)
                                 .font(.customBody1)
                                 .foregroundStyle(.parchmentDark)
+                                .lineLimit(3)
                                 .padding(.horizontal)
                                 .padding(.bottom, 8)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
+                        .fixedSize(horizontal: false, vertical: true)
                     }
                     
                     ZStack {
@@ -69,6 +71,7 @@ struct GratitudeCalendarCardView: View {
                                 .padding(.bottom, 8)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
+                        .fixedSize(horizontal: false, vertical: true)
                     }
                 }
             }
