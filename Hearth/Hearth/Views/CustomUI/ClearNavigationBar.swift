@@ -5,6 +5,7 @@
 //  Created by Aaron McKain on 3/23/25.
 //
 
+/*
 import SwiftUI
 
 struct ClearNavigationBar: ViewModifier {
@@ -56,4 +57,5 @@ extension View {
         )
     }
 }
+*/
 

@@ -8,29 +8,35 @@
 import SwiftUI
 
 struct ShimmeringText: View {
-    @State private var phase: CGFloat = 0
     var text: String
     
     var body: some View {
-        Text(text)
-            .font(.caption)
-            .fontWeight(.bold)
-            .foregroundColor(.white)
-            .padding(6)
-            .background(Color.hearthEmberMain)
-            .cornerRadius(8)
-            .overlay(
-                LinearGradient(gradient: Gradient(colors: [.clear, .white.opacity(0.5), .clear]), startPoint: .leading, endPoint: .trailing)
-                    .mask(Text(text).font(.caption).fontWeight(.bold))
+        TimelineView(.animation(minimumInterval: 0.02, paused: false)) { timeline in
+            let date = timeline.date.timeIntervalSinceReferenceDate
+            let phase = CGFloat(date.truncatingRemainder(dividingBy: 2) * 60) // cycles every 2 sec
+            
+            Text(text)
+                .font(.caption)
+                .fontWeight(.bold)
+                .foregroundColor(.white)
+                .padding(6)
+                .background(Color.hearthEmberMain)
+                .cornerRadius(8)
+                .overlay(
+                    LinearGradient(
+                        gradient: Gradient(colors: [.clear, .white.opacity(0.5), .clear]),
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                    .mask(
+                        Text(text).font(.caption).fontWeight(.bold)
+                    )
                     .offset(x: phase)
-            )
-            .onAppear {
-                withAnimation(Animation.linear(duration: 1.5).repeatForever(autoreverses: false)) {
-                    phase = 30
-                }
-            }
+                )
+        }
     }
 }
+
 
 #Preview {
     ShimmeringText(text: "text")

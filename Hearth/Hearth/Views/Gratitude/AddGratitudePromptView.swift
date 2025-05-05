@@ -112,16 +112,11 @@ struct AddGratitudePromptView: View {
                 }
                 .navigationTitle(isEditing ? "Edit Gratitude" : "Add Gratitude")
                 .navigationBarTitleDisplayMode(.inline)
-                .navigationBarClearBackground(
-                    UIColor(named: "WarmSandLight"),
-                    titleFont: UIFont.systemFont(ofSize: 25, weight: .bold),
-                    titleColor: UIColor(named: "ParchmentDark")
-                )
+                .toolbarBackground(Color.warmSandLight, for: .navigationBar)
+                .toolbarColorScheme(.light, for: .navigationBar)
                 .toolbar {
                     ToolbarItem(placement: .topBarTrailing) {
-                        Button {
-                            dismiss()
-                        } label: {
+                        Button(action: { dismiss() }) {
                             Image(systemName: "x.circle.fill")
                         }
                     }

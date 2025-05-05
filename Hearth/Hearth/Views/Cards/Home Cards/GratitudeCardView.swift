@@ -46,10 +46,69 @@ struct GratitudeCardView: View {
                 
                 VStack(spacing: 12) {
                     if hasCompletedTodayGratitude {
+                        /*
                         Text("You've completed a gratitude prompt today!")
                             .font(.customBody1)
                             .foregroundStyle(.parchmentDark)
                             .multilineTextAlignment(.center)
+                         */
+                        VStack(spacing: 12) {
+                            HStack {
+                                Text("Today's Entry")
+                                    .font(.customHeadline1)
+                                    .foregroundStyle(.parchmentDark)
+                                
+                                Spacer()
+                                
+                                Text(Date().formatted(date: .abbreviated, time: .omitted))
+                                    .font(.customBody2)
+                                    .foregroundStyle(.hearthEmberMain)
+                            }
+                            
+                            // Preview of the prompt
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 15)
+                                    .foregroundStyle(.parchmentLight)
+                                
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text("Prompt:")
+                                        .font(.customBody2)
+                                        .foregroundStyle(.parchmentDark.opacity(0.8))
+                                        .padding(.horizontal)
+                                        .padding(.top, 8)
+                                    
+                                    Text(gratitudeViewModel.todayEntry?.prompt ?? "")
+                                        .font(.customBody1)
+                                        .foregroundStyle(.parchmentDark)
+                                        .lineLimit(2)
+                                        .padding(.horizontal)
+                                        .padding(.bottom, 8)
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            }
+                            
+                            // Preview of the response
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 15)
+                                    .foregroundStyle(.white)
+                                
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text("Your Response:")
+                                        .font(.customBody2)
+                                        .foregroundStyle(.parchmentDark.opacity(0.8))
+                                        .padding(.horizontal)
+                                        .padding(.top, 8)
+                                    
+                                    Text(gratitudeViewModel.todayEntry?.content ?? "")
+                                        .font(.customBody1)
+                                        .foregroundStyle(.parchmentDark)
+                                        .lineLimit(2)
+                                        .padding(.horizontal)
+                                        .padding(.bottom, 8)
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            }
+                        }
                     } else {
                         ZStack {
                             RoundedRectangle(cornerRadius: 15)
@@ -72,6 +131,7 @@ struct GratitudeCardView: View {
                         HStack(spacing: 12) {
                             Button(action: {
                                 guard promptIndex > 0 else { return }
+                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
                                 animationDirection = .leading
                                 withAnimation {
                                     promptIndex -= 1
@@ -92,6 +152,7 @@ struct GratitudeCardView: View {
                             
                             Button(action: {
                                 guard promptIndex < gratitudeViewModel.todaysPrompts.count - 1 else { return }
+                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
                                 animationDirection = .trailing
                                 withAnimation {
                                     promptIndex += 1
@@ -117,7 +178,6 @@ struct GratitudeCardView: View {
                             Text("View Entry")
                         }
                     } else {
-                        // On the success we need to call markPromptCompleted from the viewmodel
                         CapsuleButton(
                             title: "Complete Prompt",
                             style: .stroke,

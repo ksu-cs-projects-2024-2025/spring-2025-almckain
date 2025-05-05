@@ -47,8 +47,14 @@ struct NewReflectionCardView: View {
                     
                     Spacer ()
                     
-                    ShimmeringText(text: "NEW")
-                        .padding(.horizontal, 5)
+                    if let reflection = todayReflection, !reflection.reflectionContent.isEmpty {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(.hearthEmberMain)
+                            .font(.title2)
+                    } else {
+                        ShimmeringText(text: "NEW")
+                            .padding(.horizontal, 5)
+                    }
                 }
                 .contentShape(Rectangle())
                 .offset(x: animateShake ? 8 : 0)
@@ -65,10 +71,14 @@ struct NewReflectionCardView: View {
                 if isExpanded {
                     CustomDivider(height: 2, color: .hearthEmberMain)
                     
-                    Text("We've identified an impactful journal entry from this week. Tap to reflect on it.")
-                        .font(.customBody1)
-                        .foregroundColor(.parchmentDark)
-                        .multilineTextAlignment(.center)
+                    Text(
+                        (todayReflection?.reflectionContent.isEmpty ?? true)
+                        ? "We've identified an impactful journal entry from this week. Tap to reflect on it."
+                        : "You've already completed this reflection. Tap to review your entry."
+                    )
+                    .font(.customBody1)
+                    .foregroundColor(.parchmentDark)
+                    .multilineTextAlignment(.center)
                     
                     HStack {
                         Button(action: {

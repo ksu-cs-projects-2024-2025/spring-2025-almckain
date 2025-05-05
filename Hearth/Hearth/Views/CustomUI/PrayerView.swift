@@ -133,39 +133,37 @@ struct PrayerView: View {
             if isExpanded {
                 if isEditing {
                     //if isFuturePrayer {
-                        VStack {
-                            HStack {
-                                Text("Receive Notification: ")
-                                    .font(.customBody1)
-                                    .foregroundStyle(.parchmentDark)
-                                
-                                Spacer()
-                                
-                                Toggle("", isOn: $receiveReminder)
-                                    .padding(.horizontal)
-                                    .tint(.hearthEmberMain)
-                            }
-                            if receiveReminder {
-                                HStack {
-                                    Text("Reminder Time: ")
-                                        .font(.customBody1)
-                                        .foregroundStyle(.parchmentDark)
-                                    
-                                    Spacer()
-                                    
-                                    DatePicker(
-                                        "",
-                                        selection: $reminderDate,
-                                        in: Date()...,
-                                        displayedComponents: [.date, .hourAndMinute]
-                                    )
-                                    .labelsHidden()
-                                    .padding(.vertical, 4)
-                                }
-                                .transition(.opacity.combined(with: .move(edge: .top)))
-                            }
+                    VStack(spacing: 8) {
+                        HStack {
+                            Text("Reminder Time:")
+                                .font(.customBody1)
+                                .foregroundStyle(.parchmentDark)
+                            
+                            Spacer()
+                            
+                            DatePicker(
+                                "",
+                                selection: $reminderDate,
+                                in: Date()...,
+                                displayedComponents: [.date, .hourAndMinute]
+                            )
+                            .labelsHidden()
+                            .padding(.vertical, 4)
                         }
-                        .animation(.easeInOut, value: receiveReminder)
+                        
+                        HStack {
+                            Text("Receive Notification:")
+                                .font(.customBody1)
+                                .foregroundStyle(.parchmentDark)
+                            
+                            Spacer()
+                            
+                            Toggle("", isOn: $receiveReminder)
+                                .padding(.horizontal)
+                                .tint(.hearthEmberMain)
+                        }
+                    }
+                    .animation(.easeInOut, value: receiveReminder)
                     //}
                     
                     HStack(alignment: .center, spacing: 24) {
@@ -189,9 +187,7 @@ struct PrayerView: View {
                                 var updatedPrayer = prayer
                                 updatedPrayer.content = prayerText
                                 updatedPrayer.receiveReminder = receiveReminder
-                                if receiveReminder {
-                                    updatedPrayer.timeStamp = reminderDate
-                                }
+                                updatedPrayer.timeStamp = reminderDate
                                 
                                 if isFuturePrayer && Calendar.current.isDateInToday(reminderDate) && reminderDate < Date() {
                                     print("Added prayer to today!")
@@ -276,7 +272,7 @@ struct PrayerView: View {
 }
 
 /*
-#Preview {
-    PrayerView()
-}
-*/
+ #Preview {
+ PrayerView()
+ }
+ */
