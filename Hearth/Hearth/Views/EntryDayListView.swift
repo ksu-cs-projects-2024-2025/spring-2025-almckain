@@ -27,7 +27,7 @@ struct EntryDayListView: View {
         var filters: [EntryType] = []
         if !calendarViewModel.entries.isEmpty { filters.append(.journal) }
         if !reflectionViewModel.fetchedReflections.isEmpty { filters.append(.bibleVerseReflection) }
-        if !journalReflectionViewModel.reflections.filter({ Calendar.current.isDate($0.reflectionTimestamp, inSameDayAs: selectedDate) }).isEmpty {
+        if !journalReflectionViewModel.completedReflections(for: selectedDate).isEmpty {
             filters.append(.selfReflection)
         }
         if !prayersForDay.isEmpty { filters.append(.prayerReminder) }
@@ -56,7 +56,12 @@ struct EntryDayListView: View {
             VStack {
                 if calendarViewModel.isLoading {
                     LoadingScreenView()
-                } else if calendarViewModel.entries.isEmpty && reflectionViewModel.fetchedReflections.isEmpty && journalReflectionViewModel.reflections.isEmpty && prayersForDay.isEmpty {
+                } else if calendarViewModel.entries.isEmpty
+                    && reflectionViewModel.fetchedReflections.isEmpty
+                    && journalReflectionViewModel.completedReflections(for: selectedDate).isEmpty
+                    && prayersForDay.isEmpty
+                    && gratitudeEntriesForDay.isEmpty {
+
                     Text("No entries for this day")
                         .foregroundStyle(.secondary)
                         .padding()
@@ -95,10 +100,7 @@ struct EntryDayListView: View {
                             }
                             
                             if selectedFilters.isEmpty || selectedFilters.contains(.selfReflection) {
-                                ForEach(journalReflectionViewModel.reflections.filter {
-                                    Calendar.current.isDate($0.reflectionTimestamp, inSameDayAs: selectedDate)
-                                    && !$0.reflectionContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                                }, id: \.id) { reflection in
+                                ForEach(journalReflectionViewModel.completedReflections(for: selectedDate), id: \.id) { reflection in
                                     JournalReflectionCardView(reflection: reflection,
                                                               reflectionViewModel: journalReflectionViewModel)
                                 }
@@ -157,9 +159,9 @@ struct EntryDayListView: View {
         .navigationTitle(selectedDate.formatted(.dateTime.month(.abbreviated).day().year()))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Menu {
-                    if calendarViewModel.isToday(selectedDate: selectedDate) {
+            if Calendar.current.isDateInToday(selectedDate) {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Menu {
                         Button("Add Journal Entry") {
                             showAddJournalSheet.toggle()
                         }
@@ -167,18 +169,31 @@ struct EntryDayListView: View {
                         Button("Add Gratitude Prompt") {
                             showAddGratitudeSheet.toggle()
                         }
+                        
+                        Button("Add Prayer Reminder") {
+                            showAddPrayerSheet.toggle()
+                        }
+                    } label: {
+                        Image(systemName: "plus.square")
+                            .font(.customTitle3)
+                            .foregroundStyle(.hearthEmberMain)
                     }
-                    
-                    Button("Add Prayer Reminder") {
-                        showAddPrayerSheet.toggle()
+                }
+            } else if selectedDate > Date() {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Menu {
+                        Button("Add Prayer Reminder") {
+                            showAddPrayerSheet.toggle()
+                        }
+                    } label: {
+                        Image(systemName: "plus.square")
+                            .font(.customTitle3)
+                            .foregroundStyle(.hearthEmberMain)
                     }
-                } label: {
-                    Image(systemName: "plus.square")
-                        .font(.customTitle3)
-                        .foregroundStyle(.hearthEmberMain)
                 }
             }
         }
+
         .onAppear {
             calendarViewModel.fetchEntries(for: selectedDate)
             reflectionViewModel.fetchReflections(for: selectedDate)

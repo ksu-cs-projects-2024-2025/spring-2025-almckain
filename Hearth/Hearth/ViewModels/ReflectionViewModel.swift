@@ -190,5 +190,11 @@ class ReflectionViewModel: ObservableObject {
             }
         }
     }
-
+    
+    func completedReflections(for date: Date) -> [JournalReflectionModel] {
+        reflections.filter {
+            Calendar.current.isDate($0.reflectionTimestamp, inSameDayAs: date) &&
+            !$0.reflectionContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }
+    }
 }
