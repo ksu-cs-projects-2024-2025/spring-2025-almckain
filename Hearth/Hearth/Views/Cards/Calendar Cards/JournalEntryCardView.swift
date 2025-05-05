@@ -42,20 +42,34 @@ struct JournalEntryCardView: View {
                     CustomDivider(height: 2, color: .hearthEmberDark)
                         .padding(.trailing, 20)
                     
-                    Text(journalEntry.title)
-                        .font(.customHeadline2)
-                        .foregroundStyle(.parchmentDark)
-                        .padding(.trailing, 20)
-                        .lineLimit(1)
-                        .truncationMode(.tail)
-                    
-                    if !journalEntry.content.isEmpty {
+                    let hasTitle = !journalEntry.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                    let hasContent = !journalEntry.content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+
+                    if hasTitle && !hasContent {
+                        Text(journalEntry.title)
+                            .font(.customBody2)
+                            .foregroundStyle(.parchmentDark)
+                            .padding(.trailing, 20)
+                            .lineLimit(2)
+                            .truncationMode(.tail)
+                    } else if hasTitle {
+                        Text(journalEntry.title)
+                            .font(.customHeadline2)
+                            .foregroundStyle(.parchmentDark)
+                            .padding(.trailing, 20)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                    }
+
+                    if hasContent {
                         Text(journalEntry.content)
                             .font(.customBody2)
                             .padding(.trailing, 20)
                             .lineLimit(2)
                             .truncationMode(.tail)
                     }
+
+
                 }
                 .padding(.vertical, 15)
                 Spacer()

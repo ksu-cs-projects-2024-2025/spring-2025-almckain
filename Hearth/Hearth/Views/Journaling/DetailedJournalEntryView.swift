@@ -37,14 +37,16 @@ struct DetailedJournalEntryView: View {
                             .foregroundStyle(.hearthEmberDark)
                             
                             Spacer()
+                            if !entry.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                                HStack {
+                                    Text(entry.title)
+                                        .font(.customTitle1)
+                                        .foregroundStyle(.parchmentDark)
+                                    Spacer()
+                                }
+                                .padding(.vertical)
+                            }
                         }
-                        HStack {
-                            Text(entry.title)
-                                .font(.customTitle1)
-                                .foregroundStyle(.parchmentDark)
-                            Spacer()
-                        }
-                        .padding(.vertical)
                         
                         CustomDivider(height: 2, color: .hearthEmberMain)
                         
@@ -94,7 +96,7 @@ struct DetailedJournalEntryView: View {
                                         .stroke(Color.hearthEmberMain, lineWidth: 4)
                                 )
                         }
-
+                        
                         Button(action: {
                             isEditing = true
                         }) {
@@ -143,7 +145,7 @@ struct DetailedJournalEntryView: View {
             CreateNewJournalView(isPresenting: $isEditing, viewModel: viewModel, calendarViewModel: calendarViewModel, selectedDate: selectedDate, entry: entry)
         }
         .presentationDetents([.fraction(0.95)])
-
+        
     }
 }
 

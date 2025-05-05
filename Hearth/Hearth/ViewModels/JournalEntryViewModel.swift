@@ -34,9 +34,10 @@ class JournalEntryViewModel: ObservableObject {
     }
     
     func addJournalEntry(title: String, content: String, date: Date = Date(), completion: @escaping (Result<Void, Error>) -> Void) {
-        guard !title.isEmpty else {
-            self.errorMessage = "Title cannot be empty"
-            let error = NSError(domain: "JournalEntryError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Title cannot be empty"])
+        guard !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
+              !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            self.errorMessage = "Cannot save an empty entry."
+            let error = NSError(domain: "JournalEntryError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Cannot save an empty entry."])
             completion(.failure(error))
             return
         }
@@ -93,12 +94,14 @@ class JournalEntryViewModel: ObservableObject {
     }
     
     func updateJournalEntry(entry: JournalEntryModel, newTitle: String, newContent: String, completion: @escaping (Result<Void, Error>) -> Void) {
-        guard !newTitle.isEmpty else {
-            self.errorMessage = "Title cannot be empty"
-            let error = NSError(domain: "JournalEntryError", code: 3, userInfo: [NSLocalizedDescriptionKey: "Title cannot be empty"])
+        guard !newTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
+              !newContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            self.errorMessage = "Cannot save an empty entry."
+            let error = NSError(domain: "JournalEntryError", code: 3, userInfo: [NSLocalizedDescriptionKey: "Cannot save an empty entry."])
             completion(.failure(error))
             return
         }
+
         
         var updatedEntry = entry
         updatedEntry.title = newTitle

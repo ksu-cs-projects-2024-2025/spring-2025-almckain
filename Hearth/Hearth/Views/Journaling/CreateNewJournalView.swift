@@ -62,8 +62,9 @@ struct CreateNewJournalView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 15))
                         .padding(.vertical)
                                   
-                    let isDisabled = viewModel.isLoading || title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                    || content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                    let isDisabled = viewModel.isLoading
+                        || (title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                            && content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                     
                     Button(action: {
                         if let entry = entry {
