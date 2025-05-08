@@ -31,7 +31,7 @@ class UserService: AuthenticationServiceProtocol {
     
     func loginUser(email: String, password: String, completion: @escaping (Result<Void, Error>) -> Void) {
         Auth.auth().signIn(withEmail: email, password: password) { result, error in
-            if let error = error {
+            if let _ = error {
                 completion(.failure(UserServiceError.invalidUserID))
             } else {
                 completion(.success(()))
