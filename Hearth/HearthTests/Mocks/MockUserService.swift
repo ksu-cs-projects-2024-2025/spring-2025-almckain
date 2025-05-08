@@ -6,12 +6,15 @@
 //
 
 import Foundation
+import FirebaseAuth
 @testable import Hearth
 
 class MockUserSession: UserSessionProviding {
     var currentUserID: String?
+    var currentUser: User?
 
-    init(userID: String? = "test-user-id") {
+    init(userID: String? = "test-user-id", user: User? = nil) {
         self.currentUserID = userID
+        self.currentUser = user
     }
 }

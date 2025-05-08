@@ -19,14 +19,14 @@ class ProfileViewModel: ObservableObject {
     private let userSession: UserSessionProviding
     
     init(
+        profileService: ProfileServiceProtocol = ProfileService(),
         userSession: UserSessionProviding = FirebaseUserSessionProvider()
     ) {
+        self.profileService = profileService
         self.userSession = userSession
-        self.profileService = ProfileService(userSession: userSession)
         fetchUserData()
         fetchProfileStats()
     }
-
     
     func fetchProfileStats() {
         profileService.fetchAllCounts { [weak self] counts in

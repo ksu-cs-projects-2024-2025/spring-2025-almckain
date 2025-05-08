@@ -20,7 +20,7 @@ class UserService: AuthenticationServiceProtocol {
             }
             
             guard let user = authResult?.user else {
-                completion(.failure(NSError(domain: "UserService", code: 0, userInfo: [NSLocalizedDescriptionKey: "User not found"])))
+                completion(.failure(UserServiceError.userNotFoundAfterRegistration))
                 return
             }
             
@@ -32,7 +32,7 @@ class UserService: AuthenticationServiceProtocol {
     func loginUser(email: String, password: String, completion: @escaping (Result<Void, Error>) -> Void) {
         Auth.auth().signIn(withEmail: email, password: password) { result, error in
             if let error = error {
-                completion(.failure(error))
+                completion(.failure(UserServiceError.invalidUserID))
             } else {
                 completion(.success(()))
             }
@@ -43,19 +43,19 @@ class UserService: AuthenticationServiceProtocol {
         do {
             try db.collection("users").document(user.id ?? UUID().uuidString).setData(from: user) { error in
                 if let error = error {
-                    completion(.failure(error))
+                    completion(.failure(UserServiceError.documentSerialization(error)))
                 } else {
                     completion(.success(()))
                 }
             }
         } catch {
-            completion(.failure(error))
+            completion(.failure(UserServiceError.documentSerialization(error)))
         }
     }
     
     func completeUserOnboarding(completion: @escaping (Result<Void, Error>) -> Void) {
         guard let user = Auth.auth().currentUser else {
-            completion(.failure(NSError(domain: "UserService", code: 1, userInfo: [NSLocalizedDescriptionKey: "No user logged in."])))
+            completion(.failure(UserServiceError.noLoggedInUser))
             return
         }
         
@@ -64,10 +64,31 @@ class UserService: AuthenticationServiceProtocol {
             "isOnboardingComplete": true
         ]) { error in
             if let error = error {
-                completion(.failure(error))
+                completion(.failure(UserServiceError.documentSerialization(error)))
             } else {
                 completion(.success(()))
             }
         }
     }
 }
+
+enum UserServiceError: LocalizedError {
+    case userNotFoundAfterRegistration
+    case noLoggedInUser
+    case invalidUserID
+    case documentSerialization(Error)
+
+    var errorDescription: String? {
+        switch self {
+        case .userNotFoundAfterRegistration:
+            return "User was created, but could not be retrieved."
+        case .noLoggedInUser:
+            return "No user is currently logged in."
+        case .invalidUserID:
+            return "Invalid user ID. Cannot save user data without a valid identifier."
+        case .documentSerialization(let error):
+            return "Failed to serialize user data: \(error.localizedDescription)"
+        }
+    }
+}
+
