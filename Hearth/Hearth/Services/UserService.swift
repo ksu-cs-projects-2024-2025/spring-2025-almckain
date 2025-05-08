@@ -9,7 +9,7 @@ import FirebaseAuth
 import FirebaseFirestore
 import Foundation
 
-class UserService {
+class UserService: AuthenticationServiceProtocol {
     private let db = Firestore.firestore()
 
     func registerUser(firstName: String, lastName: String, email: String, password: String, completion: @escaping (Result<Void, Error>) -> Void) {

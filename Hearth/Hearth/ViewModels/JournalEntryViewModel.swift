@@ -14,9 +14,13 @@ class JournalEntryViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
     
-    private let entryService = EntryService()
+    private let entryService: EntryServiceProtocol
     
     var onEntryUpdate: (() -> Void)?
+    
+    init(entryService: EntryServiceProtocol = EntryService(userSession: FirebaseUserSessionProvider())) {
+        self.entryService = entryService
+    }
     
     func fetchJournalEntries() {
         isLoading = true

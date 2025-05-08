@@ -9,11 +9,16 @@ import FirebaseFirestore
 import FirebaseAuth
 import Foundation
 
-class EntryService {
+class EntryService: EntryServiceProtocol {
     private let db = Firestore.firestore()
+    private let userSession: UserSessionProviding
+    
+    init(userSession: UserSessionProviding = FirebaseUserSessionProvider()) {
+        self.userSession = userSession
+    }
     
     func fetchEntriesInRange(start: Date, end: Date, completion: @escaping (Result<[JournalEntryModel], Error>) -> Void) {
-        guard let userID = Auth.auth().currentUser?.uid else {
+        guard let userID = userSession.currentUserID else {
             completion(.failure(NSError(domain: "AuthError", code: 401,
                userInfo: [NSLocalizedDescriptionKey: "User not logged in."])))
             return
@@ -40,13 +45,13 @@ class EntryService {
     
     
     func saveEntry<T: EntryProtocol>(_ entry: T, completion: @escaping (Result<Void, Error>) -> Void) {
-        guard let user = Auth.auth().currentUser else {
+        guard let userID = userSession.currentUserID else {
             completion(.failure(NSError(domain: "AuthError", code: 401, userInfo: [NSLocalizedDescriptionKey: "User not logged in."])))
             return
         }
         
         var newEntry = entry
-        newEntry.userID = user.uid
+        newEntry.userID = userID
         
         do {
             let _ = try db.collection("entries").document(newEntry.id).setData(from: newEntry, merge: true)
@@ -57,7 +62,7 @@ class EntryService {
     }
     
     func fetchEntries<T: EntryProtocol>(entryType: EntryType, completion: @escaping (Result<[T], Error>) -> Void) {
-        guard let userID = Auth.auth().currentUser?.uid else {
+        guard let userID = userSession.currentUserID else {
             completion(.failure(NSError(domain: "AuthError", code: 401, userInfo: [NSLocalizedDescriptionKey: "User not logged in."])))
             return
         }
@@ -80,7 +85,7 @@ class EntryService {
     }
     
     func fetchEntriesForDay(date: Date, completion: @escaping (Result<[JournalEntryModel], Error>) -> Void) {
-        guard let userID = Auth.auth().currentUser?.uid else {
+        guard let userID = userSession.currentUserID else {
             completion(.failure(NSError(domain: "AuthError", code: 401, userInfo: [NSLocalizedDescriptionKey: "User not logged in."])))
             return
         }
@@ -90,7 +95,7 @@ class EntryService {
         components.hour = 0
         components.minute = 0
         components.second = 0
-        components.timeZone = TimeZone.current // Ensure local time zone
+        components.timeZone = TimeZone.current
 
         guard let localStartOfDay = calendar.date(from: components) else {
             completion(.failure(NSError(domain: "DateError", code: 400, userInfo: [NSLocalizedDescriptionKey: "Failed to calculate local start of day"])))
@@ -125,7 +130,7 @@ class EntryService {
     }
     
     func deleteEntry(entryId: String, completion: @escaping (Result<Void, Error>) -> Void) {
-        guard Auth.auth().currentUser != nil else {
+        guard userSession.currentUserID != nil else {
             completion(.failure(NSError(domain: "AuthError", code: 401,
                                        userInfo: [NSLocalizedDescriptionKey: "User not logged in"])))
             return
@@ -141,6 +146,11 @@ class EntryService {
     }
     
     func updateEntry(_ entry: JournalEntryModel, completion: @escaping (Result<Void, Error>) -> Void) {
+        guard userSession.currentUserID != nil else {
+            completion(.failure(NSError(domain: "AuthError", code: 401, userInfo: [NSLocalizedDescriptionKey: "User not logged in."])))
+            return
+        }
+        
         let entryID = entry.id
         
         let data: [String: Any] = [
@@ -159,7 +169,7 @@ class EntryService {
     }
     
     func fetchEntriesForLastWeek(completion: @escaping (Result<[JournalEntryModel], Error>) -> Void) {
-        guard let userID = Auth.auth().currentUser?.uid else {
+        guard let userID = userSession.currentUserID else {
             completion(.failure(NSError(domain: "AuthError",
                                         code: 401,
                                         userInfo: [NSLocalizedDescriptionKey: "User not logged in."])))
@@ -168,13 +178,9 @@ class EntryService {
         
         let calendar = Calendar.current
         let now = Date()
-        
-        // 1) Compute “this Sunday at 00:00” in local time
-        //    Sunday == 1 in Calendar.current (by default)
         let weekday = calendar.component(.weekday, from: now)
-        let daysSinceSunday = (weekday + 6) % 7  // 0 if today *is* Sunday, 1 if Monday, etc.
+        let daysSinceSunday = (weekday + 6) % 7
         
-        // “thisSundayMidnight” is midnight at the current Sunday (today if we’re calling on Sunday)
         guard let thisSundayMidnight = calendar.date(
             byAdding: .day,
             value: -daysSinceSunday,
@@ -185,14 +191,12 @@ class EntryService {
             return
         }
         
-        // 2) Compute “previous Sunday at 00:00” (7 days earlier)
         guard let previousSundayMidnight = calendar.date(byAdding: .day, value: -7, to: thisSundayMidnight) else {
             completion(.failure(NSError(domain: "DateCalcError", code: 400,
                                         userInfo: [NSLocalizedDescriptionKey: "Could not compute previousSundayMidnight"])))
             return
         }
         
-        // 3) Query Firestore for [previousSundayMidnight, thisSundayMidnight)
         db.collection("entries")
             .whereField("userID", isEqualTo: userID)
             .whereField("entryType", isEqualTo: EntryType.journal.rawValue)

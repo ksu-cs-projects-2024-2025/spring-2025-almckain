@@ -13,13 +13,20 @@ class ProfileViewModel: ObservableObject {
     @Published var user: UserModel?
     @Published var isLoading: Bool = true
     @Published var stats: [String: Int] = [:]
+    @Published var errorMessage: String?
     
-    private let profileService = ProfileService()
+    private let profileService: ProfileServiceProtocol
+    private let userSession: UserSessionProviding
     
-    init() {
+    init(
+        userSession: UserSessionProviding = FirebaseUserSessionProvider()
+    ) {
+        self.userSession = userSession
+        self.profileService = ProfileService(userSession: userSession)
         fetchUserData()
         fetchProfileStats()
     }
+
     
     func fetchProfileStats() {
         profileService.fetchAllCounts { [weak self] counts in
@@ -36,7 +43,8 @@ class ProfileViewModel: ObservableObject {
                 case .success(let user):
                     self?.user = user
                 case .failure:
-                    self?.user = UserModel(id: "", firstName: "", lastName: "", email: "", joinedAt: Date())
+                    self?.user = nil
+                    self?.errorMessage = "Failed to load user data"
                 }
                 self?.isLoading = false
             }
@@ -80,7 +88,7 @@ class ProfileViewModel: ObservableObject {
     }
     
     func reauthenticateAndDelete(password: String, completion: @escaping (Result<Void, Error>) -> Void) {
-        guard let user = Auth.auth().currentUser,
+        guard let user = userSession.currentUser,
               let email = user.email else {
             let err = NSError(domain: "Auth", code: 0,
                               userInfo: [NSLocalizedDescriptionKey: "No signed-in user"])

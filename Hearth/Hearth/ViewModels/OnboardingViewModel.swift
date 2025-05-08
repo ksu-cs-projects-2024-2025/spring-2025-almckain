@@ -21,7 +21,11 @@ class OnboardingViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @AppStorage("isOnboardingComplete") private var isOnboardingComplete: Bool = false
     
-    private let userService = UserService()
+    private let userService: AuthenticationServiceProtocol
+    
+    init(userService: AuthenticationServiceProtocol = UserService()) {
+        self.userService = userService
+    }
     
     func registerUser(completion: @escaping (Bool) -> Void) {
         firstName = firstName.trimmingCharacters(in: .whitespacesAndNewlines)

@@ -8,7 +8,7 @@
 import FirebaseFirestore
 import Foundation
 
-struct JournalEntryModel: EntryProtocol {
+struct JournalEntryModel: EntryProtocol, Equatable {
     var id: String
     var userID: String
     var title: String

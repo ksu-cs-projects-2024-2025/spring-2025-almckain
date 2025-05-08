@@ -9,12 +9,18 @@ import FirebaseAuth
 import FirebaseFirestore
 import Foundation
 
-class ProfileService {
+class ProfileService: ProfileServiceProtocol {
     private let db = Firestore.firestore()
+    private let userSession: UserSessionProviding
+    private let batchLimit = 450
+    
+    init(userSession: UserSessionProviding = FirebaseUserSessionProvider()) {
+        self.userSession = userSession
+    }
     
     func getUserData(completion: @escaping (Result<UserModel, Error>) -> Void) {
-        guard let userId = Auth.auth().currentUser?.uid else {
-            completion(.failure(NSError(domain: "ProfileService", code: 401, userInfo: [NSLocalizedDescriptionKey: "User not logged in"])))
+        guard let userId = userSession.currentUserID else {
+            completion(.failure(ProfileServiceError.userNotLoggedIn))
             return
         }
         
@@ -25,7 +31,7 @@ class ProfileService {
             }
             
             guard let document = document, document.exists else {
-                completion(.failure(NSError(domain: "ProfileService", code: 404, userInfo: [NSLocalizedDescriptionKey: "User data not found"])))
+                completion(.failure(ProfileServiceError.userDataNotFound))
                 return
             }
             
@@ -33,7 +39,7 @@ class ProfileService {
                 let user = try document.data(as: UserModel.self)
                 completion(.success(user))
             } catch {
-                completion(.failure(error))
+                completion(.failure(ProfileServiceError.firestore(error)))
             }
         }
     }
@@ -50,79 +56,74 @@ class ProfileService {
     
     // MARK: - Aggregation queries for stats
     
-    private func fetchCount(forCollection collection: String, completion: @escaping (Int?) -> Void) {
-        guard let userID = Auth.auth().currentUser?.uid else {
-            completion(nil)
+    private func fetchCount(forCollection collection: String, completion: @escaping (Result<Int, Error>) -> Void) {
+        guard let userID = userSession.currentUserID else {
+            completion(.failure(ProfileServiceError.userNotLoggedIn))
             return
         }
         
-        let query = db.collection(collection)
+        db.collection(collection)
             .whereField("userID", isEqualTo: userID)
-        
-        query.count.getAggregation(source: .server) { snapchat, error in
-            if let error = error {
-                print("Error fetching count for \(collection): \(error.localizedDescription)")
-                completion(nil)
-            } else if let snapchat = snapchat {
-                completion(Int(truncating: snapchat.count))
-            } else {
-                completion(nil)
+            .count
+            .getAggregation(source: .server) { snapshot, error in
+                if let error = error {
+                    completion(.failure(ProfileServiceError.firestore(error)))
+                } else if let snapshot = snapshot {
+                    completion(.success(Int(truncating: snapshot.count)))
+                } else {
+                    completion(.failure(ProfileServiceError.userDataNotFound))
+                }
             }
-        }
     }
     
     func fetchPrayerCount(completion: @escaping (Int?) -> Void) {
-        fetchCount(forCollection: "prayers", completion: completion)
+        fetchCount(forCollection: "prayers") { result in
+            completion(try? result.get())
+        }
     }
     
     func fetchJournalEntryCount(completion: @escaping (Int?) -> Void) {
-        fetchCount(forCollection: "entries", completion: completion)
+        fetchCount(forCollection: "entries") { result in
+            completion(try? result.get())
+        }
     }
     
     func fetchReflectionCount(completion: @escaping (Int?) -> Void) {
-        fetchCount(forCollection: "reflections", completion: completion)
+        fetchCount(forCollection: "reflections") { result in
+            completion(try? result.get())
+        }
     }
     
     func fetchEntryReflectionCount(completion: @escaping (Int?) -> Void) {
-        fetchCount(forCollection: "entryReflections", completion: completion)
+        fetchCount(forCollection: "entryReflections") { result in
+            completion(try? result.get())
+        }
     }
     
     func fetchGratitudeCount(completion: @escaping (Int?) -> Void) {
-        fetchCount(forCollection: "gratitudeEntries", completion: completion)
+        fetchCount(forCollection: "gratitudeEntries") { result in
+            completion(try? result.get())
+        }
     }
     
     func fetchAllCounts(completion: @escaping ([String: Int]) -> Void) {
         var counts: [String: Int] = [:]
         let group = DispatchGroup()
         
-        group.enter()
-        fetchPrayerCount { count in
-            counts["prayerCount"] = count ?? 0
-            group.leave()
-        }
+        let countTasks: [(String, (Int?) -> Void)] = [
+            ("prayers", { counts["prayerCount"] = $0 ?? 0 }),
+            ("entries", { counts["journalEntryCount"] = $0 ?? 0 }),
+            ("reflections", { counts["reflectionCount"] = $0 ?? 0 }),
+            ("entryReflections", { counts["entryReflectionCount"] = $0 ?? 0 }),
+            ("gratitudeEntries", { counts["gratitudeCount"] = $0 ?? 0 })
+        ]
         
-        group.enter()
-        fetchJournalEntryCount { count in
-            counts["journalEntryCount"] = count ?? 0
-            group.leave()
-        }
-        
-        group.enter()
-        fetchReflectionCount { count in
-            counts["reflectionCount"] = count ?? 0
-            group.leave()
-        }
-        
-        group.enter()
-        fetchEntryReflectionCount { count in
-            counts["entryReflectionCount"] = count ?? 0
-            group.leave()
-        }
-        
-        group.enter()
-        fetchGratitudeCount { count in
-            counts["gratitudeCount"] = count ?? 0
-            group.leave()
+        for (collection, handler) in countTasks {
+            group.enter()
+            fetchCount(forCollection: collection) { result in
+                handler(try? result.get())
+                group.leave()
+            }
         }
         
         group.notify(queue: .main) {
@@ -131,70 +132,96 @@ class ProfileService {
     }
     
     func deleteAccount(completion: @escaping (Result<Void, Error>) -> Void) {
-        guard let user = Auth.auth().currentUser else {
-            completion(.failure(NSError(domain: "ProfileService", code: 401, userInfo: [NSLocalizedDescriptionKey: "Not signed in"])))
+        guard let user = userSession.currentUser else {
+            completion(.failure(ProfileServiceError.userNotLoggedIn))
             return
         }
         
         let uid = user.uid
         let collections = ["users", "entries", "reflections", "prayers", "entryReflections"]
         var errors: [Error] = []
-        let dispatchGroup = DispatchGroup()
+        let group = DispatchGroup()
         
         var batch = db.batch()
         var opCount = 0
         
         for collection in collections {
-            dispatchGroup.enter()
-            let colRef = db.collection(collection)
-            let query: Query
-            if collection == "users" {
-                query = colRef.whereField(FieldPath.documentID(), isEqualTo: uid)
-            } else {
-                query = colRef.whereField("userID", isEqualTo: uid)
-            }
+            group.enter()
+            let query: Query = (collection == "users")
+            ? db.collection(collection).whereField(FieldPath.documentID(), isEqualTo: uid)
+            : db.collection(collection).whereField("userID", isEqualTo: uid)
             
-            query.getDocuments { snap, err in
-                defer { dispatchGroup.leave() }
-                if let err = err {
-                    errors.append(err)
+            query.getDocuments { snapshot, error in
+                defer { group.leave() }
+                if let error = error {
+                    errors.append(error)
                     return
                 }
-                guard let docs = snap?.documents else { return }
-                for doc in docs {
+                
+                guard let documents = snapshot?.documents else { return }
+                
+                for doc in documents {
                     batch.deleteDocument(doc.reference)
                     opCount += 1
-                    if opCount == 450 {
-                        batch.commit { commitErr in
-                            if let commitErr = commitErr {
-                                errors.append(commitErr)
-                            }
+                    
+                    if opCount == self.batchLimit {
+                        let currentBatch = batch
+                        self.commit(currentBatch, errors: errors) { newBatch, newErrors in
+                            batch = newBatch
+                            errors = newErrors
                         }
-                        batch = self.db.batch()
                         opCount = 0
                     }
                 }
             }
         }
         
-        dispatchGroup.notify(queue: .main) {
-            batch.commit { commitErr in
-                if let commitErr = commitErr {
-                    errors.append(commitErr)
+        group.notify(queue: .main) {
+            self.commit(batch, errors: errors) { _, finalErrors in
+                if !finalErrors.isEmpty {
+                    completion(.failure(ProfileServiceError.batchCommit(finalErrors)))
+                    return
                 }
                 
-                if let first = errors.first {
-                    completion(.failure(first)); return
-                }
-                
-                user.delete { authErr in
-                    if let authErr = authErr {
-                        completion(.failure(authErr))
+                user.delete { error in
+                    if let error = error {
+                        completion(.failure(ProfileServiceError.firestore(error)))
                     } else {
                         completion(.success(()))
                     }
                 }
             }
+        }
+    }
+    
+    private func commit(_ batch: WriteBatch, errors: [Error], completion: @escaping (WriteBatch, [Error]) -> Void) {
+        batch.commit { [weak self] error in
+            var updatedErrors = errors
+            if let error = error {
+                updatedErrors.append(error)
+            }
+            let newBatch = self?.db.batch() ?? batch
+            completion(newBatch, updatedErrors)
+        }
+    }
+}
+
+enum ProfileServiceError: LocalizedError {
+    case userNotLoggedIn
+    case userDataNotFound
+    case firestore(Error)
+    case batchCommit([Error])
+    
+    var errorDescription: String? {
+        switch self {
+        case .userNotLoggedIn:
+            return "User is not logged in."
+        case .userDataNotFound:
+            return "User data could not be found."
+        case .firestore(let err):
+            return err.localizedDescription
+        case .batchCommit(let errors):
+            return "Batch commit failed: \(errors.map(\.localizedDescription).joined(separator: ", "))"
         }
     }
 }
