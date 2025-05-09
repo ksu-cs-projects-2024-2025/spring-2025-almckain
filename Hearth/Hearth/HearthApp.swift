@@ -24,10 +24,6 @@ struct HearthApp: App {
     init() {
         FirebaseApp.configure()
         handleFreshInstall()
-        // Testing purposes to control which screen is being presented
-        //self.isOnboardingComplete = false
-        // UserDefaults.standard.removeObject(forKey: "LastUsedBibleVerseIndex")
-        // UserDefaults.standard.removeObject(forKey: "LastBibleVerseUpdateDate")
     }
     
     var body: some Scene {
@@ -37,15 +33,12 @@ struct HearthApp: App {
                     ProgressView()
                 } else {
                     if isOnboardingComplete {
-                        // Parent container for the tab bar and all children views
                         MainView()
                             .environmentObject(notificationViewModel)
                             .onAppear {
                                 appDelegate.notificationViewModel = notificationViewModel
                             }
                     } else {
-                        // Parent container for the onboarding sequence
-                        // OnboardingView()
                         SplashPageView()
                             .environmentObject(notificationViewModel)
                             .onAppear {

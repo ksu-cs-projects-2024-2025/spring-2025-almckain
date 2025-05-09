@@ -11,15 +11,28 @@ import FirebaseAuth
 
 class VerseReflectionService {
     private let db = Firestore.firestore()
+    private let userSession: UserSessionProviding
     
-    // VerseReflectionService.swift
+    init(userSession: UserSessionProviding = FirebaseUserSessionProvider()) {
+        self.userSession = userSession
+    }
+    
     func saveReflection(_ reflection: VerseReflectionModel, completion: @escaping (Result<String, Error>) -> Void) {
+        guard let userID = userSession.currentUserID else {
+            completion(.failure(VerseReflectionServiceError.userNotLoggedIn))
+            return
+        }
+        
+        var updatedReflection = reflection
+        updatedReflection.userID = userID
+        updatedReflection.timeStamp = Date()
+        
         let docRef = db.collection("reflections").document()
         do {
-            try docRef.setData(from: reflection) { error in
+            try docRef.setData(from: updatedReflection) { error in
                 if let error = error {
                     print("Firestore Error: \(error.localizedDescription)")
-                    completion(.failure(error))
+                    completion(.failure(VerseReflectionServiceError.firestoreError(error)))
                 } else {
                     print("Reflection saved successfully with ID: \(docRef.documentID)")
                     completion(.success(docRef.documentID))
@@ -27,49 +40,42 @@ class VerseReflectionService {
             }
         } catch let error {
             print("Encoding Error: \(error.localizedDescription)")
-            completion(.failure(error))
+            completion(.failure(VerseReflectionServiceError.encodingError(error)))
         }
     }
 
     
     func updateReflection(_ reflection: VerseReflectionModel, completion: @escaping (Result<Void, Error>) -> Void) {
-        guard Auth.auth().currentUser != nil else {
-            completion(.failure(NSError(
-                domain: "AuthError",
-                code: 401,
-                userInfo: [NSLocalizedDescriptionKey: "User not logged in"]
-            )))
+        guard let userID = userSession.currentUserID else {
+            completion(.failure(VerseReflectionServiceError.userNotLoggedIn))
             return
         }
         
-        let id = reflection.id
+        guard reflection.userID == userID else {
+            completion(.failure(VerseReflectionServiceError.userNotLoggedIn))
+            return
+        }
         
+        let docRef = db.collection("reflections").document(reflection.id)
         do {
-            // Use setData(from:merge:) with a completion closure
-            try db.collection("reflections").document(id).setData(from: reflection, merge: true) { error in
+            try docRef.setData(from: reflection, merge: true) { error in
                 if let error = error {
-                    // Asynchronous Firestore error
                     print("Firestore Update Error: \(error.localizedDescription)")
-                    completion(.failure(error))
+                    completion(.failure(VerseReflectionServiceError.firestoreError(error)))
                 } else {
-                    print("Reflection updated successfully")
                     completion(.success(()))
                 }
+                
             }
         } catch let error {
-            // Immediate encoding error
             print("Encoding Error: \(error.localizedDescription)")
-            completion(.failure(error))
+            completion(.failure(VerseReflectionServiceError.encodingError(error)))
         }
     }
     
     func deleteReflection(entryId: String, completion: @escaping (Result<Void, Error>) -> Void) {
-        guard Auth.auth().currentUser != nil else {
-            completion(.failure(NSError(
-                domain: "AuthError",
-                code: 401,
-                userInfo: [NSLocalizedDescriptionKey: "User not logged in"]
-            )))
+        guard let userID = userSession.currentUserID else {
+            completion(.failure(VerseReflectionServiceError.userNotLoggedIn))
             return
         }
         
@@ -85,7 +91,7 @@ class VerseReflectionService {
     }
     
     func fetchReflectionsForDay(date: Date, completion: @escaping (Result<[VerseReflectionModel], Error>) -> Void) {
-        guard let userID = Auth.auth().currentUser?.uid else {
+        guard let userID = userSession.currentUserID else {
             completion(.failure(NSError(domain: "AuthError", code: 401,
                userInfo: [NSLocalizedDescriptionKey: "User not logged in."])))
             return
@@ -127,7 +133,7 @@ class VerseReflectionService {
     }
     
     func fetchReflectionsInRange(start: Date, end: Date, completion: @escaping (Result<[VerseReflectionModel], Error>) -> Void) {
-        guard let userID = Auth.auth().currentUser?.uid else {
+        guard let userID = userSession.currentUserID else {
             completion(.failure(NSError(domain: "AuthError", code: 401,
                 userInfo: [NSLocalizedDescriptionKey: "User not logged in."])))
             return
@@ -148,7 +154,24 @@ class VerseReflectionService {
                 }
             }
     }
-
-
 }
 
+enum VerseReflectionServiceError: LocalizedError {
+    case userNotLoggedIn
+    case encodingError(Error)
+    case firestoreError(Error)
+    case dateRangeError
+    
+    var errorDescription: String? {
+        switch self {
+        case .userNotLoggedIn:
+            return "User is not logged in."
+        case .encodingError(let error):
+            return error.localizedDescription
+        case .firestoreError(let error):
+            return error.localizedDescription
+        case .dateRangeError:
+            return "Error calculating date range."
+        }
+    }
+}

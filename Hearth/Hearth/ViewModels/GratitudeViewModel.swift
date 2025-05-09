@@ -10,9 +10,11 @@ import SwiftUI
 class GratitudeViewModel: ObservableObject {
     @Published var allEntries: [GratitudeModel] = []
     @Published var todayEntry: GratitudeModel?
+    @Published var errorMessage: String?
     
-    private let service = GratitudeService()
-    
+    private let service: GratitudeServiceProtocol
+    private let userDefaults = UserDefaults.standard
+
     private var prompts: [String] = [
         "What's one small thing that brought you joy today?",
         "Who made a positive difference in your life recently, and how?",
@@ -45,27 +47,29 @@ class GratitudeViewModel: ObservableObject {
         "Describe a time in the past month when a stranger showed you unexpected kindness.",
         "What's a personal habit you've developed that consistently improves your life?"
     ]
-    
     private let allPromptCount = 30
-    private let userDefaults = UserDefaults.standard
-    
     private let promptsKey = "dailyGratitudePrompts"
     private let completedKey = "completedGratitudePrompts"
     private let lastDateKey = "lastGratitudePromptDate"
-    
     var todaysPrompts: [String] = []
     
-    init() {
-        
+    init(service: GratitudeServiceProtocol = GratitudeService()) {
+        self.service = service
     }
     
     func fetchEntries(forMonth date: Date) {
-        service.fetchGratitudeEntries(forMonth: date) { [weak self] entries in
+        service.fetchGratitudeEntries(forMonth: date) { [weak self] result in
             DispatchQueue.main.async {
-                self?.allEntries = entries
-                self?.todayEntry = entries.first(where: {
-                    Calendar.current.isDateInToday($0.timeStamp)
-                })
+                switch result {
+                case .success(let entries):
+                    self?.allEntries = entries
+                    self?.todayEntry = entries.first(where: {
+                        Calendar.current.isDateInToday($0.timeStamp)
+                    })
+                case .failure(let error):
+                    self?.errorMessage = error.localizedDescription
+                }
+
             }
         }
     }
@@ -81,56 +85,52 @@ class GratitudeViewModel: ObservableObject {
     func saveEntry(prompt: String, content: String, completion: @escaping(Bool) -> Void) {
         let entry = GratitudeModel(id: UUID().uuidString, userID: "", timeStamp: Date(), prompt: prompt, content: content)
         
-        service.saveGratitudeEntry(entry) { [weak self] success in
-            if success {
-                DispatchQueue.main.async {
-                    self?.todayEntry = entry
-                    self?.allEntries.insert(entry, at: 0)
-                }
+        service.saveGratitudeEntry(entry) { [weak self] result in
+            switch result {
+            case .success:
+                self?.todayEntry = entry
+                self?.allEntries.insert(entry, at: 0)
+                self?.errorMessage = nil
+                completion(true)
+            case .failure(let error):
+                self?.errorMessage = error.localizedDescription
+                completion(false)
             }
-            completion(success)
         }
     }
     
     func updateGratitude(_ entry: GratitudeModel, completion: @escaping (Bool) -> Void) {
-        service.updateGratitude(entry) { result in
+        service.updateGratitude(entry) { [weak self] result in
             DispatchQueue.main.async {
                 switch result {
                 case .success:
-                    if let index = self.allEntries.firstIndex(where: { $0.id == entry.id }) {
-                        self.allEntries[index] = entry
+                    if let index = self?.allEntries.firstIndex(where: { $0.id == entry.id }) {
+                        self?.allEntries[index] = entry
                     }
-                    
-                    DispatchQueue.main.async {
-                        completion(true)
-                    }
+                    self?.errorMessage = nil
+                    completion(true)
                 case .failure(let error):
-                    print("ERROR UPDATING GRATITUDE: \(error)")
-                    DispatchQueue.main.async {
-                        completion(false)
-                    }
+                    self?.errorMessage = error.localizedDescription
+                    completion(false)
                 }
             }
         }
     }
     
     func deleteGratitude(entryID: String, completion: @escaping (Bool) -> Void) {
-        service.deleteGratitude(entryID: entryID) { result in
+        service.deleteGratitude(entryID: entryID) { [weak self] result in
             switch result {
             case .success:
-                if let index = self.allEntries.firstIndex(where: { $0.id == entryID }) {
-                    self.allEntries.remove(at: index)
-                    self.todayEntry = nil
+                if let index = self?.allEntries.firstIndex(where: { $0.id == entryID }) {
+                    self?.allEntries.remove(at: index)
+                    self?.todayEntry = nil
                 }
+                self?.errorMessage = nil
+                completion(true)
                 
-                DispatchQueue.main.async {
-                    completion(true)
-                }
             case .failure(let error):
-                print("ERROR DELETING GRATITUDE: \(error)")
-                DispatchQueue.main.async {
-                    completion(false)
-                }
+                self?.errorMessage = error.localizedDescription
+                completion(false)
             }
         }
     }
