@@ -37,29 +37,33 @@ struct DetailedJournalEntryView: View {
                             .foregroundStyle(.hearthEmberDark)
                             
                             Spacer()
-                            if !entry.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                                HStack {
-                                    Text(entry.title)
-                                        .font(.customTitle1)
-                                        .foregroundStyle(.parchmentDark)
-                                    Spacer()
-                                }
-                                .padding(.vertical)
+                        }
+                        
+                        if !entry.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                            HStack {
+                                Text(entry.title)
+                                    .font(.customTitle1)
+                                    .foregroundStyle(.parchmentDark)
+                                Spacer()
                             }
+                            .padding(.top, 10)
+                            .padding(.bottom, 15)
                         }
                         
                         CustomDivider(height: 2, color: .hearthEmberMain)
                         
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 15)
-                                .foregroundStyle(.parchmentLight)
-                            
-                            Text(entry.content)
-                                .padding(.vertical)
-                                .foregroundStyle(.parchmentDark)
-                                .font(.customBody1)
-                                .padding(.vertical, 5)
-                                .padding(.horizontal)
+                        if !entry.content.isEmpty {
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 15)
+                                    .foregroundStyle(.parchmentLight)
+                                
+                                Text(entry.content)
+                                    .padding(.vertical)
+                                    .foregroundStyle(.parchmentDark)
+                                    .font(.customBody1)
+                                    .padding(.vertical, 5)
+                                    .padding(.horizontal)
+                            }
                         }
                         
                         if let errorMessage = viewModel.errorMessage {

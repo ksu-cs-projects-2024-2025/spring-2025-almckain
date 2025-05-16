@@ -139,7 +139,7 @@ enum GratitudeServiceError: LocalizedError {
         case .firestoreOperationFailed(let error):
             return "Firestore operation failed: \(error.localizedDescription)"
         case .entryUpdateFailed(let error):
-            return "Failed to update gratitude entry"
+            return "Failed to update gratitude entry: \(error.localizedDescription)"
         }
     }
 }

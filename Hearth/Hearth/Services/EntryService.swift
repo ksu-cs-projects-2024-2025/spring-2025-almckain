@@ -19,11 +19,10 @@ class EntryService: EntryServiceProtocol {
     
     func fetchEntriesInRange(start: Date, end: Date, completion: @escaping (Result<[JournalEntryModel], Error>) -> Void) {
         guard let userID = userSession.currentUserID else {
-            completion(.failure(NSError(domain: "AuthError", code: 401,
-               userInfo: [NSLocalizedDescriptionKey: "User not logged in."])))
+            completion(.failure(EntryServiceError.noLoggedInUser))
             return
         }
-        
+
         db.collection("entries")
             .whereField("userID", isEqualTo: userID)
             .whereField("entryType", isEqualTo: EntryType.journal.rawValue)
@@ -31,22 +30,24 @@ class EntryService: EntryServiceProtocol {
             .whereField("timeStamp", isLessThan: end)
             .getDocuments { snapshot, error in
                 if let error = error {
-                    completion(.failure(error))
+                    completion(.failure(EntryServiceError.firestoreOperationFailed(error)))
                     return
                 }
-                
-                let entries: [JournalEntryModel] = snapshot?.documents.compactMap {
-                    try? $0.data(as: JournalEntryModel.self)
-                } ?? []
-                
-                completion(.success(entries))
+
+                do {
+                    let entries: [JournalEntryModel] = try snapshot?.documents.map {
+                        try $0.data(as: JournalEntryModel.self)
+                    } ?? []
+                    completion(.success(entries))
+                } catch {
+                    completion(.failure(EntryServiceError.documentSerializationFailed(error)))
+                }
             }
     }
     
-    
     func saveEntry<T: EntryProtocol>(_ entry: T, completion: @escaping (Result<Void, Error>) -> Void) {
         guard let userID = userSession.currentUserID else {
-            completion(.failure(NSError(domain: "AuthError", code: 401, userInfo: [NSLocalizedDescriptionKey: "User not logged in."])))
+            completion(.failure(EntryServiceError.noLoggedInUser))
             return
         }
         
@@ -57,36 +58,39 @@ class EntryService: EntryServiceProtocol {
             let _ = try db.collection("entries").document(newEntry.id).setData(from: newEntry, merge: true)
             completion(.success(()))
         } catch {
-            completion(.failure(error))
+            completion(.failure(EntryServiceError.documentSerializationFailed(error)))
         }
     }
     
     func fetchEntries<T: EntryProtocol>(entryType: EntryType, completion: @escaping (Result<[T], Error>) -> Void) {
         guard let userID = userSession.currentUserID else {
-            completion(.failure(NSError(domain: "AuthError", code: 401, userInfo: [NSLocalizedDescriptionKey: "User not logged in."])))
+            completion(.failure(EntryServiceError.noLoggedInUser))
             return
         }
-        
+
         db.collection("entries")
             .whereField("userID", isEqualTo: userID)
             .whereField("entryType", isEqualTo: entryType.rawValue)
             .getDocuments { snapshot, error in
                 if let error = error {
-                    completion(.failure(error))
+                    completion(.failure(EntryServiceError.firestoreOperationFailed(error)))
                     return
                 }
-                
-                let entries: [T] = snapshot?.documents.compactMap{
-                    try? $0.data(as: T.self)
-                } ?? []
-                
-                completion(.success(entries))
+
+                do {
+                    let entries: [T] = try snapshot?.documents.map {
+                        try $0.data(as: T.self)
+                    } ?? []
+                    completion(.success(entries))
+                } catch {
+                    completion(.failure(EntryServiceError.documentSerializationFailed(error)))
+                }
             }
     }
     
     func fetchEntriesForDay(date: Date, completion: @escaping (Result<[JournalEntryModel], Error>) -> Void) {
         guard let userID = userSession.currentUserID else {
-            completion(.failure(NSError(domain: "AuthError", code: 401, userInfo: [NSLocalizedDescriptionKey: "User not logged in."])))
+            completion(.failure(EntryServiceError.noLoggedInUser))
             return
         }
 
@@ -98,12 +102,12 @@ class EntryService: EntryServiceProtocol {
         components.timeZone = TimeZone.current
 
         guard let localStartOfDay = calendar.date(from: components) else {
-            completion(.failure(NSError(domain: "DateError", code: 400, userInfo: [NSLocalizedDescriptionKey: "Failed to calculate local start of day"])))
+            completion(.failure(EntryServiceError.dateCalculationFailed(reason: "Failed to calculate local start of day")))
             return
         }
 
         guard let localEndOfDay = calendar.date(byAdding: .day, value: 1, to: localStartOfDay) else {
-            completion(.failure(NSError(domain: "DateError", code: 400, userInfo: [NSLocalizedDescriptionKey: "Failed to calculate local end of day"])))
+                completion(.failure(EntryServiceError.dateCalculationFailed(reason: "Failed to calculate local end of day")))
             return
         }
 
@@ -116,7 +120,7 @@ class EntryService: EntryServiceProtocol {
             .whereField("timeStamp", isLessThan: localEndOfDay)
             .getDocuments { snapshot, error in
                 if let error = error {
-                    completion(.failure(error))
+                    completion(.failure(EntryServiceError.firestoreOperationFailed(error)))
                     return
                 }
                 
@@ -131,14 +135,13 @@ class EntryService: EntryServiceProtocol {
     
     func deleteEntry(entryId: String, completion: @escaping (Result<Void, Error>) -> Void) {
         guard userSession.currentUserID != nil else {
-            completion(.failure(NSError(domain: "AuthError", code: 401,
-                                       userInfo: [NSLocalizedDescriptionKey: "User not logged in"])))
+            completion(.failure(EntryServiceError.noLoggedInUser))
             return
         }
         
         db.collection("entries").document(entryId).delete { error in
             if let error = error {
-                completion(.failure(error))
+                completion(.failure(EntryServiceError.firestoreOperationFailed(error)))
             } else {
                 completion(.success(()))
             }
@@ -147,7 +150,7 @@ class EntryService: EntryServiceProtocol {
     
     func updateEntry(_ entry: JournalEntryModel, completion: @escaping (Result<Void, Error>) -> Void) {
         guard userSession.currentUserID != nil else {
-            completion(.failure(NSError(domain: "AuthError", code: 401, userInfo: [NSLocalizedDescriptionKey: "User not logged in."])))
+            completion(.failure(EntryServiceError.noLoggedInUser))
             return
         }
         
@@ -161,7 +164,7 @@ class EntryService: EntryServiceProtocol {
         
         Firestore.firestore().collection("entries").document(entryID).updateData(data) { error in
             if let error = error {
-                completion(.failure(error))
+                completion(.failure(EntryServiceError.firestoreOperationFailed(error)))
             } else {
                 completion(.success(()))
             }
@@ -170,9 +173,7 @@ class EntryService: EntryServiceProtocol {
     
     func fetchEntriesForLastWeek(completion: @escaping (Result<[JournalEntryModel], Error>) -> Void) {
         guard let userID = userSession.currentUserID else {
-            completion(.failure(NSError(domain: "AuthError",
-                                        code: 401,
-                                        userInfo: [NSLocalizedDescriptionKey: "User not logged in."])))
+            completion(.failure(EntryServiceError.noLoggedInUser))
             return
         }
         
@@ -186,14 +187,12 @@ class EntryService: EntryServiceProtocol {
             value: -daysSinceSunday,
             to: calendar.startOfDay(for: now)
         ) else {
-            completion(.failure(NSError(domain: "DateCalcError", code: 400,
-                                        userInfo: [NSLocalizedDescriptionKey: "Could not compute thisSundayMidnight"])))
+            completion(.failure(EntryServiceError.dateCalculationFailed(reason: "Could not compute thisSundayMidnight")))
             return
         }
         
         guard let previousSundayMidnight = calendar.date(byAdding: .day, value: -7, to: thisSundayMidnight) else {
-            completion(.failure(NSError(domain: "DateCalcError", code: 400,
-                                        userInfo: [NSLocalizedDescriptionKey: "Could not compute previousSundayMidnight"])))
+            completion(.failure(EntryServiceError.dateCalculationFailed(reason: "Could not compute previousSundayMidnight")))
             return
         }
         
@@ -204,7 +203,7 @@ class EntryService: EntryServiceProtocol {
             .whereField("timeStamp", isLessThan: thisSundayMidnight)
             .getDocuments { snapshot, error in
                 if let error = error {
-                    completion(.failure(error))
+                    completion(.failure(EntryServiceError.firestoreOperationFailed(error)))
                     return
                 }
                 
@@ -216,4 +215,24 @@ class EntryService: EntryServiceProtocol {
             }
     }
 
+}
+
+enum EntryServiceError: LocalizedError {
+    case noLoggedInUser
+    case dateCalculationFailed(reason: String)
+    case firestoreOperationFailed(Error)
+    case documentSerializationFailed(Error)
+
+    var errorDescription: String? {
+        switch self {
+        case .noLoggedInUser:
+            return "No user is currently logged in. Please sign in to access journal entries."
+        case .dateCalculationFailed(let reason):
+            return "Failed to calculate date range: \(reason)"
+        case .firestoreOperationFailed(let error):
+            return "Firestore operation failed: \(error.localizedDescription)"
+        case .documentSerializationFailed(let error):
+            return "Failed to parse entry: \(error.localizedDescription)"
+        }
+    }
 }

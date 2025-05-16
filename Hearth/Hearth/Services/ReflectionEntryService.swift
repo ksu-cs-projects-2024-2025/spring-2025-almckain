@@ -9,38 +9,44 @@ import Foundation
 import FirebaseFirestore
 import FirebaseAuth
 
-class ReflectionEntryService {
+class ReflectionEntryService: ReflectionEntryServiceProtocol {
     private let db = Firestore.firestore()
+    private let userSession: UserSessionProviding
+    
+    init(userSession: UserSessionProviding = FirebaseUserSessionProvider()) {
+        self.userSession = userSession
+    }
     
     func saveReflection(_ reflection: JournalReflectionModel, completion: @escaping (Result<Void, Error>) -> Void) {
-        // Ensure that the user is logged in
-        guard Auth.auth().currentUser != nil else {
-            completion(.failure(NSError(domain: "AuthError",
-                                        code: 401,
-                                        userInfo: [NSLocalizedDescriptionKey: "User not logged in"])))
+        guard userSession.currentUser != nil else {
+            completion(.failure(ReflectionEntryError.noLoggedInUser))
             return
         }
         
         do {
-            // Using the Codable support to encode reflection into Firestore format.
             try db.collection("entryReflections")
                 .document(reflection.id)
                 .setData(from: reflection, merge: true) { error in
                     if let error = error {
-                        completion(.failure(error))
+                        completion(.failure(ReflectionEntryError.firestoreOperationFailed(error)))
                     } else {
                         completion(.success(()))
                     }
                 }
         } catch {
-            completion(.failure(error))
+            completion(.failure(ReflectionEntryError.documentSerializationFailed(error)))
         }
     }
     
     func deleteReflection(reflectionID: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        guard userSession.currentUser != nil else {
+            completion(.failure(ReflectionEntryError.noLoggedInUser))
+            return
+        }
+        
         db.collection("entryReflections").document(reflectionID).delete { error in
             if let error = error {
-                completion(.failure(error))
+                completion(.failure(ReflectionEntryError.firestoreOperationFailed(error)))
             } else {
                 completion(.success(()))
             }
@@ -48,22 +54,32 @@ class ReflectionEntryService {
     }
     
     func updateReflection(_ reflection: JournalReflectionModel, completion: @escaping (Result<Void, Error>) -> Void) {
+        guard userSession.currentUser != nil else {
+            completion(.failure(ReflectionEntryError.noLoggedInUser))
+            return
+        }
+        
         do {
             try db.collection("entryReflections")
                 .document(reflection.id)
                 .setData(from: reflection, merge: true) { error in
                     if let error = error {
-                        completion(.failure(error))
+                        completion(.failure(ReflectionEntryError.firestoreOperationFailed(error)))
                     } else {
                         completion(.success(()))
                     }
                 }
         } catch {
-            completion(.failure(error))
+            completion(.failure(ReflectionEntryError.documentSerializationFailed(error)))
         }
     }
     
     func fetchReflection(reflectionID: String, completion: @escaping (Result<JournalReflectionModel, Error>) -> Void) {
+        guard userSession.currentUser != nil else {
+            completion(.failure(ReflectionEntryError.noLoggedInUser))
+            return
+        }
+        
         let docRef = db.collection("entryReflections").document(reflectionID)
         docRef.getDocument { document, error in
             if let error = error {
@@ -83,16 +99,15 @@ class ReflectionEntryService {
     }
     
     func fetchTodayReflection(completion: @escaping (Result<JournalReflectionModel?, Error>) -> Void) {
-        guard let currentUser = Auth.auth().currentUser else {
-            print("No current user found. User not logged in.")
-            completion(.failure(NSError(domain: "AuthError", code: 401, userInfo: [NSLocalizedDescriptionKey: "User not logged in"])))
+        guard let currentUser = userSession.currentUser else {
+            completion(.failure(ReflectionEntryError.noLoggedInUser))
             return
         }
         
         let calendar = Calendar.current
         let startOfDay = calendar.startOfDay(for: Date())
         guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else {
-            completion(.failure(NSError(domain: "DateError", code: 500, userInfo: [NSLocalizedDescriptionKey: "Date calculation error"])))
+            completion(.failure(ReflectionEntryError.dateCalculationFailed))
             return
         }
 
@@ -102,44 +117,34 @@ class ReflectionEntryService {
             .whereField("reflectionTimestamp", isLessThan: endOfDay)
             .getDocuments { snapshot, error in
                 if let error = error {
-                    print("Error fetching documents: \(error.localizedDescription)")
-                    completion(.failure(error))
+                    completion(.failure(ReflectionEntryError.firestoreOperationFailed(error)))
                 } else if let documents = snapshot?.documents {
-                    
                     if let document = documents.first {
                         do {
                             let reflection = try document.data(as: JournalReflectionModel.self)
-                            print("Successfully decoded reflection.")
                             completion(.success(reflection))
                         } catch {
-                            print("Failed to decode reflection: \(error.localizedDescription)")
-                            completion(.failure(error))
+                            completion(.failure(ReflectionEntryError.documentSerializationFailed(error)))
                         }
                     } else {
-                        print("No documents found for today.")
                         completion(.success(nil))
                     }
                 } else {
-                    print("Snapshot and documents were both nil.")
                     completion(.success(nil))
                 }
             }
     }
     
     func fetchReflections(for date: Date, completion: @escaping (Result<[JournalReflectionModel], Error>) -> Void) {
-        guard let currentUser = Auth.auth().currentUser else {
-            completion(.failure(NSError(domain: "AuthError",
-                                        code: 401,
-                                        userInfo: [NSLocalizedDescriptionKey: "User not logged in"])))
+        guard let currentUser = userSession.currentUser else {
+            completion(.failure(ReflectionEntryError.noLoggedInUser))
             return
         }
         
         let calendar = Calendar.current
         let startOfDay = calendar.startOfDay(for: date)
         guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else {
-            completion(.failure(NSError(domain: "DateError",
-                                        code: 500,
-                                        userInfo: [NSLocalizedDescriptionKey: "Date calculation error"])))
+            completion(.failure(ReflectionEntryError.dateCalculationFailed))
             return
         }
 
@@ -149,7 +154,7 @@ class ReflectionEntryService {
             .whereField("reflectionTimestamp", isLessThan: endOfDay)
             .getDocuments { snapshot, error in
                 if let error = error {
-                    completion(.failure(error))
+                    completion(.failure(ReflectionEntryError.firestoreOperationFailed(error)))
                 } else if let documents = snapshot?.documents {
                     var reflections = [JournalReflectionModel]()
                     for doc in documents {
@@ -157,7 +162,7 @@ class ReflectionEntryService {
                             let reflection = try doc.data(as: JournalReflectionModel.self)
                             reflections.append(reflection)
                         } catch {
-                            completion(.failure(error))
+                            completion(.failure(ReflectionEntryError.documentSerializationFailed(error)))
                             return
                         }
                     }
@@ -168,3 +173,27 @@ class ReflectionEntryService {
             }
     }
 }
+
+enum ReflectionEntryError: LocalizedError {
+    case noLoggedInUser
+    case dateCalculationFailed
+    case documentSerializationFailed(Error)
+    case firestoreOperationFailed(Error)
+    case reflectionNotFound
+
+    var errorDescription: String? {
+        switch self {
+        case .noLoggedInUser:
+            return "No user is currently logged in. Please sign in to access reflections."
+        case .dateCalculationFailed:
+            return "Failed to calculate a valid date range."
+        case .documentSerializationFailed(let error):
+            return "Failed to process reflection entry: \(error.localizedDescription)"
+        case .firestoreOperationFailed(let error):
+            return "Firestore operation failed: \(error.localizedDescription)"
+        case .reflectionNotFound:
+            return "The requested reflection entry could not be found."
+        }
+    }
+}
+

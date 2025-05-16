@@ -15,11 +15,16 @@ class ReflectionViewModel: ObservableObject {
     @Published var isSaving = false
 
     
-    private let reflectionService = ReflectionEntryService()
-    private let journalEntryService = EntryService()
+    private let reflectionService: ReflectionEntryServiceProtocol
+    private let journalEntryService: EntryServiceProtocol
     
     var highestSpireReflection: JournalReflectionModel? {
         reflections.max(by: { $0.spireScore < $1.spireScore })
+    }
+    
+    init(reflectionService: ReflectionEntryServiceProtocol = ReflectionEntryService(), journalEntryService: EntryServiceProtocol = EntryService()) {
+        self.reflectionService = reflectionService
+        self.journalEntryService = journalEntryService
     }
     
     func saveReflection(_ reflection: JournalReflectionModel, completion: @escaping (Bool) -> Void) {
@@ -78,7 +83,6 @@ class ReflectionViewModel: ObservableObject {
         reflectionService.fetchReflection(reflectionID: reflectionID) { result in
             switch result {
             case .success(let reflection):
-                // Update local array if already exists; otherwise, append it.
                 if let index = self.reflections.firstIndex(where: { $0.id == reflection.id }) {
                     self.reflections[index] = reflection
                 } else {
@@ -165,7 +169,6 @@ class ReflectionViewModel: ObservableObject {
         reflectionService.fetchReflections(for: date) { result in
             switch result {
             case .success(let fetchedReflections):
-                // Update local `reflections` array with new or updated reflections
                 for reflection in fetchedReflections {
                     if let index = self.reflections.firstIndex(where: { $0.id == reflection.id }) {
                         self.reflections[index] = reflection
@@ -174,7 +177,6 @@ class ReflectionViewModel: ObservableObject {
                     }
                 }
                 
-                // Filter them by the exact date if needed, or just pass them all up
                 let sameDayReflections = fetchedReflections.filter {
                     Calendar.current.isDate($0.reflectionTimestamp, inSameDayAs: date)
                 }

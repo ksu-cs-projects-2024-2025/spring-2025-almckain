@@ -74,7 +74,7 @@ class VerseReflectionService {
     }
     
     func deleteReflection(entryId: String, completion: @escaping (Result<Void, Error>) -> Void) {
-        guard let userID = userSession.currentUserID else {
+        guard let _ = userSession.currentUserID else {
             completion(.failure(VerseReflectionServiceError.userNotLoggedIn))
             return
         }
